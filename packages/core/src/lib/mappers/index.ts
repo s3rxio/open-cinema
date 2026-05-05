@@ -1,0 +1,1 @@
+export { PaginateQuery } from './paginate-query.mapper';

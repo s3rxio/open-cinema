@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client"
+  output   = "generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  username String @unique
+
+  password     String
+  refreshToken String? @map("refresh_token")
+
+  birthdate DateTime?
+  gender  Gender? @default(OTHER)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  reviews   Review[]
+  favorites Favorite[]
+
+  @@map("users")
+}
+
+model Movie {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  releaseDate DateTime @map("release_date")
+  genre       String
+  director    String
+  rating      Float
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  reviews   Review[]
+  favorites Favorite[]
+
+  @@map("movies")
+}
+
+model Series {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  releaseDate DateTime @map("release_date")
+  genre       String
+  director    String
+  rating      Float
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  episodes  Episode[]
+  favorites Favorite[]
+
+  @@map("serieses")
+}
+
+model Episode {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  releaseDate DateTime @map("release_date")
+  rating      Float
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  seriesId String @map("series_id")
+  series   Series @relation(fields: [seriesId], references: [id])
+
+  @@map("episodes")
+}
+
+model Review {
+  id      String @id @default(uuid())
+  content String
+  rating  Float
+  userId  String @map("user_id")
+  movieId String @map("movie_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user  User  @relation(fields: [userId], references: [id])
+  movie Movie @relation(fields: [movieId], references: [id])
+
+  @@map("reviews")
+}
+
+model Favorite {
+  id       String @id @default(uuid())
+  userId   String @map("user_id")
+  movieId  String @map("movie_id")
+  seriesId String @map("series_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  movie  Movie  @relation(fields: [movieId], references: [id])
+  series Series @relation(fields: [seriesId], references: [id])
+
+  @@map("favorites")
+}

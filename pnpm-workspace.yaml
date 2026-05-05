@@ -1,0 +1,10 @@
+allowBuilds:
+  "@nestjs/core": false
+  "@parcel/watcher": true
+  "@swc/core": true
+  cypress: true
+  less: false
+  nx: false
+  sharp: false
+  unrs-resolver: false
+autoInstallPeers: true
