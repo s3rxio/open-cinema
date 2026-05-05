@@ -1,12 +1,17 @@
+type EnvironmentVariables =
+  import("./common/configs/env.config").EnvironmentVariables;
+
 declare global {
   namespace NodeJS {
-    type ProcessEnv = import("./common/configs/env.config").EnvironmentVariables;
+    interface ProcessEnv extends EnvironmentVariables {
+      TZ?: string;
+    }
   }
 
   namespace Express {
     interface Request {
       idk: string;
-      // user: import("./user/entities/user.entity").UserEntity;
+      user: import("./app/user/entities/user.entity").User;
     }
   }
 }

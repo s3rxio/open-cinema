@@ -3,7 +3,10 @@ import { BaseEntity } from "@open-cinema/core";
 import { UserModel } from "../../../../prisma/generated/models";
 
 @ObjectType()
-export class User extends BaseEntity implements Partial<Omit<UserModel, "password" | "refreshToken">> {
+export class User
+  extends BaseEntity
+  implements Partial<Omit<UserModel, "password" | "refreshToken">>
+{
   @Field()
   username: string;
 

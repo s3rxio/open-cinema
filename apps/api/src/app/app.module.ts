@@ -2,21 +2,23 @@ import { ClassSerializerInterceptor, Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { JwtModule, JwtModuleOptions } from "@nestjs/jwt";
 import { validateEnv } from "../common/configs/env.config";
 import jwtConfig from "../common/configs/jwt.config";
 import tokenConfig from "../common/configs/token.config";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriverConfig } from "@nestjs/apollo";
 import gqlConfig from "../common/configs/graphql";
-import { APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from "./prisma/prisma.module";
+import { AuthModule } from "./auth/auth.module";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import cryptographyConfig from "../common/configs/cryptography";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [jwtConfig, tokenConfig, gqlConfig],
+      load: [jwtConfig, tokenConfig, gqlConfig, cryptographyConfig],
       envFilePath: [
         ".env.local",
         ".env",
@@ -25,12 +27,6 @@ import { PrismaModule } from './prisma/prisma.module';
       ],
       validate: validateEnv
     }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) =>
-        configService.get("jwt") as JwtModuleOptions,
-      inject: [ConfigService]
-    }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [ConfigModule],
       driver: gqlConfig().driver,
@@ -38,8 +34,9 @@ import { PrismaModule } from './prisma/prisma.module';
         configService.get("graphql") as ApolloDriverConfig,
       inject: [ConfigService]
     }),
+    PrismaModule,
     UserModule,
-    PrismaModule
+    AuthModule
   ],
   controllers: [AppController],
   providers: [
@@ -47,6 +44,10 @@ import { PrismaModule } from './prisma/prisma.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
     }
   ]
 })

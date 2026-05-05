@@ -1,14 +1,20 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { UserService } from './user.service';
-import { User } from './entities/user.entity';
-import { CreateUserInput } from './dto/create-user.input';
-import { UpdateUserInput } from './dto/update-user.input';
-import { PaginatedUsers } from './dto/paginated-user.response';
-import { PaginationArgs } from '@open-cinema/core';
+import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import { UserService } from "./user.service";
+import { User } from "./entities/user.entity";
+import { CreateUserInput } from "./dto/create-user.input";
+import { UpdateUserInput } from "./dto/update-user.input";
+import { PaginatedUsers } from "./dto/paginated-user.response";
+import { PaginationArgs } from "@open-cinema/core";
+import { UserMe } from "./user-me.decorator";
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
+
+  @Query(() => User, { name: "me" })
+  me(@UserMe() user: User) {
+    return user;
+  }
 
   @Mutation(() => User)
   createUser(@Args("createUserInput") createUserInput: CreateUserInput) {
@@ -26,7 +32,7 @@ export class UserResolver {
   }
 
   @Mutation(() => User)
-  async updateUser(@Args("updateUserInput") updateUserInput: UpdateUserInput) {    
+  async updateUser(@Args("updateUserInput") updateUserInput: UpdateUserInput) {
     return this.userService.update(updateUserInput.id, updateUserInput);
   }
 

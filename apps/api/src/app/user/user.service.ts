@@ -1,6 +1,8 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException
 } from "@nestjs/common";
 import { CreateUserInput } from "./dto/create-user.input";
@@ -10,10 +12,16 @@ import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "./entities/user.entity";
 import bcrypt from "bcrypt";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(UserService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService
+  ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
     const existingUser = await this.prisma.user.findFirst({
@@ -32,23 +40,27 @@ export class UserService {
       );
     }
 
-    const hashedPassword = bcrypt.hashSync(
-      createUserInput.password,
-      process.env.API_BCRYPT_SALT
-    );
+    try {
+      const salt = this.configService.getOrThrow<string>("crypto.salt");
+      const hashedPassword = bcrypt.hashSync(createUserInput.password, salt);
 
-    return this.prisma.user.create({
-      data: {
-        username: createUserInput.username,
-        email: createUserInput.email,
-        password: hashedPassword,
-        birthdate: createUserInput.birthdate
-      },
-      omit: {
-        password: true,
-        refreshToken: true
-      }
-    });
+      return this.prisma.user.create({
+        data: {
+          username: createUserInput.username,
+          email: createUserInput.email,
+          password: hashedPassword,
+          birthdate: createUserInput.birthdate
+        },
+        omit: {
+          password: true,
+          refreshToken: true
+        }
+      });
+    } catch (error) {
+      this.logger.error(error);
+
+      throw new InternalServerErrorException();
+    }
   }
 
   async findAll(paginationArgs: PaginationArgs): Promise<PaginatedUsers> {
@@ -89,6 +101,16 @@ export class UserService {
     return user;
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id: id },
+      omit: {
+        password: true,
+        refreshToken: true
+      }
+    });
+  }
+
   async update(id: string, updateUserInput: UpdateUserInput): Promise<User> {
     const existingUser = await this.findOne(id);
 
@@ -102,9 +124,11 @@ export class UserService {
     }
 
     if (updateUserInput.password) {
+      const salt = this.configService.getOrThrow<string>("crypto.salt");
+
       updateUserInput.password = bcrypt.hashSync(
         updateUserInput.password,
-        process.env.API_BCRYPT_SALT
+        salt
       );
     }
 

@@ -3,6 +3,10 @@
 # Prisma generated client
 generated/
 
+# Environment
+.env*
+!.env.example
+
 # compiled output
 dist
 tmp

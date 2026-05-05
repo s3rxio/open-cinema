@@ -33,9 +33,11 @@ export class EnvironmentVariables {
   @IsOptional()
   API_URL: string;
 
-  /* CRYPTO */
+  /* CRYPTOGRAPHY */
   @IsString()
-  @IsOptional()
+  API_SECRET: string;
+
+  @IsString()
   API_BCRYPT_SALT: string;
 
   @IsString()
