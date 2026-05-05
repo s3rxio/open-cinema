@@ -1,1 +1,1 @@
-export { PaginateQuery } from './paginate-query.mapper';
+export { PaginateQuery } from "./paginate-query.mapper";

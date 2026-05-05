@@ -13,8 +13,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "strictPropertyInitialization": false,
-    "noImplicitOverride": false,
-    
+    "noImplicitOverride": false
   },
   "include": ["src/**/*.ts"],
   "exclude": [

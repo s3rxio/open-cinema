@@ -7,13 +7,13 @@ export const PaginateQuery = <D = unknown>(dataRef: Type<D>) => {
     @Field(() => [dataRef])
     data: D[];
 
-    @Field(() => Int, { description: 'Total number of items available' })
+    @Field(() => Int, { description: "Total number of items available" })
     total: number;
 
-    @Field({ description: 'Cursor for the next page of items' })
+    @Field({ description: "Cursor for the next page of items" })
     nextCursor?: string | null;
 
-    @Field({ description: 'Cursor for the previous page of items' })
+    @Field({ description: "Cursor for the previous page of items" })
     prevCursor?: string | null;
   }
 
