@@ -83,7 +83,8 @@ model Episode {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  season Int
+  season  Int
+  episode Int
 
   seriesId String @map("series_id")
   series   Series @relation(fields: [seriesId], references: [id])

@@ -12,6 +12,9 @@ import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { AuthModule } from "./auth/auth.module";
+import { MovieModule } from "./movie/movie.module";
+import { SeriesModule } from "./series/series.module";
+import { EpisodeModule } from "./episode/episode.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import cryptographyConfig from "../common/configs/cryptography";
 
@@ -36,7 +39,10 @@ import cryptographyConfig from "../common/configs/cryptography";
     }),
     PrismaModule,
     UserModule,
-    AuthModule
+    AuthModule,
+    MovieModule,
+    SeriesModule,
+    EpisodeModule
   ],
   controllers: [AppController],
   providers: [

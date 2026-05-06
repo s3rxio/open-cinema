@@ -5,7 +5,7 @@ import { UserService } from "../user/user.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TokenPair } from "./entities/auth.entity";
-import { AuthJwtPayload } from "./auth.types";
+import { AuthJwtPayload, JwtToken } from "./auth.types";
 import { RefreshTokenInput } from "./dto/refresh-token.input";
 import bcrypt from "bcrypt";
 import { RegisterInput } from "./dto/register.input";
@@ -21,27 +21,18 @@ export class AuthService {
     private configService: ConfigService
   ) {}
 
-  private generateAccessToken(userId: string): string {
+  private generateToken(userId: string, type: JwtToken): string {
     return this.jwtService.sign(
       { userId },
       {
-        expiresIn: this.configService.getOrThrow("token.access.expiresIn")
-      }
-    );
-  }
-
-  private generateRefreshToken(userId: string): string {
-    return this.jwtService.sign(
-      { userId },
-      {
-        expiresIn: this.configService.getOrThrow("token.refresh.expiresIn")
+        expiresIn: this.configService.getOrThrow(`token.${type}.expiresIn`)
       }
     );
   }
 
   private async generateTokens(userId: string): Promise<TokenPair> {
-    const accessToken = this.generateAccessToken(userId);
-    const refreshToken = this.generateRefreshToken(userId);
+    const accessToken = this.generateToken(userId, JwtToken.Access);
+    const refreshToken = this.generateToken(userId, JwtToken.Refresh);
 
     await this.prismaService.user.update({
       where: { id: userId },
