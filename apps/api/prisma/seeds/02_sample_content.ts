@@ -121,7 +121,9 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
       });
     }
 
-    console.log("Series 'Attack on Titan: The Final Attack' created with episodes");
+    console.log(
+      "Series 'Attack on Titan: The Final Attack' created with episodes"
+    );
   } catch (e) {
     console.log("Series 'Attack on Titan: The Final Attack' already exists");
   }

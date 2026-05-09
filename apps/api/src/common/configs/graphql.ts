@@ -10,10 +10,11 @@ const gqlConfig = registerAs(
   (): GraphQLConfig => ({
     driver: ApolloDriver,
     autoSchemaFile: path.join(__dirname, "schema.gql"),
+    introspection: true,
     sortSchema: true,
     playground: false,
-    plugins: [ApolloServerPluginLandingPageLocalDefault()],
-    debug: process.env.NODE_ENV !== "production"
+    debug: process.env.NODE_ENV !== "production",
+    plugins: [ApolloServerPluginLandingPageLocalDefault()]
   })
 );
 

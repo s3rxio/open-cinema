@@ -17,6 +17,7 @@ import { SeriesModule } from "./series/series.module";
 import { EpisodeModule } from "./episode/episode.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import cryptographyConfig from "../common/configs/cryptography";
+import { ContentModule } from "./content/content.module";
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import cryptographyConfig from "../common/configs/cryptography";
     AuthModule,
     MovieModule,
     SeriesModule,
-    EpisodeModule
+    EpisodeModule,
+    ContentModule
   ],
   controllers: [AppController],
   providers: [

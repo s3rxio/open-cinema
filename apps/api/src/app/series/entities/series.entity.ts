@@ -5,12 +5,6 @@ import { Episode } from "../../episode/entities/episode.entity";
 
 @ObjectType()
 export class Series extends Content implements Partial<SeriesModel> {
-  @Field()
-  genre: string;
-
-  @Field()
-  director: string;
-
   @Field(() => [Episode], { nullable: true })
   episodes?: Episode[];
 }

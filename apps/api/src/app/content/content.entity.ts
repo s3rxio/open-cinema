@@ -14,4 +14,10 @@ export class Content extends BaseEntity {
 
   @Field()
   rating: number;
+
+  @Field()
+  genre: string;
+
+  @Field()
+  director: string;
 }
