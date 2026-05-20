@@ -48,6 +48,18 @@ export class EnvironmentVariables {
   @IsString()
   API_DB_URL: string;
 
+  /* REDIS */
+  @IsString()
+  API_REDIS_HOST: string;
+
+  @IsNumber()
+  @Min(0)
+  @Max(65535)
+  API_REDIS_PORT: number;
+
+  @IsString()
+  API_REDIS_PASSWORD: string;
+
   /* JWT */
   @IsString()
   API_JWT_SECRET: string;

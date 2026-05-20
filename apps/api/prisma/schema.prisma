@@ -51,6 +51,9 @@ model Movie {
   reviews   Review[]
   favorites Favorite[]
 
+  streamId String?
+  stream   Stream? @relation(fields: [streamId], references: [id])
+
   @@map("movies")
 }
 
@@ -90,6 +93,9 @@ model Episode {
   seriesId String @map("series_id")
   series   Series @relation(fields: [seriesId], references: [id])
 
+  streamId String?
+  stream   Stream? @relation(fields: [streamId], references: [id])
+
   @@map("episodes")
 }
 
@@ -125,4 +131,79 @@ model Favorite {
   series Series @relation(fields: [seriesId], references: [id])
 
   @@map("favorites")
+}
+
+/**
+ * Player
+ */
+
+model VideoMeta {
+  id String @id @default(uuid())
+
+  slug        String
+  displayName String @map("display_name")
+  url         String
+
+  bitrate Int
+  width   Int
+  height  Int
+
+  streamId String
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  isProcessed Boolean @default(false)
+
+  @@map("video_metas")
+}
+
+model AudioMeta {
+  id String @id @default(uuid())
+
+  slug        String
+  displayName String @map("display_name")
+  url         String
+  orderNumer  Int
+
+  bitrate Int
+
+  streamId String
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  isDefault   Boolean @default(false)
+  isProcessed Boolean @default(false)
+
+  @@map("audio_metas")
+}
+
+model SubtitleMeta {
+  id String @id @default(uuid())
+
+  slug        String
+  displayName String @map("display_name")
+  url         String
+  orderNumer  Int
+
+  streamId String
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  isProcessed Boolean @default(false)
+
+  @@map("subtitle_metas")
+}
+
+model Stream {
+  id String @id @default(uuid())
+
+  videoMetas    VideoMeta[]
+  audioMetas    AudioMeta[]
+  subtitleMetas SubtitleMeta[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  movies   Movie[]
+  episodes Episode[]
+
+  @@map("streams")
 }
