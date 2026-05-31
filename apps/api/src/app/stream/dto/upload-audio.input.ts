@@ -29,5 +29,6 @@ export class UploadAudioInput {
     defaultValue: false
   })
   @IsBoolean()
+  @IsOptional()
   isDefault: boolean = false;
 }

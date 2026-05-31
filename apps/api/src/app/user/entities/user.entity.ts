@@ -1,6 +1,7 @@
 import { ObjectType, Field } from "@nestjs/graphql";
 import { BaseEntity } from "@open-cinema/core";
 import { UserModel } from "../../../../prisma/generated/models";
+import { Favorite } from "../../favorite/entities/favorite.entity";
 
 @ObjectType()
 export class User
@@ -15,4 +16,10 @@ export class User
 
   @Field({ nullable: true })
   birthdate: Date | null;
+
+  @Field(() => [Favorite], {
+    nullable: true,
+    description: "Favorites movies and series of the user"
+  })
+  favorites?: Favorite[] | null;
 }

@@ -24,6 +24,7 @@ import { BullModule, BullRootModuleOptions } from "@nestjs/bull";
 import { StreamModule } from "./stream/stream.module";
 import { MediaProcessingModule } from "./media-processing/media-processing.module";
 import { StorageModule } from "./storage/storage.module";
+import { FavoriteModule } from "./favorite/favorite.module";
 import bullConfig from "../common/configs/bull.config";
 
 @Module({
@@ -73,7 +74,8 @@ import bullConfig from "../common/configs/bull.config";
     EpisodeModule,
     ContentModule,
     StreamModule,
-    MediaProcessingModule
+    MediaProcessingModule,
+    FavoriteModule
   ],
   controllers: [AppController],
   providers: [

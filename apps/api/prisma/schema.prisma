@@ -117,18 +117,19 @@ model Review {
 }
 
 model Favorite {
-  id       String @id @default(uuid())
-  userId   String @map("user_id")
-  movieId  String @map("movie_id")
-  seriesId String @map("series_id")
+  id String @id @default(uuid())
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user   User   @relation(fields: [userId], references: [id])
-  movie  Movie  @relation(fields: [movieId], references: [id])
-  series Series @relation(fields: [seriesId], references: [id])
+  userId   String  @map("user_id")
+  movieId  String? @map("movie_id")
+  seriesId String? @map("series_id")
+
+  user   User    @relation(fields: [userId], references: [id])
+  movie  Movie?  @relation(fields: [movieId], references: [id])
+  series Series? @relation(fields: [seriesId], references: [id])
 
   @@map("favorites")
 }
@@ -148,10 +149,10 @@ model VideoMeta {
   width   Int
   height  Int
 
+  isProcessed Boolean @default(false)
+
   streamId String
   stream   Stream @relation(fields: [streamId], references: [id])
-
-  isProcessed Boolean @default(false)
 
   @@map("video_metas")
 }

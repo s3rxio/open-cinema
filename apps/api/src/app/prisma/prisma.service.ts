@@ -6,6 +6,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
 export class PrismaService extends PrismaClient {
   constructor() {
     const adapter = new PrismaPg({ connectionString: process.env.API_DB_URL });
-    super({ adapter, log: ["info", "warn", "error"] });
+    super({ adapter, log: ["info", "warn", "error", "query"] });
   }
 }
