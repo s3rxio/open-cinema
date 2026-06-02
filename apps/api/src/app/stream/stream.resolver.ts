@@ -8,6 +8,7 @@ import { UploadSubtitleInput } from "./dto/upload-subtitle.input";
 import { AudioMeta } from "./entities/audio-meta.entity";
 import { SubtitleMeta } from "./entities/subtitle-meta.entity";
 import { CreateStreamInput } from "./dto/create-stream.input";
+import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver()
 export class StreamResolver {
@@ -46,6 +47,7 @@ export class StreamResolver {
     return this.streamService.getStreamForEpisode(episodeId);
   }
 
+  @RequiredPermission(Permission.StreamCreate)
   @Mutation(() => Stream, {
     description: "Create a new stream"
   })
@@ -55,6 +57,7 @@ export class StreamResolver {
     return this.streamService.createStream(createStreamInput);
   }
 
+  @RequiredPermission(Permission.StreamManage)
   @Mutation(() => String, {
     description: "Generates m3u8 master playlist"
   })
@@ -62,6 +65,7 @@ export class StreamResolver {
     return this.streamService.generateMaster(streamId);
   }
 
+  @RequiredPermission(Permission.StreamUpload)
   @Mutation(() => String, {
     description: "Upload and process video file"
   })
@@ -71,6 +75,7 @@ export class StreamResolver {
     return this.streamService.uploadVideo(uploadVideoInput);
   }
 
+  @RequiredPermission(Permission.StreamUpload)
   @Mutation(() => AudioMeta, {
     description: "Upload and process audio file"
   })
@@ -80,6 +85,7 @@ export class StreamResolver {
     return this.streamService.uploadAudio(uploadAudioInput);
   }
 
+  @RequiredPermission(Permission.StreamUpload)
   @Mutation(() => SubtitleMeta, {
     description: "Upload and process subtitle file"
   })

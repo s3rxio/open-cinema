@@ -32,8 +32,56 @@ model User {
   reviews      Review[]
   favorites    Favorite[]
   watchHistory WatchHistory[]
+  roles        UserRole[]
 
   @@map("users")
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  slug        String  @unique
+  name        String
+  description String?
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String  @id @default(uuid())
+  slug        String  @unique
+  name        String
+  description String?
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  @@id([userId, roleId])
+  @@map("user_roles")
 }
 
 model Movie {

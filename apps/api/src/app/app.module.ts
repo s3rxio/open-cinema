@@ -16,6 +16,8 @@ import { MovieModule } from "./movie/movie.module";
 import { SeriesModule } from "./series/series.module";
 import { EpisodeModule } from "./episode/episode.module";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { PermissionsGuard } from "./rbac/guards/permissions.guard";
+import { RbacModule } from "./rbac/rbac.module";
 import cryptographyConfig from "../common/configs/cryptography";
 import { ContentModule } from "./content/content.module";
 import s3Config from "../common/configs/s3.config";
@@ -67,6 +69,7 @@ import bullConfig from "../common/configs/bull.config";
       inject: [ConfigService]
     }),
     PrismaModule,
+    RbacModule,
     StorageModule,
     UserModule,
     AuthModule,
@@ -89,6 +92,10 @@ import bullConfig from "../common/configs/bull.config";
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard
     }
   ]
 })

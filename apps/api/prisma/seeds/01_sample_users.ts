@@ -24,5 +24,28 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
       });
   }
 
+  const adminRole = await prisma.role.findUnique({
+    where: { slug: "admin" }
+  });
+  const adminUser = await prisma.user.findFirst({
+    where: { username: "admin" }
+  });
+
+  if (adminRole && adminUser) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: {
+          userId: adminUser.id,
+          roleId: adminRole.id
+        }
+      },
+      create: {
+        userId: adminUser.id,
+        roleId: adminRole.id
+      },
+      update: {}
+    });
+  }
+
   console.log("Sample users created");
 }

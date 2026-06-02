@@ -9,6 +9,8 @@ import { AuthJwtPayload, JwtToken } from "./auth.types";
 import { RefreshTokenInput } from "./dto/refresh-token.input";
 import bcrypt from "bcrypt";
 import { RegisterInput } from "./dto/register.input";
+import { RbacService } from "../rbac/rbac.service";
+import { RoleSlug } from "../rbac/permissions";
 
 @Injectable()
 export class AuthService {
@@ -18,7 +20,8 @@ export class AuthService {
     private prismaService: PrismaService,
     private jwtService: JwtService,
     private userService: UserService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private rbacService: RbacService
   ) {}
 
   private generateToken(userId: string, type: JwtToken): string {
@@ -77,6 +80,7 @@ export class AuthService {
 
   async register(registerInput: RegisterInput): Promise<TokenPair> {
     const user = await this.userService.create(registerInput);
+    await this.rbacService.assignRoleBySlug(user.id, RoleSlug.User);
     const { accessToken, refreshToken } = await this.generateTokens(user.id);
 
     return {

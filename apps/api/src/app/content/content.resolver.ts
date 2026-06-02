@@ -15,6 +15,7 @@ import { CreateContentInput } from "./dto/create-content.input";
 import { UpdateContentInput } from "./dto/update-content.input";
 import { SearchResultItem, ContentType } from "./content.types";
 import { BypassAuth } from "../auth/bypass-auth.decorator";
+import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver(() => Content)
 export class ContentResolver {
@@ -73,6 +74,7 @@ export class ContentResolver {
     return result;
   }
 
+  @RequiredPermission(Permission.ContentCreate)
   @Mutation(() => Content, {
     description: "Create new movie content"
   })
@@ -83,6 +85,7 @@ export class ContentResolver {
     });
   }
 
+  @RequiredPermission(Permission.ContentCreate)
   @Mutation(() => Content, {
     description: "Create new series content"
   })
@@ -93,6 +96,7 @@ export class ContentResolver {
     });
   }
 
+  @RequiredPermission(Permission.ContentUpdate)
   @Mutation(() => Content, {
     nullable: true,
     description: "Update content"
@@ -118,6 +122,7 @@ export class ContentResolver {
     return result;
   }
 
+  @RequiredPermission(Permission.ContentDelete)
   @Mutation(() => Boolean, {
     description: "Delete content"
   })
