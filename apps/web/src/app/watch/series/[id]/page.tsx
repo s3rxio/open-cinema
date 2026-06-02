@@ -66,6 +66,11 @@ function WatchSeriesContent() {
       backLabel="К сериалу"
       title={playerTitle || "Загрузка…"}
       contentId={activeEpisodeId}
+      watchPartyHref={
+        activeEpisodeId
+          ? routes.watchPartySeries(id, activeEpisodeId)
+          : undefined
+      }
       seasons={seasons}
       selectedSeason={selectedEpisode?.season}
       selectedEpisodeId={selectedEpisode?.id}

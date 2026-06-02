@@ -19,6 +19,7 @@ type FullscreenPlayerProps = {
   title: string;
   contentId?: string;
   streamId?: string | null;
+  watchPartyHref?: string;
   seasons?: { season: number; episodes: EpisodeOption[] }[];
   selectedSeason?: number;
   selectedEpisodeId?: string;
@@ -33,6 +34,7 @@ export function FullscreenPlayer({
   title,
   contentId,
   streamId,
+  watchPartyHref,
   seasons,
   selectedSeason,
   selectedEpisodeId,
@@ -70,6 +72,7 @@ export function FullscreenPlayer({
             title={title}
             variant="cinema"
             autoPlay
+            watchPartyHref={watchPartyHref}
           />
         ) : loading ? (
           <div className="flex h-full items-center justify-center">

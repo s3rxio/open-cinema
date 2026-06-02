@@ -18,9 +18,11 @@ import {
   Minimize,
   Pause,
   Play,
+  Users,
   Volume2,
   VolumeX
 } from "lucide-react";
+import Link from "next/link";
 import {
   PlayerActionFlash,
   type PlayerFlashAction
@@ -35,6 +37,27 @@ const CONTROLS_HIDE_MS = 3000;
 const FLASH_DURATION_MS = 1000;
 const SEEK_STEP_SEC = 10;
 const CLICK_DELAY_MS = 250;
+import {
+  getExpectedPartyTime,
+  WATCH_PARTY_GUEST_DRIFT_CHECK_MS,
+  WATCH_PARTY_SYNC_THRESHOLD_SEC
+} from "@/features/watch-party/lib/playbackSync";
+
+type WatchPartyPlayback = {
+  currentTime: number;
+  isPlaying: boolean;
+  updatedAt: string;
+};
+
+type WatchPartyConfig = {
+  enabled: boolean;
+  isHost: boolean;
+  remotePlayback: WatchPartyPlayback | null;
+  onLocalPlaybackChange: (state: {
+    currentTime: number;
+    isPlaying: boolean;
+  }) => void;
+};
 
 function SeekButton({
   direction,
@@ -79,6 +102,8 @@ interface VideoPlayerProps {
   title?: string;
   variant?: "embedded" | "cinema";
   autoPlay?: boolean;
+  watchPartyHref?: string;
+  watchParty?: WatchPartyConfig;
 }
 
 export function VideoPlayer({
@@ -86,7 +111,9 @@ export function VideoPlayer({
   streamId,
   title,
   variant = "embedded",
-  autoPlay = false
+  autoPlay = false,
+  watchPartyHref,
+  watchParty
 }: VideoPlayerProps) {
   const isCinema = variant === "cinema";
   const shellClass = isCinema
@@ -107,6 +134,8 @@ export function VideoPlayer({
   );
   const skipPlayPauseFlashRef = useRef(autoPlay || isCinema);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const applyingRemoteRef = useRef(false);
+  const remotePlaybackRef = useRef<WatchPartyPlayback | null>(null);
 
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
@@ -122,6 +151,18 @@ export function VideoPlayer({
   const playerState = usePlayerStore();
   const resetPlayer = usePlayerStore(s => s.reset);
   const { setQuality, setAudio, setSubtitle } = useHlsTracks(hlsRef);
+
+  const partyEnabled = Boolean(watchParty?.enabled);
+  const partyIsHost = Boolean(watchParty?.isHost);
+  const partyGuest = partyEnabled && !partyIsHost;
+
+  const emitPartyPlayback = useCallback(
+    (currentTime: number, isPlaying: boolean) => {
+      if (!partyEnabled || !partyIsHost || applyingRemoteRef.current) return;
+      watchParty?.onLocalPlaybackChange({ currentTime, isPlaying });
+    },
+    [partyEnabled, partyIsHost, watchParty]
+  );
 
   const clearHideTimeout = useCallback(() => {
     if (hideTimeoutRef.current) {
@@ -166,6 +207,7 @@ export function VideoPlayer({
 
   const seekBy = useCallback(
     (delta: number) => {
+      if (partyGuest) return;
       const video = videoRef.current;
       if (!video) return;
       const next = Math.min(
@@ -174,10 +216,11 @@ export function VideoPlayer({
       );
       video.currentTime = next;
       playerState.setCurrentTime(next);
+      emitPartyPlayback(next, !video.paused);
       triggerFlash(delta > 0 ? "seek-forward" : "seek-back");
       revealControls();
     },
-    [duration, playerState, revealControls, triggerFlash]
+    [duration, playerState, revealControls, triggerFlash, emitPartyPlayback, partyGuest]
   );
 
   const toggleFullscreen = useCallback(() => {
@@ -217,6 +260,7 @@ export function VideoPlayer({
   );
 
   const togglePlay = useCallback(() => {
+    if (partyGuest) return;
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
@@ -224,8 +268,9 @@ export function VideoPlayer({
     } else {
       video.pause();
     }
+    emitPartyPlayback(video.currentTime, !video.paused);
     revealControls();
-  }, [revealControls]);
+  }, [revealControls, emitPartyPlayback, partyGuest]);
 
   const toggleMute = useCallback(() => {
     const video = videoRef.current;
@@ -259,12 +304,13 @@ export function VideoPlayer({
   }, [subtitleMetas, playerState, setSubtitle, revealControls]);
 
   const handleVideoClick = useCallback(() => {
+    if (partyGuest) return;
     if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     clickTimeoutRef.current = setTimeout(() => {
       clickTimeoutRef.current = null;
       togglePlay();
     }, CLICK_DELAY_MS);
-  }, [togglePlay]);
+  }, [togglePlay, partyGuest]);
 
   const handleVideoDoubleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -279,7 +325,7 @@ export function VideoPlayer({
   );
 
   usePlayerKeyboard({
-    enabled: keyboardEnabled,
+    enabled: keyboardEnabled && !partyGuest,
     onTogglePlay: togglePlay,
     onSeekBackward: () => seekBy(-SEEK_STEP_SEC),
     onSeekForward: () => seekBy(SEEK_STEP_SEC),
@@ -317,6 +363,77 @@ export function VideoPlayer({
     skipPlayPauseFlashRef.current = autoPlay || isCinema;
     setIsBuffering(false);
   }, [sourceKey, resetPlayer, autoPlay, isCinema]);
+
+  remotePlaybackRef.current = watchParty?.remotePlayback ?? null;
+
+  const applyRemotePlayback = useCallback(
+    (remote: WatchPartyPlayback) => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      applyingRemoteRef.current = true;
+      suppressPlayPauseFlash();
+
+      const expectedTime = getExpectedPartyTime(remote);
+      const drift = Math.abs(video.currentTime - expectedTime);
+
+      if (drift > WATCH_PARTY_SYNC_THRESHOLD_SEC) {
+        video.currentTime = expectedTime;
+        playerState.setCurrentTime(expectedTime);
+      }
+
+      if (remote.isPlaying && video.paused) {
+        void video.play();
+      } else if (!remote.isPlaying && !video.paused) {
+        video.pause();
+      }
+
+      setTimeout(() => {
+        applyingRemoteRef.current = false;
+      }, 400);
+    },
+    [playerState, suppressPlayPauseFlash]
+  );
+
+  const remoteUpdatedAt = watchParty?.remotePlayback?.updatedAt;
+  const remoteIsPlaying = watchParty?.remotePlayback?.isPlaying;
+  const remoteCurrentTime = watchParty?.remotePlayback?.currentTime;
+
+  useEffect(() => {
+    if (!partyEnabled || partyIsHost || !watchParty?.remotePlayback) return;
+    applyRemotePlayback(watchParty.remotePlayback);
+  }, [
+    partyEnabled,
+    partyIsHost,
+    remoteUpdatedAt,
+    remoteIsPlaying,
+    remoteCurrentTime,
+    applyRemotePlayback,
+    watchParty?.remotePlayback
+  ]);
+
+  useEffect(() => {
+    if (!partyGuest) return;
+
+    const checkDrift = () => {
+      const remote = remotePlaybackRef.current;
+      const video = videoRef.current;
+      if (!remote?.isPlaying || !video || applyingRemoteRef.current) return;
+
+      const expectedTime = getExpectedPartyTime(remote);
+      if (
+        Math.abs(video.currentTime - expectedTime) <=
+        WATCH_PARTY_SYNC_THRESHOLD_SEC
+      ) {
+        return;
+      }
+
+      applyRemotePlayback(remote);
+    };
+
+    const intervalId = setInterval(checkDrift, WATCH_PARTY_GUEST_DRIFT_CHECK_MS);
+    return () => clearInterval(intervalId);
+  }, [partyGuest, applyRemotePlayback]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -472,7 +589,11 @@ export function VideoPlayer({
         onHlsReady={handleHlsReady}
         onClick={handleVideoClick}
         onPlay={() => {
+          const video = videoRef.current;
           playerState.setIsPlaying(true);
+          if (video) {
+            emitPartyPlayback(video.currentTime, true);
+          }
           if (
             !suppressPlayPauseFlashRef.current &&
             !skipPlayPauseFlashRef.current
@@ -485,7 +606,11 @@ export function VideoPlayer({
           scheduleHideControls();
         }}
         onPause={() => {
+          const video = videoRef.current;
           playerState.setIsPlaying(false);
+          if (video) {
+            emitPartyPlayback(video.currentTime, false);
+          }
           if (!suppressPlayPauseFlashRef.current) {
             triggerFlash("pause");
           }
@@ -518,9 +643,11 @@ export function VideoPlayer({
           value={playerState.currentTime}
           max={duration > 0 ? duration : 100}
           onChange={value => {
+            if (partyGuest) return;
             playerState.setCurrentTime(value);
             if (videoRef.current) {
               videoRef.current.currentTime = value;
+              emitPartyPlayback(value, !videoRef.current.paused);
             }
             revealControls();
           }}
@@ -589,6 +716,17 @@ export function VideoPlayer({
                 className="hidden h-1 w-16 cursor-pointer accent-white sm:block md:w-24"
               />
             </div>
+
+            {watchPartyHref && !partyEnabled && (
+              <Link
+                href={watchPartyHref}
+                aria-label="Совместный просмотр"
+                title="Совместный просмотр"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/20"
+              >
+                <Users className="h-5 w-5" />
+              </Link>
+            )}
 
             <PlayerSettingsMenu
               open={settingsOpen}

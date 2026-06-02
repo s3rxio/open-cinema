@@ -28,6 +28,8 @@ import { MediaProcessingModule } from "./media-processing/media-processing.modul
 import { StorageModule } from "./storage/storage.module";
 import { FavoriteModule } from "./favorite/favorite.module";
 import { WatchHistoryModule } from "./watch-history/watch-history.module";
+import { WatchPartyModule } from "./watch-party/watch-party.module";
+import { RedisModule } from "./redis/redis.module";
 import bullConfig from "../common/configs/bull.config";
 
 @Module({
@@ -69,6 +71,7 @@ import bullConfig from "../common/configs/bull.config";
       inject: [ConfigService]
     }),
     PrismaModule,
+    RedisModule,
     RbacModule,
     StorageModule,
     UserModule,
@@ -80,7 +83,8 @@ import bullConfig from "../common/configs/bull.config";
     StreamModule,
     MediaProcessingModule,
     FavoriteModule,
-    WatchHistoryModule
+    WatchHistoryModule,
+    WatchPartyModule
   ],
   controllers: [AppController],
   providers: [

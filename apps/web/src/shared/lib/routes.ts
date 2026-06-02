@@ -16,5 +16,18 @@ export const routes = {
   watchSeries: (id: string, episodeId?: string) =>
     episodeId
       ? `/watch/series/${id}?episode=${episodeId}`
-      : `/watch/series/${id}`
+      : `/watch/series/${id}`,
+  watchPartyMovie: (id: string, room?: string) =>
+    room
+      ? `/watch-party/movie/${id}?room=${encodeURIComponent(room)}`
+      : `/watch-party/movie/${id}`,
+  watchPartySeries: (id: string, episodeId?: string, room?: string) => {
+    const params = new URLSearchParams();
+    if (episodeId) params.set("episode", episodeId);
+    if (room) params.set("room", room);
+    const query = params.toString();
+    return query
+      ? `/watch-party/series/${id}?${query}`
+      : `/watch-party/series/${id}`;
+  }
 };
