@@ -279,6 +279,7 @@ export type PaginatedResponse<T> = {
 export type DashboardMoviesQueryVariables = {
   first: number;
   cursor?: string | null;
+  search?: string | null;
 };
 
 export type DashboardMovieItem = PaginatedListItem & {

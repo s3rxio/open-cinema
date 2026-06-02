@@ -64,8 +64,8 @@ import { GET_STREAM_INFO_QUERY } from "./stream";
 export { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY, GET_STREAM_INFO_QUERY };
 
 export const DASHBOARD_MOVIES_QUERY = gql`
-  query DashboardMovies($first: Int!, $cursor: String) {
-    movies(first: $first, cursor: $cursor) {
+  query DashboardMovies($first: Int!, $cursor: String, $search: String) {
+    movies(first: $first, cursor: $cursor, search: $search) {
       data {
         id
         title
@@ -89,8 +89,8 @@ export const DASHBOARD_MOVIES_QUERY = gql`
 >;
 
 export const DASHBOARD_SERIES_LIST_QUERY = gql`
-  query DashboardSeriesList($first: Int!, $cursor: String) {
-    seriesList(first: $first, cursor: $cursor) {
+  query DashboardSeriesList($first: Int!, $cursor: String, $search: String) {
+    seriesList(first: $first, cursor: $cursor, search: $search) {
       data {
         id
         title
@@ -113,8 +113,8 @@ export const DASHBOARD_SERIES_LIST_QUERY = gql`
 >;
 
 export const DASHBOARD_USERS_QUERY = gql`
-  query DashboardUsers($first: Int!, $cursor: String) {
-    users(first: $first, cursor: $cursor) {
+  query DashboardUsers($first: Int!, $cursor: String, $search: String) {
+    users(first: $first, cursor: $cursor, search: $search) {
       data {
         id
         username

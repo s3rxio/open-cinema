@@ -5,14 +5,14 @@ import {
   Mutation,
   Args,
   ResolveField,
-  Parent
+  Parent,
+  Int
 } from "@nestjs/graphql";
 import { UserService } from "./user.service";
 import { User } from "./entities/user.entity";
 import { CreateUserInput } from "./dto/create-user.input";
 import { UpdateUserInput } from "./dto/update-user.input";
 import { PaginatedUsers } from "./dto/paginated-user.response";
-import { PaginationArgs } from "@open-cinema/core";
 import { UserMe } from "./user-me.decorator";
 import { FavoriteService } from "../favorite/favorite.service";
 import { Favorite } from "../favorite/entities/favorite.entity";
@@ -71,8 +71,12 @@ export class UserResolver {
   @UseGuards(RequireAdminGuard)
   @RequiredPermission(Permission.UsersRead)
   @Query(() => PaginatedUsers, { name: "users" })
-  findAll(@Args() paginationArgs: PaginationArgs) {
-    return this.userService.findAll(paginationArgs);
+  findAll(
+    @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
+    @Args("cursor", { nullable: true, type: () => String }) cursor?: string,
+    @Args("search", { nullable: true, type: () => String }) search?: string
+  ) {
+    return this.userService.findAll({ first, cursor, search });
   }
 
   @UseGuards(RequireAdminGuard)

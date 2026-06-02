@@ -2,6 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Pagination } from "@open-cinema/ui";
 import { DASHBOARD_MOVIES_QUERY } from "@/shared/api/operations/dashboard";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
@@ -9,6 +10,7 @@ import {
   DASHBOARD_PAGE_SIZE,
   useCursorPagination
 } from "../lib/useCursorPagination";
+import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
@@ -42,10 +44,20 @@ const columns: DataTableColumn<MovieRow>[] = [
 
 export function MoviesListPage() {
   const router = useRouter();
-  const { page, pageSize, cursor, goToPage } = useCursorPagination();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const { page, pageSize, cursor, goToPage, reset } = useCursorPagination();
+
+  useEffect(() => {
+    reset();
+  }, [debouncedSearch, reset]);
 
   const listQuery = useQuery(DASHBOARD_MOVIES_QUERY, {
-    variables: { first: pageSize, cursor: cursor ?? undefined }
+    variables: {
+      first: pageSize,
+      cursor: cursor ?? undefined,
+      search: debouncedSearch || undefined
+    }
   });
 
   const connection = listQuery.data?.movies;
@@ -57,6 +69,9 @@ export function MoviesListPage() {
       <DashboardListToolbar
         createHref="/dashboard/movies/new"
         createLabel="Создать фильм"
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Поиск по названию, жанру, режиссёру…"
       />
 
       {listQuery.error ? (

@@ -18,4 +18,10 @@ export class PaginationArgs {
   @IsOptional()
   @IsString()
   cursor?: string;
+
+  @Field({ nullable: true, description: "Search query" })
+  @Type(() => String)
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

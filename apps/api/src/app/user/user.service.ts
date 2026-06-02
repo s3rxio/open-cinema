@@ -15,6 +15,7 @@ import bcrypt from "bcrypt";
 import { ConfigService } from "@nestjs/config";
 import { RbacService } from "../rbac/rbac.service";
 import { RoleSlug } from "../rbac/permissions";
+import { buildUserListSearchFilter } from "../common/list-search-filters";
 
 @Injectable()
 export class UserService {
@@ -74,8 +75,10 @@ export class UserService {
   }
 
   async findAll(paginationArgs: PaginationArgs): Promise<PaginatedUsers> {
-    const { first, cursor } = paginationArgs;
+    const { first, cursor, search } = paginationArgs;
+    const where = buildUserListSearchFilter(search);
     const users = await this.prisma.user.findMany({
+      where,
       orderBy: { createdAt: "asc" },
       take: first,
       cursor: cursor ? { id: cursor } : undefined,
@@ -89,7 +92,7 @@ export class UserService {
 
     return {
       data: users,
-      total: await this.prisma.user.count(),
+      total: await this.prisma.user.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
     };

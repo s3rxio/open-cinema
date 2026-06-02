@@ -1,10 +1,9 @@
-import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import { Resolver, Query, Mutation, Args, Int } from "@nestjs/graphql";
 import { MovieService } from "./movie.service";
 import { Movie } from "./entities/movie.entity";
 import { CreateMovieInput } from "./dto/create-movie.input";
 import { UpdateMovieInput } from "./dto/update-movie.input";
 import { PaginatedMovies } from "./dto/paginated-movie.response";
-import { PaginationArgs } from "@open-cinema/core";
 import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver(() => Movie)
@@ -19,8 +18,12 @@ export class MovieResolver {
 
   @RequiredPermission(Permission.MovieRead)
   @Query(() => PaginatedMovies, { name: "movies" })
-  findAll(@Args() paginationArgs: PaginationArgs) {
-    return this.movieService.findAll(paginationArgs);
+  findAll(
+    @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
+    @Args("cursor", { nullable: true, type: () => String }) cursor?: string,
+    @Args("search", { nullable: true, type: () => String }) search?: string
+  ) {
+    return this.movieService.findAll({ first, cursor, search });
   }
 
   @RequiredPermission(Permission.MovieRead)

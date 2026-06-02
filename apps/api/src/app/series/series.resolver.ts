@@ -1,10 +1,9 @@
-import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import { Resolver, Query, Mutation, Args, Int } from "@nestjs/graphql";
 import { SeriesService } from "./series.service";
 import { Series } from "./entities/series.entity";
 import { CreateSeriesInput } from "./dto/create-series.input";
 import { UpdateSeriesInput } from "./dto/update-series.input";
 import { PaginatedSeries } from "./dto/paginated-series.response";
-import { PaginationArgs } from "@open-cinema/core";
 import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver(() => Series)
@@ -21,8 +20,12 @@ export class SeriesResolver {
 
   @RequiredPermission(Permission.SeriesRead)
   @Query(() => PaginatedSeries, { name: "seriesList" })
-  findAll(@Args() paginationArgs: PaginationArgs) {
-    return this.seriesService.findAll(paginationArgs);
+  findAll(
+    @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
+    @Args("cursor", { nullable: true, type: () => String }) cursor?: string,
+    @Args("search", { nullable: true, type: () => String }) search?: string
+  ) {
+    return this.seriesService.findAll({ first, cursor, search });
   }
 
   @RequiredPermission(Permission.SeriesRead)

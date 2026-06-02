@@ -10,6 +10,7 @@ import { PaginatedMovies } from "./dto/paginated-movie.response";
 import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
 import { Movie } from "./entities/movie.entity";
+import { buildContentListSearchFilter } from "../common/list-search-filters";
 
 @Injectable()
 export class MovieService {
@@ -36,8 +37,10 @@ export class MovieService {
   }
 
   async findAll(paginationArgs: PaginationArgs): Promise<PaginatedMovies> {
-    const { first, cursor } = paginationArgs;
+    const { first, cursor, search } = paginationArgs;
+    const where = buildContentListSearchFilter(search);
     const movies = await this.prisma.movie.findMany({
+      where,
       orderBy: { createdAt: "asc" },
       take: first,
       cursor: cursor ? { id: cursor } : undefined
@@ -47,7 +50,7 @@ export class MovieService {
 
     return {
       data: movies,
-      total: await this.prisma.movie.count(),
+      total: await this.prisma.movie.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
     };

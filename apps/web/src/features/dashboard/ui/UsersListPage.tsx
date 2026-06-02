@@ -2,6 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Pagination } from "@open-cinema/ui";
 import { DASHBOARD_USERS_QUERY } from "@/shared/api/operations/dashboard";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
@@ -9,6 +10,7 @@ import {
   DASHBOARD_PAGE_SIZE,
   useCursorPagination
 } from "../lib/useCursorPagination";
+import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
@@ -40,10 +42,20 @@ const columns: DataTableColumn<UserRow>[] = [
 
 export function UsersListPage() {
   const router = useRouter();
-  const { page, pageSize, cursor, goToPage } = useCursorPagination();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const { page, pageSize, cursor, goToPage, reset } = useCursorPagination();
+
+  useEffect(() => {
+    reset();
+  }, [debouncedSearch, reset]);
 
   const listQuery = useQuery(DASHBOARD_USERS_QUERY, {
-    variables: { first: pageSize, cursor: cursor ?? undefined }
+    variables: {
+      first: pageSize,
+      cursor: cursor ?? undefined,
+      search: debouncedSearch || undefined
+    }
   });
 
   const connection = listQuery.data?.users;
@@ -55,6 +67,9 @@ export function UsersListPage() {
       <DashboardListToolbar
         createHref="/dashboard/users/new"
         createLabel="Создать пользователя"
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Поиск по имени или email…"
       />
 
       {listQuery.error ? (

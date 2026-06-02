@@ -2,7 +2,8 @@
 
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useState } from "react";
-import { Button, Input, Label } from "@open-cinema/ui";
+import { Button, cn, Input, Label } from "@open-cinema/ui";
+import { ChevronDown } from "lucide-react";
 import type { SeriesEpisode } from "@/shared/api/operation-types";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
@@ -72,6 +73,21 @@ export function SeriesEpisodesPanel({
   const [editingEpisode, setEditingEpisode] = useState<SeriesEpisode | null>(
     null
   );
+  const [collapsedSeasons, setCollapsedSeasons] = useState<Set<number>>(
+    () => new Set()
+  );
+
+  const toggleSeason = (season: number) => {
+    setCollapsedSeasons(prev => {
+      const next = new Set(prev);
+      if (next.has(season)) {
+        next.delete(season);
+      } else {
+        next.add(season);
+      }
+      return next;
+    });
+  };
 
   const seasons = useMemo(() => {
     const map = new Map<number, SeriesEpisode[]>();
@@ -285,10 +301,29 @@ export function SeriesEpisodesPanel({
         {seasons.length === 0 ? (
           <p className="text-sm text-muted-foreground">Эпизодов пока нет</p>
         ) : (
-          seasons.map(({ season, items }) => (
+          seasons.map(({ season, items }) => {
+            const collapsed = collapsedSeasons.has(season);
+
+            return (
             <div key={season} className="rounded-lg border">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-2">
-                <span className="font-medium">Сезон {season}</span>
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                  onClick={() => toggleSeason(season)}
+                  aria-expanded={!collapsed}
+                >
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                      collapsed && "-rotate-90"
+                    )}
+                  />
+                  <span className="font-medium">Сезон {season}</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({items.length})
+                  </span>
+                </button>
                 <Button
                   type="button"
                   size="sm"
@@ -299,6 +334,7 @@ export function SeriesEpisodesPanel({
                   + Эпизод в сезон {season}
                 </Button>
               </div>
+              {!collapsed ? (
               <ul className="divide-y">
                 {items.map(item => (
                   <li
@@ -337,8 +373,10 @@ export function SeriesEpisodesPanel({
                   </li>
                 ))}
               </ul>
+              ) : null}
             </div>
-          ))
+            );
+          })
         )}
       </section>
 
