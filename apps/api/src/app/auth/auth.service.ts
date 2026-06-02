@@ -79,8 +79,10 @@ export class AuthService {
   }
 
   async register(registerInput: RegisterInput): Promise<TokenPair> {
-    const user = await this.userService.create(registerInput);
-    await this.rbacService.assignRoleBySlug(user.id, RoleSlug.User);
+    const user = await this.userService.create({
+      ...registerInput,
+      roleSlug: RoleSlug.User
+    });
     const { accessToken, refreshToken } = await this.generateTokens(user.id);
 
     return {

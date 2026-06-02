@@ -11,6 +11,7 @@ import {
   UPDATE_USER_MUTATION
 } from "@/shared/api/operations/dashboard";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
+import { useAuth } from "@/shared/auth/AuthContext";
 import { AdminDeleteButton } from "./AdminDeleteButton";
 import { UserEditForm, type UserFormValues } from "./UserEditForm";
 
@@ -19,6 +20,8 @@ type UserEditPageProps = {
 };
 
 export function UserEditPage({ id }: UserEditPageProps) {
+  const { user: currentUser } = useAuth();
+  const isSelf = currentUser?.id === id;
   const userQuery = useQuery(DASHBOARD_USER_QUERY, { variables: { id } });
   const [updateUser, updateUserState] = useMutation(UPDATE_USER_MUTATION);
   const [removeUser] = useMutation(REMOVE_USER_MUTATION);
@@ -48,7 +51,8 @@ export function UserEditPage({ id }: UserEditPageProps) {
     username: user.username,
     email: user.email,
     password: "",
-    birthdate: user.birthdate ? user.birthdate.slice(0, 10) : ""
+    birthdate: user.birthdate ? user.birthdate.slice(0, 10) : "",
+    roleSlug: (user.roles?.[0]?.slug ?? "user") as UserFormValues["roleSlug"]
   };
 
   return (
@@ -76,6 +80,7 @@ export function UserEditPage({ id }: UserEditPageProps) {
         key={user.id}
         initial={initial}
         saving={updateUserState.loading}
+        roleDisabled={isSelf}
         onSubmit={async values => {
           setStatus(null);
           try {
@@ -88,9 +93,11 @@ export function UserEditPage({ id }: UserEditPageProps) {
                   ...(values.password ? { password: values.password } : {}),
                   birthdate: values.birthdate
                     ? new Date(values.birthdate).toISOString()
-                    : null
+                    : null,
+                  ...(!isSelf ? { roleSlug: values.roleSlug } : {})
                 }
-              }
+              },
+              refetchQueries: [{ query: DASHBOARD_USER_QUERY, variables: { id } }]
             });
             setStatus("Сохранено");
           } catch (error) {

@@ -12,6 +12,10 @@ import { useQuery } from "@apollo/client/react";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
 import { useAuthStore, type AuthUser } from "@/shared/state/useAuthStore";
 import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
+import {
+  canAccessDashboard,
+  canManageUsers
+} from "@/shared/auth/dashboardAccess";
 
 export type { AuthUser };
 
@@ -22,6 +26,10 @@ export type AuthContextValue = {
   /** false until tokens are restored from localStorage on the client */
   isReady: boolean;
   isAuthenticated: boolean;
+  /** false until `me` has been fetched for the current session */
+  isUserLoaded: boolean;
+  canAccessDashboard: boolean;
+  canManageUsers: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,7 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         id: me.id,
         email: me.email,
-        username: me.username
+        username: me.username,
+        roleSlugs: me.roles?.map(role => role.slug) ?? []
       });
       if (me.favorites) {
         setFavoritesFromServer(me.favorites);
@@ -84,15 +93,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("refreshToken");
   }, [clear, clearFavorites]);
 
+  const isUserLoaded =
+    !accessToken || (!meQuery.loading && (meQuery.called || !!meQuery.data));
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       token: accessToken,
       isReady,
       isAuthenticated: isReady && !!accessToken,
+      isUserLoaded,
+      canAccessDashboard: canAccessDashboard(user?.roleSlugs ?? []),
+      canManageUsers: canManageUsers(user?.roleSlugs ?? []),
       logout
     }),
-    [accessToken, user, logout, isReady]
+    [accessToken, user, logout, isReady, isUserLoaded]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

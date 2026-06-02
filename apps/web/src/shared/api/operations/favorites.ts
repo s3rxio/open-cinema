@@ -14,6 +14,9 @@ export const ME_QUERY = gql`
       id
       email
       username
+      roles {
+        slug
+      }
       favorites {
         id
         movie {

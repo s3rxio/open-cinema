@@ -140,6 +140,10 @@ export const DASHBOARD_USER_QUERY = gql`
       email
       birthdate
       createdAt
+      roles {
+        slug
+        name
+      }
     }
   }
 ` as TypedDocumentNode<DashboardUserQuery, DashboardUserQueryVariables>;

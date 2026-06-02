@@ -3,6 +3,7 @@ import { BaseEntity } from "@open-cinema/core";
 import { UserModel } from "../../../../prisma/generated/models";
 import { Favorite } from "../../favorite/entities/favorite.entity";
 import { WatchHistory } from "../../watch-history/entities/watch-history.entity";
+import { Role } from "../../rbac/entities/role.entity";
 
 @ObjectType()
 export class User
@@ -29,4 +30,7 @@ export class User
     description: "Recently watched movies and episodes"
   })
   watchHistory?: WatchHistory[] | null;
+
+  @Field(() => [Role], { nullable: true })
+  roles?: Role[] | null;
 }

@@ -3,22 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@open-cinema/ui";
+import { useAuth } from "@/shared/auth/AuthContext";
 
 const tabs = [
   { href: "/dashboard/movies", label: "Фильмы" },
   { href: "/dashboard/series", label: "Сериалы" },
-  { href: "/dashboard/users", label: "Пользователи" }
+  { href: "/dashboard/users", label: "Пользователи", adminOnly: true }
 ] as const;
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const { canManageUsers } = useAuth();
+
+  const visibleTabs = tabs.filter(tab => !tab.adminOnly || canManageUsers);
 
   return (
     <nav
       className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
       aria-label="Разделы панели управления"
     >
-      {tabs.map(tab => {
+      {visibleTabs.map(tab => {
         const isActive =
           pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 

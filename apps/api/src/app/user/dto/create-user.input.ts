@@ -1,11 +1,12 @@
 import { InputType, Field } from "@nestjs/graphql";
 import {
-  IsDate,
   IsDateString,
   IsEmail,
+  IsIn,
   IsOptional,
   IsString
 } from "class-validator";
+import { RoleSlug, RoleSlugType } from "../../rbac/permissions";
 
 @InputType()
 export class CreateUserInput {
@@ -25,4 +26,9 @@ export class CreateUserInput {
   @IsDateString()
   @IsOptional()
   birthdate?: Date;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsIn(Object.values(RoleSlug))
+  roleSlug?: RoleSlugType;
 }

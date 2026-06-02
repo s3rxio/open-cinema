@@ -13,6 +13,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { User } from "./entities/user.entity";
 import bcrypt from "bcrypt";
 import { ConfigService } from "@nestjs/config";
+import { RbacService } from "../rbac/rbac.service";
+import { RoleSlug } from "../rbac/permissions";
 
 @Injectable()
 export class UserService {
@@ -20,7 +22,8 @@ export class UserService {
 
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private rbacService: RbacService
   ) {}
 
   async create(createUserInput: CreateUserInput): Promise<User> {
@@ -44,7 +47,7 @@ export class UserService {
       const salt = this.configService.getOrThrow<string>("crypto.salt");
       const hashedPassword = bcrypt.hashSync(createUserInput.password, salt);
 
-      return this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: {
           username: createUserInput.username,
           email: createUserInput.email,
@@ -56,6 +59,13 @@ export class UserService {
           refreshToken: true
         }
       });
+
+      await this.rbacService.setUserRole(
+        user.id,
+        createUserInput.roleSlug ?? RoleSlug.User
+      );
+
+      return user;
     } catch (error) {
       this.logger.error(error);
 
@@ -166,6 +176,10 @@ export class UserService {
         refreshToken: true
       }
     });
+
+    if (updateUserInput.roleSlug !== undefined) {
+      await this.rbacService.setUserRole(id, updateUserInput.roleSlug);
+    }
 
     return user;
   }

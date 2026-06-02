@@ -4,6 +4,7 @@ export type AuthUser = {
   id: string;
   email?: string;
   username?: string;
+  roleSlugs: string[];
 };
 
 type AuthState = {

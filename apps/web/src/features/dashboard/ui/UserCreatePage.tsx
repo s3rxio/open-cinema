@@ -15,7 +15,8 @@ const emptyUserForm: UserFormValues = {
   username: "",
   email: "",
   password: "",
-  birthdate: ""
+  birthdate: "",
+  roleSlug: "user"
 };
 
 export function UserCreatePage() {
@@ -50,6 +51,7 @@ export function UserCreatePage() {
                   username: values.username,
                   email: values.email,
                   password: values.password,
+                  roleSlug: values.roleSlug,
                   birthdate: values.birthdate
                     ? new Date(values.birthdate).toISOString()
                     : null

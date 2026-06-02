@@ -1,3 +1,4 @@
+import { UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -17,15 +18,30 @@ import { FavoriteService } from "../favorite/favorite.service";
 import { Favorite } from "../favorite/entities/favorite.entity";
 import { WatchHistoryService } from "../watch-history/watch-history.service";
 import { WatchHistory } from "../watch-history/entities/watch-history.entity";
-import { Permission, RequiredPermission } from "../rbac";
+import {
+  Permission,
+  PreventSelfRoleChangeGuard,
+  RequiredPermission,
+  RequireAdminForRoleChangeGuard,
+  RequireAdminGuard,
+  RbacService
+} from "../rbac";
+import { Role } from "../rbac/entities/role.entity";
 
 @Resolver(() => User)
 export class UserResolver {
   constructor(
     private readonly userService: UserService,
     private readonly favoriteService: FavoriteService,
-    private readonly watchHistoryService: WatchHistoryService
+    private readonly watchHistoryService: WatchHistoryService,
+    private readonly rbacService: RbacService
   ) {}
+
+  @RequiredPermission(Permission.ProfileRead)
+  @ResolveField(() => [Role])
+  roles(@Parent() user: User) {
+    return this.rbacService.getRolesForUser(user.id);
+  }
 
   @RequiredPermission(Permission.FavoritesRead)
   @ResolveField(() => [Favorite], { nullable: true })
@@ -45,30 +61,39 @@ export class UserResolver {
     return user;
   }
 
+  @UseGuards(RequireAdminGuard, RequireAdminForRoleChangeGuard)
   @RequiredPermission(Permission.UsersCreate)
   @Mutation(() => User)
   createUser(@Args("createUserInput") createUserInput: CreateUserInput) {
     return this.userService.create(createUserInput);
   }
 
+  @UseGuards(RequireAdminGuard)
   @RequiredPermission(Permission.UsersRead)
   @Query(() => PaginatedUsers, { name: "users" })
   findAll(@Args() paginationArgs: PaginationArgs) {
     return this.userService.findAll(paginationArgs);
   }
 
+  @UseGuards(RequireAdminGuard)
   @RequiredPermission(Permission.UsersRead)
   @Query(() => User, { name: "user" })
   findOne(@Args("id") id: string) {
     return this.userService.findOne(id);
   }
 
+  @UseGuards(
+    RequireAdminGuard,
+    RequireAdminForRoleChangeGuard,
+    PreventSelfRoleChangeGuard
+  )
   @RequiredPermission(Permission.UsersUpdate)
   @Mutation(() => User)
   async updateUser(@Args("updateUserInput") updateUserInput: UpdateUserInput) {
     return this.userService.update(updateUserInput.id, updateUserInput);
   }
 
+  @UseGuards(RequireAdminGuard)
   @RequiredPermission(Permission.UsersDelete)
   @Mutation(() => Boolean)
   async removeUser(@Args("id") id: string) {

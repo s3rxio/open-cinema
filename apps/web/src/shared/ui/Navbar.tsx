@@ -68,7 +68,7 @@ function AuthNavButton({
 
 function UserMenu() {
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, canAccessDashboard } = useAuth();
   const [menuKey, setMenuKey] = useState(0);
 
   const displayName = user?.username || "Пользователь";
@@ -96,15 +96,17 @@ function UserMenu() {
         </span>
       </SelectTrigger>
       <SelectContent align="end">
-        <SelectItem
-          value="dashboard"
-          className="[&>span:first-child]:hidden pl-2"
-        >
-          <span className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
-            Панель управления
-          </span>
-        </SelectItem>
+        {canAccessDashboard ? (
+          <SelectItem
+            value="dashboard"
+            className="[&>span:first-child]:hidden pl-2"
+          >
+            <span className="flex items-center gap-2">
+              <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
+              Панель управления
+            </span>
+          </SelectItem>
+        ) : null}
         <SelectItem
           value="settings"
           className="[&>span:first-child]:hidden pl-2"

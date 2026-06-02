@@ -104,6 +104,7 @@ export type MeQuery = {
     id: string;
     email: string;
     username: string;
+    roles: Array<{ slug: string }>;
     favorites: Array<{
       id: string;
       movie: FavoriteContentFields | null;
@@ -302,6 +303,7 @@ export type DashboardUserListItem = {
   email: string;
   birthdate?: string | null;
   createdAt: string;
+  roles?: Array<{ slug: string; name: string }>;
 };
 
 export type DashboardUsersQuery = {
@@ -344,6 +346,7 @@ export type CreateUserMutationVariables = {
     username: string;
     email: string;
     password: string;
+    roleSlug?: string;
     birthdate?: string | null;
   };
 };
@@ -380,6 +383,7 @@ export type UpdateUserMutationVariables = {
     username?: string;
     email?: string;
     password?: string;
+    roleSlug?: string;
     birthdate?: string | null;
   };
 };

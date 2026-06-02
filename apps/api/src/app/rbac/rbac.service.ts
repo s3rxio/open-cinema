@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  OnModuleInit
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { Permission, PermissionSlug, RoleSlug, RoleSlugType } from "./permissions";
 import { seedRbac } from "./rbac.seed";
@@ -28,6 +33,22 @@ export class RbacService implements OnModuleInit {
     }
 
     this.logger.log("RBAC permissions and roles seeded");
+  }
+
+  async getRolesForUser(userId: string) {
+    const userRoles = await this.prisma.userRole.findMany({
+      where: { userId },
+      include: {
+        role: { select: { slug: true, name: true } }
+      }
+    });
+
+    return userRoles.map(userRole => userRole.role);
+  }
+
+  async userHasRole(userId: string, roleSlug: RoleSlugType): Promise<boolean> {
+    const roles = await this.getRolesForUser(userId);
+    return roles.some(role => role.slug === roleSlug);
   }
 
   async getPermissionsForUser(userId: string): Promise<Set<string>> {
@@ -86,6 +107,23 @@ export class RbacService implements OnModuleInit {
     for (const user of usersWithoutRoles) {
       await this.assignRoleBySlug(user.id, RoleSlug.User);
     }
+  }
+
+  async setUserRole(userId: string, roleSlug: RoleSlugType) {
+    const role = await this.prisma.role.findUnique({
+      where: { slug: roleSlug }
+    });
+
+    if (!role) {
+      throw new BadRequestException(`Role "${roleSlug}" is not defined`);
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.userRole.deleteMany({ where: { userId } }),
+      this.prisma.userRole.create({
+        data: { userId, roleId: role.id }
+      })
+    ]);
   }
 
   async assignRoleBySlug(userId: string, roleSlug: RoleSlugType) {

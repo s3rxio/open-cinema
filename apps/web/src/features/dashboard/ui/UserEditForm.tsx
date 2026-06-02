@@ -1,13 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input, Label } from "@open-cinema/ui";
+import {
+  Button,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@open-cinema/ui";
+import {
+  ROLE_OPTIONS,
+  type RoleSlugValue
+} from "@/features/dashboard/lib/roleOptions";
 
 export type UserFormValues = {
   username: string;
   email: string;
   password: string;
   birthdate: string;
+  roleSlug: RoleSlugValue;
 };
 
 type UserEditFormProps = {
@@ -15,6 +29,7 @@ type UserEditFormProps = {
   saving?: boolean;
   passwordRequired?: boolean;
   submitLabel?: string;
+  roleDisabled?: boolean;
   onSubmit: (values: UserFormValues) => Promise<void>;
 };
 
@@ -23,11 +38,15 @@ export function UserEditForm({
   saving,
   passwordRequired = false,
   submitLabel = "Сохранить",
+  roleDisabled = false,
   onSubmit
 }: UserEditFormProps) {
   const [values, setValues] = useState(initial);
 
-  const update = (field: keyof UserFormValues, value: string) => {
+  const update = <K extends keyof UserFormValues>(
+    field: K,
+    value: UserFormValues[K]
+  ) => {
     setValues(prev => ({ ...prev, [field]: value }));
   };
 
@@ -58,6 +77,31 @@ export function UserEditForm({
           onChange={event => update("email", event.target.value)}
           required
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="role">Роль</Label>
+        <Select
+          value={values.roleSlug}
+          onValueChange={value => update("roleSlug", value as RoleSlugValue)}
+          disabled={roleDisabled}
+        >
+          <SelectTrigger id="role">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ROLE_OPTIONS.map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {roleDisabled ? (
+          <p className="text-sm text-muted-foreground">
+            Нельзя изменить собственную роль
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
