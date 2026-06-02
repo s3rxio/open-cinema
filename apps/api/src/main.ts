@@ -15,7 +15,7 @@ async function bootstrap() {
   const url = process.env.API_URL || `http://${host}:${port}`;
 
   app.enableCors({
-    origin: "*",
+    origin: true,
     credentials: true
   });
   app.setGlobalPrefix("/api");
@@ -28,7 +28,7 @@ async function bootstrap() {
 
   // 20 G
   app.use(
-    graphqlUploadExpress({ maxFileSize: 10 * 1000 * 1000 * 1000, maxFiles: 10 })
+    graphqlUploadExpress({ maxFileSize: 10 * 1000 * 1000 * 1000, maxFiles: 2 })
   );
 
   await app.listen(port, host);

@@ -1,6 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@open-cinema/ui": ["../../packages/ui/src"]
+    },
+
     "jsx": "preserve",
     "strict": true,
     "noEmit": true,
