@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client/react";
 import { Loader } from "@open-cinema/ui";
 import { ContentDetail } from "@/features/content/ui/ContentDetail";
+import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
 import { EpisodeList } from "@/features/content/ui/EpisodeList";
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
@@ -51,8 +52,13 @@ export default function SeriesPage() {
   }
 
   const releaseDate = new Date(series.releaseDate).toLocaleDateString("ru-RU");
+  const userRatingLabel =
+    series.userRating != null
+      ? `⭐ ${series.userRating.toFixed(1)} (${series.reviewCount ?? 0})`
+      : "—";
 
   return (
+    <>
     <ContentDetail
       title={series.title}
       description={series.description}
@@ -67,7 +73,8 @@ export default function SeriesPage() {
       meta={[
         { label: "Режиссёр", value: series.director },
         { label: "Жанр", value: series.genre },
-        { label: "Рейтинг", value: `⭐ ${series.rating}` }
+        { label: "Официальный рейтинг", value: `⭐ ${series.rating}` },
+        { label: "Рейтинг пользователей", value: userRatingLabel }
       ]}
     >
       {seasons.length > 0 ? (
@@ -78,5 +85,9 @@ export default function SeriesPage() {
         </p>
       )}
     </ContentDetail>
+    <div className="max-w-7xl mx-auto px-4 pb-8">
+      <ReviewsSection contentId={id} type="SERIES" />
+    </div>
+    </>
   );
 }

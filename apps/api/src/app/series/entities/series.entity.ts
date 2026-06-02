@@ -1,4 +1,4 @@
-import { ObjectType, Field, OmitType } from "@nestjs/graphql";
+import { ObjectType, Field, Int, OmitType } from "@nestjs/graphql";
 import { Content } from "../../content/content.entity";
 import { SeriesModel } from "../../../../prisma/generated/models";
 import { Episode } from "../../episode/entities/episode.entity";
@@ -10,4 +10,13 @@ export class Series
 {
   @Field(() => [Episode], { nullable: true })
   episodes?: Episode[];
+
+  @Field({
+    nullable: true,
+    description: "Average rating from user reviews (0–10)"
+  })
+  userRating?: number | null;
+
+  @Field(() => Int, { nullable: true })
+  reviewCount?: number | null;
 }

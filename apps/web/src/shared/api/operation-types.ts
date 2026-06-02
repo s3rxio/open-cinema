@@ -141,6 +141,17 @@ export type MovieByIdQueryVariables = {
   id: string;
 };
 
+export type ReviewItem = {
+  id: string;
+  content: string;
+  rating: number;
+  userId: string;
+  movieId?: string | null;
+  seriesId?: string | null;
+  createdAt: string;
+  user?: { id: string; username: string } | null;
+};
+
 export type MovieByIdQuery = {
   movie: {
     id: string;
@@ -150,6 +161,8 @@ export type MovieByIdQuery = {
     genre: string;
     releaseDate: string;
     rating: number;
+    userRating?: number | null;
+    reviewCount?: number | null;
     posterUrl?: string | null;
     streamId?: string | null;
   };
@@ -179,10 +192,42 @@ export type SeriesByIdQuery = {
     genre: string;
     releaseDate: string;
     rating: number;
+    userRating?: number | null;
+    reviewCount?: number | null;
     posterUrl?: string | null;
     episodes: SeriesEpisode[] | null;
   };
 };
+
+export type MovieReviewsQueryVariables = { movieId: string };
+export type MovieReviewsQuery = { movieReviews: ReviewItem[] };
+
+export type SeriesReviewsQueryVariables = { seriesId: string };
+export type SeriesReviewsQuery = { seriesReviews: ReviewItem[] };
+
+export type CreateReviewMutationVariables = {
+  createReviewInput: {
+    userId: string;
+    content: string;
+    rating: number;
+    movieId?: string;
+    seriesId?: string;
+  };
+};
+export type CreateReviewMutation = { createReview: ReviewItem };
+
+export type UpdateReviewMutationVariables = {
+  updateReviewInput: {
+    id: string;
+    userId: string;
+    content?: string;
+    rating?: number;
+  };
+};
+export type UpdateReviewMutation = { updateReview: ReviewItem };
+
+export type RemoveReviewMutationVariables = { id: string; userId: string };
+export type RemoveReviewMutation = { removeReview: boolean };
 
 export type GetStreamInfoQueryVariables = {
   streamId: string;

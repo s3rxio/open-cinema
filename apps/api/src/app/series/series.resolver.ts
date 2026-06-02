@@ -1,14 +1,40 @@
-import { Resolver, Query, Mutation, Args, Int } from "@nestjs/graphql";
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  ResolveField,
+  Parent
+} from "@nestjs/graphql";
 import { SeriesService } from "./series.service";
 import { Series } from "./entities/series.entity";
 import { CreateSeriesInput } from "./dto/create-series.input";
 import { UpdateSeriesInput } from "./dto/update-series.input";
 import { PaginatedSeries } from "./dto/paginated-series.response";
 import { Permission, RequiredPermission } from "../rbac";
+import { ReviewService } from "../review/review.service";
 
 @Resolver(() => Series)
 export class SeriesResolver {
-  constructor(private readonly seriesService: SeriesService) {}
+  constructor(
+    private readonly seriesService: SeriesService,
+    private readonly reviewService: ReviewService
+  ) {}
+
+  @RequiredPermission(Permission.ReviewsRead)
+  @ResolveField(() => Number, { nullable: true })
+  async userRating(@Parent() series: Series) {
+    const stats = await this.reviewService.getStatsForSeries(series.id);
+    return stats.userRating;
+  }
+
+  @RequiredPermission(Permission.ReviewsRead)
+  @ResolveField(() => Int, { nullable: true })
+  async reviewCount(@Parent() series: Series) {
+    const stats = await this.reviewService.getStatsForSeries(series.id);
+    return stats.reviewCount;
+  }
 
   @RequiredPermission(Permission.SeriesCreate)
   @Mutation(() => Series)

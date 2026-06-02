@@ -3,6 +3,7 @@
 import { useQuery } from "@apollo/client/react";
 import { Loader } from "@open-cinema/ui";
 import { ContentDetail } from "@/features/content/ui/ContentDetail";
+import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
 import { MOVIE_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
 import { useParams } from "next/navigation";
@@ -43,19 +44,29 @@ export default function MoviePage() {
   }
 
   const releaseDate = new Date(movie.releaseDate).toLocaleDateString("ru-RU");
+  const userRatingLabel =
+    movie.userRating != null
+      ? `⭐ ${movie.userRating.toFixed(1)} (${movie.reviewCount ?? 0})`
+      : "—";
 
   return (
-    <ContentDetail
-      title={movie.title}
-      description={movie.description}
-      posterUrl={movie.posterUrl}
-      releaseDate={releaseDate}
-      watchHref={routes.watchMovie(id)}
-      meta={[
-        { label: "Режиссёр", value: movie.director },
-        { label: "Жанр", value: movie.genre },
-        { label: "Рейтинг", value: `⭐ ${movie.rating}` }
-      ]}
-    />
+    <>
+      <ContentDetail
+        title={movie.title}
+        description={movie.description}
+        posterUrl={movie.posterUrl}
+        releaseDate={releaseDate}
+        watchHref={routes.watchMovie(id)}
+        meta={[
+          { label: "Режиссёр", value: movie.director },
+          { label: "Жанр", value: movie.genre },
+          { label: "Официальный рейтинг", value: `⭐ ${movie.rating}` },
+          { label: "Рейтинг пользователей", value: userRatingLabel }
+        ]}
+      />
+      <div className="max-w-7xl mx-auto px-4 pb-8">
+        <ReviewsSection contentId={id} type="MOVIE" />
+      </div>
+    </>
   );
 }

@@ -41,7 +41,12 @@ export const Permission = {
   WatchHistoryRead: "watch-history:read",
   WatchHistoryCreate: "watch-history:create",
   WatchHistoryUpdate: "watch-history:update",
-  WatchHistoryDelete: "watch-history:delete"
+  WatchHistoryDelete: "watch-history:delete",
+
+  ReviewsRead: "reviews:read",
+  ReviewsCreate: "reviews:create",
+  ReviewsUpdate: "reviews:update",
+  ReviewsDelete: "reviews:delete"
 } as const;
 
 export type PermissionSlug = (typeof Permission)[keyof typeof Permission];
@@ -94,7 +99,11 @@ export const PERMISSION_DEFINITIONS: PermissionSeed[] = [
   { slug: Permission.WatchHistoryRead, name: "История: чтение" },
   { slug: Permission.WatchHistoryCreate, name: "История: запись" },
   { slug: Permission.WatchHistoryUpdate, name: "История: изменение" },
-  { slug: Permission.WatchHistoryDelete, name: "История: удаление" }
+  { slug: Permission.WatchHistoryDelete, name: "История: удаление" },
+  { slug: Permission.ReviewsRead, name: "Рецензии: чтение" },
+  { slug: Permission.ReviewsCreate, name: "Рецензии: создание" },
+  { slug: Permission.ReviewsUpdate, name: "Рецензии: изменение" },
+  { slug: Permission.ReviewsDelete, name: "Рецензии: удаление" }
 ];
 
 const userPermissions: PermissionSlug[] = [
@@ -111,7 +120,11 @@ const userPermissions: PermissionSlug[] = [
   Permission.WatchHistoryRead,
   Permission.WatchHistoryCreate,
   Permission.WatchHistoryUpdate,
-  Permission.WatchHistoryDelete
+  Permission.WatchHistoryDelete,
+  Permission.ReviewsRead,
+  Permission.ReviewsCreate,
+  Permission.ReviewsUpdate,
+  Permission.ReviewsDelete
 ];
 
 const editorExtraPermissions: PermissionSlug[] = [

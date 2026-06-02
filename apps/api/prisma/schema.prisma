@@ -124,6 +124,7 @@ model Series {
 
   episodes  Episode[]
   favorites Favorite[]
+  reviews   Review[]
 
   @@map("series")
 }
@@ -157,16 +158,20 @@ model Review {
   id      String @id @default(uuid())
   content String
   rating  Float
-  userId  String @map("user_id")
-  movieId String @map("movie_id")
+  userId  String  @map("user_id")
+  movieId String? @map("movie_id")
+  seriesId String? @map("series_id")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, movieId])
+  @@unique([userId, seriesId])
   @@map("reviews")
 }
 

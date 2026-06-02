@@ -29,6 +29,7 @@ import { StorageModule } from "./storage/storage.module";
 import { FavoriteModule } from "./favorite/favorite.module";
 import { WatchHistoryModule } from "./watch-history/watch-history.module";
 import { WatchPartyModule } from "./watch-party/watch-party.module";
+import { ReviewModule } from "./review/review.module";
 import { RedisModule } from "./redis/redis.module";
 import bullConfig from "../common/configs/bull.config";
 
@@ -84,7 +85,8 @@ import bullConfig from "../common/configs/bull.config";
     MediaProcessingModule,
     FavoriteModule,
     WatchHistoryModule,
-    WatchPartyModule
+    WatchPartyModule,
+    ReviewModule
   ],
   controllers: [AppController],
   providers: [

@@ -17,6 +17,8 @@ export const MOVIE_BY_ID_QUERY = gql`
       genre
       releaseDate
       rating
+      userRating
+      reviewCount
       posterUrl
       streamId
     }
@@ -33,6 +35,8 @@ export const SERIES_BY_ID_QUERY = gql`
       genre
       releaseDate
       rating
+      userRating
+      reviewCount
       posterUrl
       episodes {
         id
