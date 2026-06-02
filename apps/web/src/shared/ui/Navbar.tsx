@@ -14,6 +14,7 @@ import { useAuth } from "@/shared/auth/AuthContext";
 import { cn } from "@open-cinema/ui";
 import { LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { NavbarSearch } from "./NavbarSearch";
+import { Container } from "./Container";
 
 const navLinkClass =
   "text-sm font-medium transition-colors hover:text-primary";
@@ -135,7 +136,7 @@ export function Navbar() {
 
   return (
     <header className="border-b border-border bg-card sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto flex items-center gap-4 px-4 py-3">
+      <Container className="flex items-center gap-4 py-3">
         <div className="flex shrink-0 items-center gap-6">
           <Link
             href="/"
@@ -165,7 +166,7 @@ export function Navbar() {
             </>
           )}
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

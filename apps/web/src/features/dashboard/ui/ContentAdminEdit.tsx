@@ -21,6 +21,7 @@ import {
   type ContentFormValues
 } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
+import { Container } from "@/shared/ui/Container";
 
 type ContentAdminEditProps = {
   kind: "movie" | "series";
@@ -254,29 +255,40 @@ function ContentAdminShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href={backHref}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Назад к списку
-          </Link>
-          <h1 className="text-2xl font-semibold">{title}</h1>
-        </div>
-        {deleteAction}
-      </div>
-      {children}
-    </div>
+    <>
+      <section>
+        <Container size="dashboard">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <Link
+                href={backHref}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                ← Назад к списку
+              </Link>
+              <h1 className="text-2xl font-semibold">{title}</h1>
+            </div>
+            {deleteAction}
+          </div>
+        </Container>
+      </section>
+
+      <section>
+        <Container size="dashboard">{children}</Container>
+      </section>
+    </>
   );
 }
 
 function LoadingState() {
   return (
-    <div className="flex justify-center py-16">
-      <Loader />
-    </div>
+    <section>
+      <Container size="dashboard">
+        <div className="flex justify-center py-16">
+          <Loader />
+        </div>
+      </Container>
+    </section>
   );
 }
 
@@ -288,9 +300,13 @@ function ErrorState({
   fallback: string;
 }) {
   return (
-    <p className="text-destructive">
-      {error ? getApolloErrorMessage(error) : fallback}
-    </p>
+    <section>
+      <Container size="dashboard">
+        <p className="text-destructive">
+          {error ? getApolloErrorMessage(error) : fallback}
+        </p>
+      </Container>
+    </section>
   );
 }
 

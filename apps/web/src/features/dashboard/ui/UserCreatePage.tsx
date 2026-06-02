@@ -10,6 +10,7 @@ import {
   DASHBOARD_USERS_QUERY
 } from "@/shared/api/operations/dashboard";
 import { UserEditForm, type UserFormValues } from "./UserEditForm";
+import { Container } from "@/shared/ui/Container";
 
 const emptyUserForm: UserFormValues = {
   username: "",
@@ -26,54 +27,64 @@ export function UserCreatePage() {
   const [status, setStatus] = useState<string | null>(null);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <Link
-          href="/dashboard/users"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Назад к списку
-        </Link>
-        <h1 className="text-2xl font-semibold">Создать пользователя</h1>
-      </div>
+    <>
+      <section>
+        <Container size="dashboard">
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href="/dashboard/users"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              ← Назад к списку
+            </Link>
+            <h1 className="text-2xl font-semibold">Создать пользователя</h1>
+          </div>
+        </Container>
+      </section>
 
-      <UserEditForm
-        initial={emptyUserForm}
-        saving={createUserState.loading}
-        passwordRequired
-        submitLabel="Создать"
-        onSubmit={async values => {
-          setStatus(null);
-          try {
-            const result = await createUser({
-              variables: {
-                createUserInput: {
-                  username: values.username,
-                  email: values.email,
-                  password: values.password,
-                  roleSlug: values.roleSlug,
-                  birthdate: values.birthdate
-                    ? new Date(values.birthdate).toISOString()
-                    : null
+      <section>
+        <Container size="dashboard">
+          <div className="space-y-6">
+            <UserEditForm
+              initial={emptyUserForm}
+              saving={createUserState.loading}
+              passwordRequired
+              submitLabel="Создать"
+              onSubmit={async values => {
+                setStatus(null);
+                try {
+                  const result = await createUser({
+                    variables: {
+                      createUserInput: {
+                        username: values.username,
+                        email: values.email,
+                        password: values.password,
+                        roleSlug: values.roleSlug,
+                        birthdate: values.birthdate
+                          ? new Date(values.birthdate).toISOString()
+                          : null
+                      }
+                    }
+                  });
+
+                  const id = result.data?.createUser.id;
+                  if (!id) {
+                    throw new Error("Не удалось создать пользователя");
+                  }
+
+                  await client.refetchQueries({ include: [DASHBOARD_USERS_QUERY] });
+                  router.push(`/dashboard/users/${id}`);
+                  router.refresh();
+                } catch (error) {
+                  setStatus(getApolloErrorMessage(error));
                 }
-              }
-            });
+              }}
+            />
 
-            const id = result.data?.createUser.id;
-            if (!id) {
-              throw new Error("Не удалось создать пользователя");
-            }
-
-            await client.refetchQueries({ include: [DASHBOARD_USERS_QUERY] });
-            router.push(`/dashboard/users/${id}`);
-            router.refresh();
-          } catch (error) {
-            setStatus(getApolloErrorMessage(error));
-          }
-        }}
-      />
-
-      {status ? <p className="text-sm text-destructive">{status}</p> : null}
-    </div>
+            {status ? <p className="text-sm text-destructive">{status}</p> : null}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

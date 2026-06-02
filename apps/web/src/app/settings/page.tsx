@@ -1,3 +1,4 @@
+import { Container } from "@/shared/ui/Container";
 import { Card, CardContent, CardHeader, CardTitle } from "@open-cinema/ui";
 
 export const metadata = {
@@ -7,17 +8,21 @@ export const metadata = {
 
 export default function SettingsPage() {
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Настройки</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Раздел настроек в разработке
-          </p>
-        </CardContent>
-      </Card>
+    <main className="py-8">
+      <section>
+        <Container size="narrow">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">Настройки</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Раздел настроек в разработке
+              </p>
+            </CardContent>
+          </Card>
+        </Container>
+      </section>
     </main>
   );
 }

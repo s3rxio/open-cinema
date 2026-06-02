@@ -5,6 +5,7 @@ import { Loader } from "@open-cinema/ui";
 import { ContentDetail } from "@/features/content/ui/ContentDetail";
 import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
 import { EpisodeList } from "@/features/content/ui/EpisodeList";
+import { Container } from "@/shared/ui/Container";
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
@@ -85,9 +86,11 @@ export default function SeriesPage() {
         </p>
       )}
     </ContentDetail>
-    <div className="max-w-7xl mx-auto px-4 pb-8">
-      <ReviewsSection contentId={id} type="SERIES" />
-    </div>
+    <section className="pb-8">
+      <Container>
+        <ReviewsSection contentId={id} type="SERIES" />
+      </Container>
+    </section>
     </>
   );
 }

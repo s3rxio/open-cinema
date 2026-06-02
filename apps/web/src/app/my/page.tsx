@@ -1,4 +1,5 @@
 import { FavoritesList } from "@/features/favorites/ui/FavoritesList";
+import { Container } from "@/shared/ui/Container";
 import { Card, CardContent } from "@open-cinema/ui";
 
 export const metadata = {
@@ -8,16 +9,22 @@ export const metadata = {
 
 export default function MyPage() {
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Моё</h1>
+    <main className="py-8 space-y-12">
+      <section>
+        <Container>
+          <h1 className="text-4xl font-bold">Моё</h1>
+        </Container>
+      </section>
 
-      <div className="space-y-12">
-        <section id="bookmarks">
+      <section id="bookmarks">
+        <Container>
           <h2 className="text-2xl font-semibold mb-4">Закладки</h2>
           <FavoritesList />
-        </section>
+        </Container>
+      </section>
 
-        <section id="recent">
+      <section id="recent">
+        <Container>
           <h2 className="text-2xl font-semibold mb-4">Смотрел недавно</h2>
           <Card>
             <CardContent className="pt-6">
@@ -26,8 +33,8 @@ export default function MyPage() {
               </p>
             </CardContent>
           </Card>
-        </section>
-      </div>
+        </Container>
+      </section>
     </main>
   );
 }

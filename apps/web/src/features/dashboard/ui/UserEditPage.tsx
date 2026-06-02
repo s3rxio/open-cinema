@@ -14,6 +14,7 @@ import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import { useAuth } from "@/shared/auth/AuthContext";
 import { AdminDeleteButton } from "./AdminDeleteButton";
 import { UserEditForm, type UserFormValues } from "./UserEditForm";
+import { Container } from "@/shared/ui/Container";
 
 type UserEditPageProps = {
   id: string;
@@ -31,19 +32,27 @@ export function UserEditPage({ id }: UserEditPageProps) {
 
   if (userQuery.loading) {
     return (
-      <div className="flex justify-center py-16">
-        <Loader />
-      </div>
+      <section>
+        <Container size="dashboard">
+          <div className="flex justify-center py-16">
+            <Loader />
+          </div>
+        </Container>
+      </section>
     );
   }
 
   if (!user) {
     return (
-      <p className="text-destructive">
-        {userQuery.error
-          ? getApolloErrorMessage(userQuery.error)
-          : "Пользователь не найден"}
-      </p>
+      <section>
+        <Container size="dashboard">
+          <p className="text-destructive">
+            {userQuery.error
+              ? getApolloErrorMessage(userQuery.error)
+              : "Пользователь не найден"}
+          </p>
+        </Container>
+      </section>
     );
   }
 
@@ -56,59 +65,69 @@ export function UserEditPage({ id }: UserEditPageProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href="/dashboard/users"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Назад к списку
-          </Link>
-          <h1 className="text-2xl font-semibold">{user.username}</h1>
-        </div>
-        <AdminDeleteButton
-          label="Удалить пользователя"
-          confirmMessage={`Удалить пользователя «${user.username}»?`}
-          redirectTo="/dashboard/users"
-          refetchQueries={[DASHBOARD_USERS_QUERY]}
-          onDelete={() => removeUser({ variables: { id } })}
-        />
-      </div>
+    <>
+      <section>
+        <Container size="dashboard">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4">
+              <Link
+                href="/dashboard/users"
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                ← Назад к списку
+              </Link>
+              <h1 className="text-2xl font-semibold">{user.username}</h1>
+            </div>
+            <AdminDeleteButton
+              label="Удалить пользователя"
+              confirmMessage={`Удалить пользователя «${user.username}»?`}
+              redirectTo="/dashboard/users"
+              refetchQueries={[DASHBOARD_USERS_QUERY]}
+              onDelete={() => removeUser({ variables: { id } })}
+            />
+          </div>
+        </Container>
+      </section>
 
-      <UserEditForm
-        key={user.id}
-        initial={initial}
-        saving={updateUserState.loading}
-        roleDisabled={isSelf}
-        onSubmit={async values => {
-          setStatus(null);
-          try {
-            await updateUser({
-              variables: {
-                updateUserInput: {
-                  id,
-                  username: values.username,
-                  email: values.email,
-                  ...(values.password ? { password: values.password } : {}),
-                  birthdate: values.birthdate
-                    ? new Date(values.birthdate).toISOString()
-                    : null,
-                  ...(!isSelf ? { roleSlug: values.roleSlug } : {})
+      <section>
+        <Container size="dashboard">
+          <div className="space-y-6">
+            <UserEditForm
+              key={user.id}
+              initial={initial}
+              saving={updateUserState.loading}
+              roleDisabled={isSelf}
+              onSubmit={async values => {
+                setStatus(null);
+                try {
+                  await updateUser({
+                    variables: {
+                      updateUserInput: {
+                        id,
+                        username: values.username,
+                        email: values.email,
+                        ...(values.password ? { password: values.password } : {}),
+                        birthdate: values.birthdate
+                          ? new Date(values.birthdate).toISOString()
+                          : null,
+                        ...(!isSelf ? { roleSlug: values.roleSlug } : {})
+                      }
+                    },
+                    refetchQueries: [{ query: DASHBOARD_USER_QUERY, variables: { id } }]
+                  });
+                  setStatus("Сохранено");
+                } catch (error) {
+                  setStatus(getApolloErrorMessage(error));
                 }
-              },
-              refetchQueries: [{ query: DASHBOARD_USER_QUERY, variables: { id } }]
-            });
-            setStatus("Сохранено");
-          } catch (error) {
-            setStatus(getApolloErrorMessage(error));
-          }
-        }}
-      />
+              }}
+            />
 
-      {status ? (
-        <p className="text-sm text-muted-foreground">{status}</p>
-      ) : null}
-    </div>
+            {status ? (
+              <p className="text-sm text-muted-foreground">{status}</p>
+            ) : null}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

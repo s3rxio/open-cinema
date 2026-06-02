@@ -16,6 +16,7 @@ import {
   defaultContentFormValues
 } from "../lib/defaultContentFormValues";
 import { ContentEditForm } from "./ContentEditForm";
+import { Container } from "@/shared/ui/Container";
 
 type ContentCreatePageProps = {
   kind: "movie" | "series";
@@ -47,52 +48,62 @@ export function ContentCreatePage({ kind }: ContentCreatePageProps) {
   const saving = createMovieState.loading || createSeriesState.loading;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <Link
-          href={meta.backHref}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Назад к списку
-        </Link>
-        <h1 className="text-2xl font-semibold">{meta.title}</h1>
-      </div>
+    <>
+      <section>
+        <Container size="dashboard">
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href={meta.backHref}
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              ← Назад к списку
+            </Link>
+            <h1 className="text-2xl font-semibold">{meta.title}</h1>
+          </div>
+        </Container>
+      </section>
 
-      <ContentEditForm
-        initial={defaultContentFormValues()}
-        saving={saving}
-        submitLabel="Создать"
-        onSubmit={async values => {
-          setStatus(null);
-          try {
-            const input = contentFormToInput(values);
-            const id =
-              kind === "movie"
-                ? (
-                    await createMovie({
-                      variables: { createMovieInput: input }
-                    })
-                  ).data?.createMovie.id
-                : (
-                    await createSeries({
-                      variables: { createSeriesInput: input }
-                    })
-                  ).data?.createSeries.id;
+      <section>
+        <Container size="dashboard">
+          <div className="space-y-6">
+            <ContentEditForm
+              initial={defaultContentFormValues()}
+              saving={saving}
+              submitLabel="Создать"
+              onSubmit={async values => {
+                setStatus(null);
+                try {
+                  const input = contentFormToInput(values);
+                  const id =
+                    kind === "movie"
+                      ? (
+                          await createMovie({
+                            variables: { createMovieInput: input }
+                          })
+                        ).data?.createMovie.id
+                      : (
+                          await createSeries({
+                            variables: { createSeriesInput: input }
+                          })
+                        ).data?.createSeries.id;
 
-            if (!id) {
-              throw new Error("Не удалось создать запись");
-            }
+                  if (!id) {
+                    throw new Error("Не удалось создать запись");
+                  }
 
-            await client.refetchQueries({ include: [meta.listQuery] });
-            router.push(meta.editHref(id));
-            router.refresh();
-          } catch (error) {
-            setStatus(getApolloErrorMessage(error));
-          }
-        }}
-      />
+                  await client.refetchQueries({ include: [meta.listQuery] });
+                  router.push(meta.editHref(id));
+                  router.refresh();
+                } catch (error) {
+                  setStatus(getApolloErrorMessage(error));
+                }
+              }}
+            />
 
-      {status ? <p className="text-sm text-destructive">{status}</p> : null}
-    </div>
+            {status ? <p className="text-sm text-destructive">{status}</p> : null}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 }

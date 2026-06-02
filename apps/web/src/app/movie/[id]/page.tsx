@@ -4,6 +4,7 @@ import { useQuery } from "@apollo/client/react";
 import { Loader } from "@open-cinema/ui";
 import { ContentDetail } from "@/features/content/ui/ContentDetail";
 import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
+import { Container } from "@/shared/ui/Container";
 import { MOVIE_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
 import { useParams } from "next/navigation";
@@ -64,9 +65,11 @@ export default function MoviePage() {
           { label: "Рейтинг пользователей", value: userRatingLabel }
         ]}
       />
-      <div className="max-w-7xl mx-auto px-4 pb-8">
-        <ReviewsSection contentId={id} type="MOVIE" />
-      </div>
+      <section className="pb-8">
+        <Container>
+          <ReviewsSection contentId={id} type="MOVIE" />
+        </Container>
+      </section>
     </>
   );
 }

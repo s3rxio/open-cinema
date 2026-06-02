@@ -14,6 +14,7 @@ import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
+import { Container } from "@/shared/ui/Container";
 
 type MovieRow = {
   id: string;
@@ -65,37 +66,41 @@ export function MoviesListPage() {
   const total = connection?.total ?? 0;
 
   return (
-    <div className="space-y-4">
-      <DashboardListToolbar
-        createHref="/dashboard/movies/new"
-        createLabel="Создать фильм"
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Поиск по названию, жанру, режиссёру…"
-      />
+    <section>
+      <Container size="dashboard">
+        <div className="space-y-4">
+          <DashboardListToolbar
+            createHref="/dashboard/movies/new"
+            createLabel="Создать фильм"
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Поиск по названию, жанру, режиссёру…"
+          />
 
-      {listQuery.error ? (
-        <p className="text-sm text-destructive">
-          {getApolloErrorMessage(listQuery.error)}
-        </p>
-      ) : null}
+          {listQuery.error ? (
+            <p className="text-sm text-destructive">
+              {getApolloErrorMessage(listQuery.error)}
+            </p>
+          ) : null}
 
-      <DataTable
-        columns={columns}
-        rows={rows}
-        rowKey={row => row.id}
-        loading={listQuery.loading}
-        onRowClick={row => router.push(`/dashboard/movies/${row.id}`)}
-      />
+          <DataTable
+            columns={columns}
+            rows={rows}
+            rowKey={row => row.id}
+            loading={listQuery.loading}
+            onRowClick={row => router.push(`/dashboard/movies/${row.id}`)}
+          />
 
-      <Pagination
-        page={page}
-        pageSize={DASHBOARD_PAGE_SIZE}
-        total={total}
-        onPageChange={nextPage =>
-          goToPage(nextPage, connection?.nextCursor ?? null)
-        }
-      />
-    </div>
+          <Pagination
+            page={page}
+            pageSize={DASHBOARD_PAGE_SIZE}
+            total={total}
+            onPageChange={nextPage =>
+              goToPage(nextPage, connection?.nextCursor ?? null)
+            }
+          />
+        </div>
+      </Container>
+    </section>
   );
 }
