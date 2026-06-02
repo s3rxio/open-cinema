@@ -92,6 +92,41 @@ export class S3StorageService {
     }
   }
 
+  async deletePrefix(bucket: string, prefix: string): Promise<void> {
+    const normalizedPrefix = prefix.endsWith("/") ? prefix : `${prefix}/`;
+    let continuationToken: string | undefined;
+
+    try {
+      do {
+        const listResponse = await this.s3.listObjectsV2({
+          Bucket: bucket,
+          Prefix: normalizedPrefix,
+          ContinuationToken: continuationToken
+        });
+
+        const keys =
+          listResponse.Contents?.map(item => item.Key).filter(
+            (key): key is string => Boolean(key)
+          ) ?? [];
+
+        if (keys.length > 0) {
+          await this.s3.deleteObjects({
+            Bucket: bucket,
+            Delete: {
+              Objects: keys.map(key => ({ Key: key }))
+            }
+          });
+        }
+
+        continuationToken = listResponse.IsTruncated
+          ? listResponse.NextContinuationToken
+          : undefined;
+      } while (continuationToken);
+    } catch (error) {
+      throw new Error(`S3 prefix delete failed: ${(error as Error).message}`);
+    }
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }

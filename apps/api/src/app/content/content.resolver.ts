@@ -11,7 +11,6 @@ import { ContentService } from "./content.service";
 import { SearchContentInput } from "./dto/search-content.input";
 import { ContentSearchResult } from "./dto/content-search.result";
 import { Content } from "./content.entity";
-import { CreateContentInput } from "./dto/create-content.input";
 import { UpdateContentInput } from "./dto/update-content.input";
 import { SearchResultItem, ContentType } from "./content.types";
 import { BypassAuth } from "../auth/bypass-auth.decorator";
@@ -72,28 +71,6 @@ export class ContentResolver {
       sortOrder: "DESC"
     });
     return result;
-  }
-
-  @RequiredPermission(Permission.ContentCreate)
-  @Mutation(() => Content, {
-    description: "Create new movie content"
-  })
-  async createMovie(@Args("input") input: CreateContentInput) {
-    return this.contentService.createContent(ContentType.MOVIE, {
-      ...input,
-      releaseDate: new Date(input.releaseDate)
-    });
-  }
-
-  @RequiredPermission(Permission.ContentCreate)
-  @Mutation(() => Content, {
-    description: "Create new series content"
-  })
-  async createSeries(@Args("input") input: CreateContentInput) {
-    return this.contentService.createContent(ContentType.SERIES, {
-      ...input,
-      releaseDate: new Date(input.releaseDate)
-    });
   }
 
   @RequiredPermission(Permission.ContentUpdate)

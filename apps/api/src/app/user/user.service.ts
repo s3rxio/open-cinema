@@ -114,47 +114,53 @@ export class UserService {
   async update(id: string, updateUserInput: UpdateUserInput): Promise<User> {
     const existingUser = await this.findOne(id);
 
-    if (
-      existingUser.username === updateUserInput.username ||
-      existingUser.email === updateUserInput.email
-    ) {
-      throw new BadRequestException(
-        `Username ${updateUserInput.username} or email ${updateUserInput.email} is already taken`
-      );
+    const usernameChanged =
+      updateUserInput.username !== undefined &&
+      updateUserInput.username !== existingUser.username;
+    const emailChanged =
+      updateUserInput.email !== undefined &&
+      updateUserInput.email !== existingUser.email;
+
+    if (usernameChanged || emailChanged) {
+      const conflicts = [
+        ...(usernameChanged ? [{ username: updateUserInput.username }] : []),
+        ...(emailChanged ? [{ email: updateUserInput.email }] : [])
+      ];
+
+      const usernameOrEmailTaken = await this.prisma.user.findFirst({
+        where: {
+          id: { not: id },
+          OR: conflicts
+        },
+        select: { id: true }
+      });
+
+      if (usernameOrEmailTaken) {
+        throw new BadRequestException(
+          `Username ${updateUserInput.username} or email ${updateUserInput.email} is already taken`
+        );
+      }
     }
+
+    const data: {
+      username?: string;
+      email?: string;
+      birthdate?: Date | null;
+      password?: string;
+    } = {
+      username: updateUserInput.username,
+      email: updateUserInput.email,
+      birthdate: updateUserInput.birthdate
+    };
 
     if (updateUserInput.password) {
       const salt = this.configService.getOrThrow<string>("crypto.salt");
-
-      updateUserInput.password = bcrypt.hashSync(
-        updateUserInput.password,
-        salt
-      );
-    }
-
-    const usernameOrEmailTaken = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { username: updateUserInput.username },
-          { email: updateUserInput.email }
-        ]
-      },
-      select: { id: true }
-    });
-
-    if (usernameOrEmailTaken) {
-      throw new BadRequestException(
-        `Username ${updateUserInput.username} or email ${updateUserInput.email} is already taken`
-      );
+      data.password = bcrypt.hashSync(updateUserInput.password, salt);
     }
 
     const user = await this.prisma.user.update({
       where: { id: id },
-      data: {
-        username: updateUserInput.username,
-        email: updateUserInput.email,
-        birthdate: updateUserInput.birthdate
-      },
+      data,
       omit: {
         password: true,
         refreshToken: true

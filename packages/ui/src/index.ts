@@ -8,4 +8,8 @@ export * from "./lib/tabs";
 export * from "./lib/select";
 export * from "./lib/slider";
 export * from "./lib/loader";
+export * from "./lib/table";
+export * from "./lib/pagination";
+export * from "./lib/label";
+export * from "./lib/textarea";
 export * from "./lib/utils";

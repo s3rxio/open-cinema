@@ -1,4 +1,5 @@
 import { InputType, Field } from "@nestjs/graphql";
+import { Type } from "class-transformer";
 import { IsString, IsInt, Min, IsOptional } from "class-validator";
 import { GraphQLUpload, FileUpload } from "graphql-upload-ts";
 
@@ -9,6 +10,7 @@ export class UploadSubtitleInput {
   streamId: string;
 
   @Field(() => GraphQLUpload)
+  @Type(() => Object)
   @IsOptional()
   file: Promise<FileUpload>;
 
@@ -21,6 +23,7 @@ export class UploadSubtitleInput {
   displayName: string;
 
   @Field()
+  @Type(() => Number)
   @IsInt()
   @Min(0)
   orderNumer: number;

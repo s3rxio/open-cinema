@@ -7,7 +7,6 @@ export class Episode
   extends OmitType(Content, [
     "genre",
     "director",
-    "releaseDate",
     "posterUrl",
     "type"
   ] as const)

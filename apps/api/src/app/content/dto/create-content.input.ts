@@ -1,5 +1,6 @@
 import { InputType, Field } from "@nestjs/graphql";
-import { IsDateString, IsNumber, IsString, Min, Max } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsNumber, IsString, Max, Min } from "class-validator";
 
 @InputType()
 export class CreateContentInput {
@@ -12,10 +13,12 @@ export class CreateContentInput {
   description: string;
 
   @Field()
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   releaseDate: Date;
 
   @Field()
+  @Type(() => Number)
   @IsNumber()
   @Min(0)
   @Max(10)

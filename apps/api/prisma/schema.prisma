@@ -143,7 +143,7 @@ model Episode {
   episode Int
 
   seriesId String @map("series_id")
-  series   Series @relation(fields: [seriesId], references: [id])
+  series   Series @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
   streamId String?
   stream   Stream? @relation(fields: [streamId], references: [id])
@@ -164,8 +164,8 @@ model Review {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  user  User  @relation(fields: [userId], references: [id])
-  movie Movie @relation(fields: [movieId], references: [id])
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie Movie @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
 }
@@ -181,9 +181,9 @@ model Favorite {
   movieId  String? @map("movie_id")
   seriesId String? @map("series_id")
 
-  user   User    @relation(fields: [userId], references: [id])
-  movie  Movie?  @relation(fields: [movieId], references: [id])
-  series Series? @relation(fields: [seriesId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie  Movie?  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  series Series? @relation(fields: [seriesId], references: [id], onDelete: Cascade)
 
   @@map("favorites")
 }
@@ -203,9 +203,9 @@ model WatchHistory {
   movieId   String? @map("movie_id")
   episodeId String? @map("episode_id")
 
-  user    User     @relation(fields: [userId], references: [id])
-  movie   Movie?   @relation(fields: [movieId], references: [id])
-  episode Episode? @relation(fields: [episodeId], references: [id])
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie   Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  episode Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
   @@unique([userId, episodeId])
@@ -230,7 +230,7 @@ model VideoMeta {
   isProcessed Boolean @default(false)
 
   streamId String
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@map("video_metas")
 }
@@ -246,7 +246,7 @@ model AudioMeta {
   bitrate Int
 
   streamId String
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   isDefault   Boolean @default(false)
   isProcessed Boolean @default(false)
@@ -263,7 +263,7 @@ model SubtitleMeta {
   orderNumer  Int
 
   streamId String
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   isProcessed Boolean @default(false)
 

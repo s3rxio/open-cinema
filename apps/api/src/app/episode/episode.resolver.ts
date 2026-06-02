@@ -2,6 +2,7 @@ import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
 import { EpisodeService } from "./episode.service";
 import { Episode } from "./entities/episode.entity";
 import { CreateEpisodeInput } from "./dto/create-episode.input";
+import { CreateEpisodesBulkInput } from "./dto/create-episodes-bulk.input";
 import { UpdateEpisodeInput } from "./dto/update-episode.input";
 import { PaginatedEpisodes } from "./dto/paginated-episode.response";
 import { PaginationArgs } from "@open-cinema/core";
@@ -17,6 +18,14 @@ export class EpisodeResolver {
     @Args("createEpisodeInput") createEpisodeInput: CreateEpisodeInput
   ) {
     return this.episodeService.create(createEpisodeInput);
+  }
+
+  @RequiredPermission(Permission.EpisodeCreate)
+  @Mutation(() => [Episode])
+  createEpisodesBulk(
+    @Args("createEpisodesBulkInput") createEpisodesBulkInput: CreateEpisodesBulkInput
+  ) {
+    return this.episodeService.createBulk(createEpisodesBulkInput);
   }
 
   @RequiredPermission(Permission.EpisodeRead)

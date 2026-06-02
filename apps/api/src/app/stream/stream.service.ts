@@ -17,11 +17,19 @@ import { dirname, join } from "path";
 import { UploadAudioInput } from "./dto/upload-audio.input";
 import { UploadVideoInput } from "./dto/upload-video.input";
 import { UploadSubtitleInput } from "./dto/upload-subtitle.input";
+import { UpdateVideoMetaInput } from "./dto/update-video-meta.input";
+import { UpdateAudioMetaInput } from "./dto/update-audio-meta.input";
+import { UpdateSubtitleMetaInput } from "./dto/update-subtitle-meta.input";
 import { AudioMeta } from "./entities/audio-meta.entity";
 import { mkdir, rm, writeFile } from "fs/promises";
 import { VideoMeta } from "./entities/video-meta.entity";
 import { SubtitleMeta } from "./entities/subtitle-meta.entity";
 import { ConfigService } from "@nestjs/config";
+import {
+  sortByOrderNumer,
+  sortVideoMetas,
+  streamMetasInclude
+} from "./stream-meta-order";
 
 @Injectable()
 export class StreamService {
@@ -37,11 +45,7 @@ export class StreamService {
   async getStreamInfo(streamId: string): Promise<Stream> {
     const stream = await this.prisma.stream.findUnique({
       where: { id: streamId },
-      include: {
-        videoMetas: true,
-        audioMetas: true,
-        subtitleMetas: true
-      }
+      include: streamMetasInclude
     });
 
     if (!stream) {
@@ -143,11 +147,7 @@ export class StreamService {
   async generateMaster(streamId: string) {
     const stream = await this.prisma.stream.findUnique({
       where: { id: streamId },
-      include: {
-        videoMetas: true,
-        audioMetas: true,
-        subtitleMetas: true
-      }
+      include: streamMetasInclude
     });
 
     if (!stream) {
@@ -164,9 +164,9 @@ export class StreamService {
 
     await this.generateMasterPlaylist(
       masterPlaylistPath,
-      stream.videoMetas,
-      stream.audioMetas,
-      stream.subtitleMetas
+      sortVideoMetas(stream.videoMetas),
+      sortByOrderNumer(stream.audioMetas),
+      sortByOrderNumer(stream.subtitleMetas)
     );
 
     const bucket = this.configService.getOrThrow("s3.bucket");
@@ -393,6 +393,108 @@ export class StreamService {
     };
   }
 
+  async updateVideoMeta(input: UpdateVideoMetaInput): Promise<VideoMeta> {
+    const { id, displayName, slug } = input;
+    const meta = await this.prisma.videoMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Video meta ${id} not found`);
+    }
+
+    return this.prisma.videoMeta.update({
+      where: { id },
+      data: {
+        ...(displayName !== undefined ? { displayName } : {}),
+        ...(slug !== undefined ? { slug } : {})
+      }
+    });
+  }
+
+  async updateAudioMeta(input: UpdateAudioMetaInput): Promise<AudioMeta> {
+    const { id, displayName, slug, orderNumer, isDefault } = input;
+    const meta = await this.prisma.audioMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Audio meta ${id} not found`);
+    }
+
+    if (isDefault === true) {
+      await this.prisma.audioMeta.updateMany({
+        where: { streamId: meta.streamId },
+        data: { isDefault: false }
+      });
+    }
+
+    return this.prisma.audioMeta.update({
+      where: { id },
+      data: {
+        ...(displayName !== undefined ? { displayName } : {}),
+        ...(slug !== undefined ? { slug } : {}),
+        ...(orderNumer !== undefined ? { orderNumer } : {}),
+        ...(isDefault !== undefined ? { isDefault } : {})
+      }
+    });
+  }
+
+  async removeVideoMeta(id: string): Promise<boolean> {
+    const meta = await this.prisma.videoMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Video meta ${id} not found`);
+    }
+
+    await this.deleteMetaS3Assets(meta.url);
+    await this.prisma.videoMeta.delete({ where: { id } });
+
+    return true;
+  }
+
+  async removeAudioMeta(id: string): Promise<boolean> {
+    const meta = await this.prisma.audioMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Audio meta ${id} not found`);
+    }
+
+    await this.deleteMetaS3Assets(meta.url);
+    await this.prisma.audioMeta.delete({ where: { id } });
+
+    return true;
+  }
+
+  async removeSubtitleMeta(id: string): Promise<boolean> {
+    const meta = await this.prisma.subtitleMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Subtitle meta ${id} not found`);
+    }
+
+    await this.deleteMetaS3Assets(meta.url);
+    await this.prisma.subtitleMeta.delete({ where: { id } });
+
+    return true;
+  }
+
+  async updateSubtitleMeta(
+    input: UpdateSubtitleMetaInput
+  ): Promise<SubtitleMeta> {
+    const { id, displayName, slug, orderNumer } = input;
+    const meta = await this.prisma.subtitleMeta.findUnique({ where: { id } });
+
+    if (!meta) {
+      throw new NotFoundException(`Subtitle meta ${id} not found`);
+    }
+
+    return this.prisma.subtitleMeta.update({
+      where: { id },
+      data: {
+        ...(displayName !== undefined ? { displayName } : {}),
+        ...(slug !== undefined ? { slug } : {}),
+        ...(orderNumer !== undefined ? { orderNumer } : {})
+      }
+    });
+  }
+
   /* Master playlist generation */
   async generateMasterPlaylist(
     outputPath: string,
@@ -404,13 +506,12 @@ export class StreamService {
       let masterContent = "#EXTM3U\n";
       masterContent += "#EXT-X-VERSION:6\n\n";
 
-      // Группируем аудио дорожки по качеству/битрейту
-      const audioGroups = this.groupAudioStreams(audioMetas);
+      const orderedVideos = sortVideoMetas(videoMetas);
+      const audioGroups = this.groupAudioStreams(sortByOrderNumer(audioMetas));
+      const subtitleGroups = this.groupSubtitles(
+        sortByOrderNumer(subtitleMetas)
+      );
 
-      // Группируем субтитры
-      const subtitleGroups = this.groupSubtitles(subtitleMetas);
-
-      // Добавляем информацию о группах в манифест
       if (audioGroups.size > 0) {
         masterContent += this.generateAudioGroupTag(audioGroups);
       }
@@ -421,8 +522,7 @@ export class StreamService {
 
       masterContent += "\n";
 
-      // Добавляем каждую видео дорожку с соответствующими аудио и субтитрами
-      for (const video of videoMetas) {
+      for (const video of orderedVideos) {
         masterContent += this.generateVideoStreamTag(
           video,
           audioGroups,
@@ -570,6 +670,30 @@ export class StreamService {
     urlParts.shift();
 
     return urlParts.join("/");
+  }
+
+  private async deleteMetaS3Assets(url: string): Promise<void> {
+    if (!url || url === "processing") {
+      return;
+    }
+
+    const bucket = this.configService.getOrThrow("s3.bucket");
+    const key = url.includes("://") ? this.normalizeS3Key(url) : url;
+    const prefix = key.includes("/") ? key.slice(0, key.lastIndexOf("/")) : key;
+
+    if (!prefix) {
+      return;
+    }
+
+    try {
+      await this.s3Storage.deletePrefix(bucket, prefix);
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.warn(
+          `Failed to delete S3 assets for ${url}: ${error.message}`
+        );
+      }
+    }
   }
 
   /**

@@ -1,0 +1,9 @@
+export { DashboardNav } from "./ui/DashboardNav";
+export { DashboardAuthGate } from "./ui/DashboardAuthGate";
+export { MoviesListPage } from "./ui/MoviesListPage";
+export { SeriesListPage } from "./ui/SeriesListPage";
+export { UsersListPage } from "./ui/UsersListPage";
+export { ContentAdminEdit } from "./ui/ContentAdminEdit";
+export { ContentCreatePage } from "./ui/ContentCreatePage";
+export { UserEditPage } from "./ui/UserEditPage";
+export { UserCreatePage } from "./ui/UserCreatePage";

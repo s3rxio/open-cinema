@@ -8,6 +8,10 @@ import { UploadSubtitleInput } from "./dto/upload-subtitle.input";
 import { AudioMeta } from "./entities/audio-meta.entity";
 import { SubtitleMeta } from "./entities/subtitle-meta.entity";
 import { CreateStreamInput } from "./dto/create-stream.input";
+import { UpdateVideoMetaInput } from "./dto/update-video-meta.input";
+import { UpdateAudioMetaInput } from "./dto/update-audio-meta.input";
+import { UpdateSubtitleMetaInput } from "./dto/update-subtitle-meta.input";
+import { VideoMeta } from "./entities/video-meta.entity";
 import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver()
@@ -93,5 +97,50 @@ export class StreamResolver {
     @Args("uploadSubtitleInput") uploadSubtitleInput: UploadSubtitleInput
   ) {
     return this.streamService.uploadSubtitle(uploadSubtitleInput);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => VideoMeta, { description: "Update video track metadata" })
+  async updateVideoMeta(
+    @Args("updateVideoMetaInput") updateVideoMetaInput: UpdateVideoMetaInput
+  ) {
+    return this.streamService.updateVideoMeta(updateVideoMetaInput);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => AudioMeta, { description: "Update audio track metadata" })
+  async updateAudioMeta(
+    @Args("updateAudioMetaInput") updateAudioMetaInput: UpdateAudioMetaInput
+  ) {
+    return this.streamService.updateAudioMeta(updateAudioMetaInput);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => SubtitleMeta, {
+    description: "Update subtitle track metadata"
+  })
+  async updateSubtitleMeta(
+    @Args("updateSubtitleMetaInput")
+    updateSubtitleMetaInput: UpdateSubtitleMetaInput
+  ) {
+    return this.streamService.updateSubtitleMeta(updateSubtitleMetaInput);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => Boolean, { description: "Delete video track" })
+  async removeVideoMeta(@Args("id") id: string) {
+    return this.streamService.removeVideoMeta(id);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => Boolean, { description: "Delete audio track" })
+  async removeAudioMeta(@Args("id") id: string) {
+    return this.streamService.removeAudioMeta(id);
+  }
+
+  @RequiredPermission(Permission.StreamManage)
+  @Mutation(() => Boolean, { description: "Delete subtitle track" })
+  async removeSubtitleMeta(@Args("id") id: string) {
+    return this.streamService.removeSubtitleMeta(id);
   }
 }

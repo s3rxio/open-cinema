@@ -123,10 +123,23 @@ export class SeriesService {
   async remove(id: string): Promise<boolean> {
     await this.findOne(id);
 
-    const deleted = await this.prisma.series.delete({
-      where: { id: id }
+    await this.prisma.$transaction(async tx => {
+      const episodes = await tx.episode.findMany({
+        where: { seriesId: id },
+        select: { streamId: true }
+      });
+
+      const streamIds = episodes
+        .map(episode => episode.streamId)
+        .filter((streamId): streamId is string => Boolean(streamId));
+
+      if (streamIds.length > 0) {
+        await tx.stream.deleteMany({ where: { id: { in: streamIds } } });
+      }
+
+      await tx.series.delete({ where: { id } });
     });
 
-    return deleted ? true : false;
+    return true;
   }
 }

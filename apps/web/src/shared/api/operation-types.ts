@@ -161,6 +161,7 @@ export type SeriesEpisode = {
   episode: number;
   description: string;
   rating: number;
+  releaseDate: string;
   streamId?: string | null;
 };
 
@@ -253,4 +254,308 @@ export type GetStreamForEpisodeQueryVariables = {
 
 export type GetStreamForEpisodeQuery = {
   getStreamForEpisode: StreamInfo;
+};
+
+export type PaginatedListItem = {
+  id: string;
+  title: string;
+  description: string;
+  releaseDate: string;
+  rating: number;
+  genre: string;
+  director: string;
+  posterUrl?: string | null;
+  createdAt: string;
+};
+
+export type PaginatedResponse<T> = {
+  data: T[];
+  total: number;
+  nextCursor?: string | null;
+  prevCursor?: string | null;
+};
+
+export type DashboardMoviesQueryVariables = {
+  first: number;
+  cursor?: string | null;
+};
+
+export type DashboardMovieItem = PaginatedListItem & {
+  streamId?: string | null;
+};
+
+export type DashboardMoviesQuery = {
+  movies: PaginatedResponse<DashboardMovieItem>;
+};
+
+export type DashboardSeriesListQueryVariables = DashboardMoviesQueryVariables;
+
+export type DashboardSeriesListQuery = {
+  seriesList: PaginatedResponse<PaginatedListItem>;
+};
+
+export type DashboardUsersQueryVariables = DashboardMoviesQueryVariables;
+
+export type DashboardUserListItem = {
+  id: string;
+  username: string;
+  email: string;
+  birthdate?: string | null;
+  createdAt: string;
+};
+
+export type DashboardUsersQuery = {
+  users: PaginatedResponse<DashboardUserListItem>;
+};
+
+export type DashboardUserQueryVariables = { id: string };
+
+export type DashboardUserQuery = {
+  user: DashboardUserListItem;
+};
+
+export type CreateContentInputFields = {
+  title: string;
+  description: string;
+  director: string;
+  genre: string;
+  releaseDate: string;
+  rating: number;
+};
+
+export type CreateMovieMutationVariables = {
+  createMovieInput: CreateContentInputFields;
+};
+
+export type CreateMovieMutation = {
+  createMovie: { id: string; title: string };
+};
+
+export type CreateSeriesMutationVariables = {
+  createSeriesInput: CreateContentInputFields;
+};
+
+export type CreateSeriesMutation = {
+  createSeries: { id: string; title: string };
+};
+
+export type CreateUserMutationVariables = {
+  createUserInput: {
+    username: string;
+    email: string;
+    password: string;
+    birthdate?: string | null;
+  };
+};
+
+export type CreateUserMutation = {
+  createUser: { id: string; username: string; email: string };
+};
+
+export type UpdateMovieMutationVariables = {
+  updateMovieInput: {
+    id: string;
+    title?: string;
+    description?: string;
+    director?: string;
+    genre?: string;
+    releaseDate?: string;
+    rating?: number;
+  };
+};
+
+export type UpdateMovieMutation = { updateMovie: MovieByIdQuery["movie"] };
+
+export type UpdateSeriesMutationVariables = {
+  updateSeriesInput: UpdateMovieMutationVariables["updateMovieInput"];
+};
+
+export type UpdateSeriesMutation = {
+  updateSeries: Omit<SeriesByIdQuery["series"], "episodes">;
+};
+
+export type UpdateUserMutationVariables = {
+  updateUserInput: {
+    id: string;
+    username?: string;
+    email?: string;
+    password?: string;
+    birthdate?: string | null;
+  };
+};
+
+export type UpdateUserMutation = {
+  updateUser: DashboardUserListItem;
+};
+
+export type CreateStreamMutationVariables = {
+  createStreamInput: { contentId: string };
+};
+
+export type CreateStreamMutation = {
+  createStream: { id: string };
+};
+
+export type GenerateMasterMutationVariables = { streamId: string };
+
+export type GenerateMasterMutation = { generateMaster: string };
+
+export type UpdateVideoMetaMutationVariables = {
+  updateVideoMetaInput: {
+    id: string;
+    displayName?: string;
+    slug?: string;
+  };
+};
+
+export type UpdateVideoMetaMutation = {
+  updateVideoMeta: Pick<VideoMeta, "id" | "displayName" | "slug">;
+};
+
+export type UpdateAudioMetaMutationVariables = {
+  updateAudioMetaInput: {
+    id: string;
+    displayName?: string;
+    slug?: string;
+    orderNumer?: number;
+    isDefault?: boolean;
+  };
+};
+
+export type UpdateAudioMetaMutation = {
+  updateAudioMeta: Pick<
+    AudioMeta,
+    "id" | "displayName" | "slug" | "orderNumer" | "isDefault"
+  >;
+};
+
+export type UpdateSubtitleMetaMutationVariables = {
+  updateSubtitleMetaInput: {
+    id: string;
+    displayName?: string;
+    slug?: string;
+    orderNumer?: number;
+  };
+};
+
+export type UpdateSubtitleMetaMutation = {
+  updateSubtitleMeta: Pick<
+    SubtitleMeta,
+    "id" | "displayName" | "slug" | "orderNumer"
+  >;
+};
+
+export type RemoveMovieMutationVariables = { id: string };
+export type RemoveMovieMutation = { removeMovie: boolean };
+
+export type RemoveSeriesMutationVariables = { id: string };
+export type RemoveSeriesMutation = { removeSeries: boolean };
+
+export type RemoveUserMutationVariables = { id: string };
+export type RemoveUserMutation = { removeUser: boolean };
+
+export type CreateEpisodeMutationVariables = {
+  createEpisodeInput: {
+    seriesId: string;
+    title: string;
+    description: string;
+    releaseDate: string;
+    rating: number;
+    season: number;
+    episode: number;
+  };
+};
+
+export type CreateEpisodeMutation = {
+  createEpisode: SeriesEpisode & { seriesId: string };
+};
+
+export type CreateEpisodesBulkMutationVariables = {
+  createEpisodesBulkInput: {
+    seriesId: string;
+    season: number;
+    count: number;
+    startEpisode?: number;
+    description: string;
+    releaseDate: string;
+    rating: number;
+    titlePrefix?: string;
+  };
+};
+
+export type CreateEpisodesBulkMutation = {
+  createEpisodesBulk: SeriesEpisode[];
+};
+
+export type RemoveEpisodeMutationVariables = { id: string };
+export type RemoveEpisodeMutation = { removeEpisode: boolean };
+
+export type UpdateEpisodeMutationVariables = {
+  updateEpisodeInput: {
+    id: string;
+    seriesId: string;
+    title: string;
+    description: string;
+    releaseDate: string;
+    rating: number;
+    season: number;
+    episode: number;
+  };
+};
+
+export type UpdateEpisodeMutation = {
+  updateEpisode: SeriesEpisode & { seriesId: string };
+};
+
+export type RemoveVideoMetaMutationVariables = { id: string };
+export type RemoveVideoMetaMutation = { removeVideoMeta: boolean };
+
+export type RemoveAudioMetaMutationVariables = { id: string };
+export type RemoveAudioMetaMutation = { removeAudioMeta: boolean };
+
+export type RemoveSubtitleMetaMutationVariables = { id: string };
+export type RemoveSubtitleMetaMutation = { removeSubtitleMeta: boolean };
+
+export type UploadVideoMutationVariables = {
+  uploadVideoInput: {
+    streamId: string;
+    file: File;
+  };
+};
+
+export type UploadVideoMutation = { uploadVideo: string };
+
+export type UploadAudioMutationVariables = {
+  uploadAudioInput: {
+    streamId: string;
+    file: File;
+    slug: string;
+    displayName: string;
+    orderNumer: number;
+    isDefault?: boolean;
+  };
+};
+
+export type UploadAudioMutation = {
+  uploadAudio: Pick<
+    AudioMeta,
+    "id" | "displayName" | "slug" | "orderNumer" | "isDefault"
+  >;
+};
+
+export type UploadSubtitleMutationVariables = {
+  uploadSubtitleInput: {
+    streamId: string;
+    file: File;
+    slug: string;
+    displayName: string;
+    orderNumer: number;
+  };
+};
+
+export type UploadSubtitleMutation = {
+  uploadSubtitle: Pick<
+    SubtitleMeta,
+    "id" | "displayName" | "slug" | "orderNumer"
+  >;
 };

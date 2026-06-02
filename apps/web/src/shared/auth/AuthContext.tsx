@@ -5,7 +5,8 @@ import React, {
   useContext,
   useMemo,
   useCallback,
-  useEffect
+  useEffect,
+  useState
 } from "react";
 import { useQuery } from "@apollo/client/react";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
@@ -18,6 +19,8 @@ export type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   logout: () => void;
+  /** false until tokens are restored from localStorage on the client */
+  isReady: boolean;
   isAuthenticated: boolean;
 };
 
@@ -34,15 +37,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = useAuthStore(state => state.user);
   const setUser = useAuthStore(state => state.setUser);
   const clear = useAuthStore(state => state.clear);
+  const [isReady, setIsReady] = useState(false);
+
   useEffect(() => {
     const stored = localStorage.getItem("authToken");
     const storedRefresh = localStorage.getItem("refreshToken");
-    if (stored && !useAuthStore.getState().accessToken) {
+
+    if (stored) {
       useAuthStore.setState({
         accessToken: stored,
         refreshToken: storedRefresh
       });
     }
+
+    setIsReady(true);
   }, []);
 
   const meQuery = useQuery(ME_QUERY, {
@@ -80,10 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       token: accessToken,
-      isAuthenticated: !!accessToken,
+      isReady,
+      isAuthenticated: isReady && !!accessToken,
       logout
     }),
-    [accessToken, user, logout]
+    [accessToken, user, logout, isReady]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

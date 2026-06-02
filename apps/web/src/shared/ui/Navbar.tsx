@@ -12,7 +12,7 @@ import {
 } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
 import { cn } from "@open-cinema/ui";
-import { LogOut, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Settings, User } from "lucide-react";
 import { NavbarSearch } from "./NavbarSearch";
 
 const navLinkClass =
@@ -74,6 +74,9 @@ function UserMenu() {
   const displayName = user?.username || "Пользователь";
 
   const handleAction = (action: string) => {
+    if (action === "dashboard") {
+      router.push("/dashboard");
+    }
     if (action === "settings") {
       router.push("/settings");
     }
@@ -93,6 +96,15 @@ function UserMenu() {
         </span>
       </SelectTrigger>
       <SelectContent align="end">
+        <SelectItem
+          value="dashboard"
+          className="[&>span:first-child]:hidden pl-2"
+        >
+          <span className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
+            Панель управления
+          </span>
+        </SelectItem>
         <SelectItem
           value="settings"
           className="[&>span:first-child]:hidden pl-2"

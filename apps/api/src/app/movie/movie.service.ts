@@ -93,12 +93,16 @@ export class MovieService {
   }
 
   async remove(id: string): Promise<boolean> {
-    await this.findOne(id);
+    const movie = await this.findOne(id);
 
-    const deleted = await this.prisma.movie.delete({
-      where: { id: id }
+    await this.prisma.$transaction(async tx => {
+      if (movie.streamId) {
+        await tx.stream.delete({ where: { id: movie.streamId } });
+      }
+
+      await tx.movie.delete({ where: { id } });
     });
 
-    return deleted ? true : false;
+    return true;
   }
 }

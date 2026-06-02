@@ -41,6 +41,7 @@ export const SERIES_BY_ID_QUERY = gql`
         episode
         description
         rating
+        releaseDate
         streamId
       }
     }

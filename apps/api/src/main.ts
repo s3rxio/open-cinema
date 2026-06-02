@@ -3,7 +3,12 @@
  * This is only a minimal backend to get started.
  */
 
-import { Logger, ValidationPipe } from "@nestjs/common";
+import {
+  BadRequestException,
+  Logger,
+  ValidationPipe
+} from "@nestjs/common";
+import { ValidationError } from "class-validator";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app/app.module";
 import { graphqlUploadExpress } from "graphql-upload-ts";
@@ -22,7 +27,9 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-      whitelist: true
+      whitelist: true,
+      exceptionFactory: (errors: ValidationError[]) =>
+        new BadRequestException(formatValidationErrors(errors))
     })
   );
 
@@ -33,6 +40,22 @@ async function bootstrap() {
 
   await app.listen(port, host);
   Logger.log(`🚀 Application is running on: ${url}`);
+}
+
+function formatValidationErrors(errors: ValidationError[]): string[] {
+  const messages: string[] = [];
+
+  for (const error of errors) {
+    if (error.constraints) {
+      messages.push(...Object.values(error.constraints));
+    }
+
+    if (error.children?.length) {
+      messages.push(...formatValidationErrors(error.children));
+    }
+  }
+
+  return messages.length > 0 ? messages : ["Validation failed"];
 }
 
 bootstrap();
