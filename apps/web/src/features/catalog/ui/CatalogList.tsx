@@ -1,64 +1,66 @@
 "use client";
 
 import { useQuery } from "@apollo/client/react";
-import { Tabs, TabsContent, TabsList, TabsTrigger, Loader } from "@open-cinema/ui";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Loader
+} from "@open-cinema/ui";
 import { ContentCard } from "./ContentCard";
-import { QUERIES } from "@/shared/api/queries";
+import {
+  GET_RECENT_CONTENT_QUERY,
+  GET_TRENDING_CONTENT_QUERY
+} from "@/shared/api/operations/catalog";
 import { useState } from "react";
-
-interface ContentItem {
-  id: string;
-  title: string;
-  description: string;
-  posterUrl?: string;
-  rating?: number;
-  type: "MOVIE" | "SERIES";
-}
+import type { ContentItem } from "@/shared/api/operation-types";
 
 export function CatalogList() {
   const [tab, setTab] = useState<"new" | "popular">("new");
   const [skip, setSkip] = useState(0);
   const take = 20;
 
-  const { data: newData, loading: newLoading } = useQuery<any>(
-    QUERIES.getRecentContent,
-    {
-      variables: { skip, take },
-      skip: tab !== "new",
-    }
-  );
+  const recentContentQuery = useQuery(GET_RECENT_CONTENT_QUERY, {
+    variables: { skip, take },
+    skip: tab !== "new"
+  });
 
-  const { data: popularData, loading: popularLoading } = useQuery<any>(
-    QUERIES.getTrendingContent,
-    {
-      variables: { skip, take },
-      skip: tab !== "popular",
-    }
-  );
+  const trendingContentQuery = useQuery(GET_TRENDING_CONTENT_QUERY, {
+    variables: { skip, take },
+    skip: tab !== "popular"
+  });
 
-  const isLoading = tab === "new" ? newLoading : popularLoading;
-  const content = tab === "new" ? newData?.getRecentContent : popularData?.getTrendingContent;
+  const isLoading =
+    tab === "new" ? recentContentQuery.loading : trendingContentQuery.loading;
+  const content =
+    tab === "new"
+      ? recentContentQuery.data?.getRecentContent
+      : trendingContentQuery.data?.getTrendingContent;
   const items = content?.items || [];
 
   return (
     <div className="space-y-6">
-      <Tabs value={tab} onValueChange={(value) => {
-        setTab(value as "new" | "popular");
-        setSkip(0);
-      }}>
+      <Tabs
+        value={tab}
+        onValueChange={value => {
+          setTab(value as "new" | "popular");
+          setSkip(0);
+        }}
+      >
         <TabsList>
           <TabsTrigger value="new">Новинки</TabsTrigger>
           <TabsTrigger value="popular">Популярные</TabsTrigger>
         </TabsList>
 
         <TabsContent value="new" className="space-y-6">
-          {newLoading && <CatalogLoader />}
-          {newData && <CatalogGrid items={items} />}
+          {recentContentQuery.loading && <CatalogLoader />}
+          {recentContentQuery.data && <CatalogGrid items={items} />}
         </TabsContent>
 
         <TabsContent value="popular" className="space-y-6">
-          {popularLoading && <CatalogLoader />}
-          {popularData && <CatalogGrid items={items} />}
+          {trendingContentQuery.loading && <CatalogLoader />}
+          {trendingContentQuery.data && <CatalogGrid items={items} />}
         </TabsContent>
       </Tabs>
 
@@ -79,8 +81,12 @@ export function CatalogList() {
 function CatalogGrid({ items }: { items: ContentItem[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {items.map((item) => (
-        <ContentCard key={item.id} {...item} />
+      {items.map(item => (
+        <ContentCard
+          key={item.id}
+          {...item}
+          posterUrl={item.posterUrl ?? undefined}
+        />
       ))}
     </div>
   );

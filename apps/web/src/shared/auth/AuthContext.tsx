@@ -1,19 +1,22 @@
 "use client";
 
-import React, { createContext, useContext, useMemo, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useCallback,
+  useEffect
+} from "react";
+import { useQuery } from "@apollo/client/react";
+import { ME_QUERY } from "@/shared/api/operations/favorites";
+import { useAuthStore, type AuthUser } from "@/shared/state/useAuthStore";
+import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
 
-export type AuthUser = {
-  id: string;
-  email?: string;
-  username?: string;
-  // extend based on backend auth resolver response
-};
+export type { AuthUser };
 
 export type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
-  login: (params: { email: string; password: string }) => Promise<void>;
-  register: (params: { email: string; password: string; username: string }) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 };
@@ -27,35 +30,61 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(
-    typeof window !== "undefined" ? localStorage.getItem("authToken") : null
+  const accessToken = useAuthStore(state => state.accessToken);
+  const user = useAuthStore(state => state.user);
+  const setUser = useAuthStore(state => state.setUser);
+  const clear = useAuthStore(state => state.clear);
+  useEffect(() => {
+    const stored = localStorage.getItem("authToken");
+    const storedRefresh = localStorage.getItem("refreshToken");
+    if (stored && !useAuthStore.getState().accessToken) {
+      useAuthStore.setState({
+        accessToken: stored,
+        refreshToken: storedRefresh
+      });
+    }
+  }, []);
+
+  const meQuery = useQuery(ME_QUERY, {
+    skip: !accessToken,
+    fetchPolicy: "cache-and-network"
+  });
+
+  const setFavoritesFromServer = useFavoritesStore(
+    state => state.setFromServer
   );
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const clearFavorites = useFavoritesStore(state => state.clear);
+
+  useEffect(() => {
+    const me = meQuery.data?.me;
+    if (me) {
+      setUser({
+        id: me.id,
+        email: me.email,
+        username: me.username
+      });
+      if (me.favorites) {
+        setFavoritesFromServer(me.favorites);
+      }
+    }
+  }, [meQuery.data, setUser, setFavoritesFromServer]);
 
   const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
+    clear();
+    clearFavorites();
     localStorage.removeItem("authToken");
-  }, []);
+    localStorage.removeItem("refreshToken");
+  }, [clear, clearFavorites]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      token,
-      isAuthenticated: !!token,
-      login: async () => {
-        // TODO integrate with auth mutation
-        throw new Error("Auth.login not implemented yet");
-      },
-      register: async () => {
-        // TODO integrate with auth mutation
-        throw new Error("Auth.register not implemented yet");
-      },
-      logout,
+      token: accessToken,
+      isAuthenticated: !!accessToken,
+      logout
     }),
-    [token, user, logout]
+    [accessToken, user, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-

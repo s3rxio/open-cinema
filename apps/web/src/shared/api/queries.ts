@@ -1,34 +1,43 @@
 import { gql } from "@apollo/client";
 
+export { LOGIN_MUTATION, REGISTER_MUTATION } from "./operations/auth";
+
+export {
+  GET_RECENT_CONTENT_QUERY,
+  GET_TRENDING_CONTENT_QUERY
+} from "./operations/catalog";
+
+export {
+  ME_QUERY,
+  CREATE_FAVORITE_MUTATION,
+  REMOVE_FAVORITE_MUTATION
+} from "./operations/favorites";
+
+export { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY } from "./operations/content";
+
+export { GET_STREAM_INFO_QUERY } from "./operations/stream";
+
+export { SEARCH_CONTENT_QUERY } from "./operations/search";
+
 export const QUERIES = {
-  // Auth
   login: gql`
-    mutation Login($login: String!, $password: String!) {
-      login(login: $login, password: $password) {
-        token
-        user {
-          id
-          email
-          username
-        }
+    mutation Login($loginInput: LoginInput!) {
+      login(loginInput: $loginInput) {
+        accessToken
+        refreshToken
       }
     }
   `,
 
   register: gql`
-    mutation Register($email: String!, $password: String!, $username: String!) {
-      register(email: $email, password: $password, username: $username) {
-        token
-        user {
-          id
-          email
-          username
-        }
+    mutation Register($registerInput: RegisterInput!) {
+      register(registerInput: $registerInput) {
+        accessToken
+        refreshToken
       }
     }
   `,
 
-  // Catalog
   getRecentContent: gql`
     query GetRecentContent($skip: Int!, $take: Int!) {
       getRecentContent(skip: $skip, take: $take) {
@@ -65,7 +74,6 @@ export const QUERIES = {
     }
   `,
 
-  // Favorites
   me: gql`
     query Me {
       me {
@@ -74,34 +82,41 @@ export const QUERIES = {
         username
         favorites {
           id
-          contentId
-          content {
+          movie {
             id
             title
             description
             rating
-            type
             posterUrl
+            releaseDate
+          }
+          series {
+            id
+            title
+            description
+            rating
+            posterUrl
+            releaseDate
           }
         }
       }
     }
   `,
 
-  toggleFavorite: gql`
-    mutation ToggleFavorite($contentId: String!) {
-      toggleFavorite(contentId: $contentId) {
+  createFavorite: gql`
+    mutation CreateFavorite($createFavoriteInput: CreateFavoriteInput!) {
+      createFavorite(createFavoriteInput: $createFavoriteInput) {
         id
-        contentId
-        content {
-          id
-          title
-        }
       }
     }
   `,
 
-  // Movies/Series
+  removeFavorite: gql`
+    mutation RemoveFavorite($id: String!) {
+      removeFavorite(id: $id)
+    }
+  `,
+
   movieById: gql`
     query MovieById($id: String!) {
       movie(id: $id) {
@@ -113,7 +128,6 @@ export const QUERIES = {
         releaseDate
         rating
         posterUrl
-        streamId
       }
     }
   `,
@@ -129,24 +143,18 @@ export const QUERIES = {
         releaseDate
         rating
         posterUrl
-        seasons {
+        episodes {
+          id
+          title
           season
-          episodes {
-            id
-            title
-            season
-            episode
-            releaseDate
-            rating
-            description
-            streamId
-          }
+          episode
+          description
+          rating
         }
       }
     }
   `,
 
-  // Stream
   getStreamInfo: gql`
     query GetStreamInfo($streamId: String!) {
       getStreamInfo(streamId: $streamId) {
@@ -161,7 +169,6 @@ export const QUERIES = {
           url
           slug
           streamId
-          isDefault
           isProcessed
         }
         audioMetas {
@@ -182,7 +189,24 @@ export const QUERIES = {
           slug
           streamId
           orderNumer
-          isDefault
+        }
+      }
+    }
+  `,
+
+  searchContent: gql`
+    query SearchContent($input: SearchContentInput!) {
+      searchContent(input: $input) {
+        total
+        hasMore
+        items {
+          id
+          title
+          description
+          releaseDate
+          rating
+          type
+          posterUrl
         }
       }
     }

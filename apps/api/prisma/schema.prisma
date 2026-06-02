@@ -29,8 +29,9 @@ model User {
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  reviews   Review[]
-  favorites Favorite[]
+  reviews      Review[]
+  favorites    Favorite[]
+  watchHistory WatchHistory[]
 
   @@map("users")
 }
@@ -43,13 +44,15 @@ model Movie {
   genre       String
   director    String
   rating      Float
+  posterUrl   String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
   deletedAt DateTime? @map("deleted_at")
 
-  reviews   Review[]
-  favorites Favorite[]
+  reviews      Review[]
+  favorites    Favorite[]
+  watchHistory WatchHistory[]
 
   streamId String?
   stream   Stream? @relation(fields: [streamId], references: [id])
@@ -65,6 +68,7 @@ model Series {
   genre       String
   director    String
   rating      Float
+  posterUrl   String?
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -95,6 +99,8 @@ model Episode {
 
   streamId String?
   stream   Stream? @relation(fields: [streamId], references: [id])
+
+  watchHistory WatchHistory[]
 
   @@map("episodes")
 }
@@ -132,6 +138,30 @@ model Favorite {
   series Series? @relation(fields: [seriesId], references: [id])
 
   @@map("favorites")
+}
+
+model WatchHistory {
+  id String @id @default(uuid())
+
+  progress  Int     @default(0)
+  duration  Int?
+  completed Boolean @default(false)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  userId    String  @map("user_id")
+  movieId   String? @map("movie_id")
+  episodeId String? @map("episode_id")
+
+  user    User     @relation(fields: [userId], references: [id])
+  movie   Movie?   @relation(fields: [movieId], references: [id])
+  episode Episode? @relation(fields: [episodeId], references: [id])
+
+  @@unique([userId, movieId])
+  @@unique([userId, episodeId])
+  @@map("watch_history")
 }
 
 /**

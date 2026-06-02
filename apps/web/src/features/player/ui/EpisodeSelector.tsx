@@ -1,7 +1,12 @@
 "use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@open-cinema/ui";
-import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@open-cinema/ui";
 
 interface Episode {
   id: string;
@@ -13,52 +18,38 @@ interface Episode {
 interface EpisodeSelectorProps {
   seasons: { season: number; episodes: Episode[] }[];
   onEpisodeChange: (episodeId: string) => void;
-  defaultSeason?: number;
-  defaultEpisode?: number;
+  selectedSeason: number;
+  selectedEpisodeId: string;
 }
 
 export function EpisodeSelector({
   seasons,
   onEpisodeChange,
-  defaultSeason = 1,
-  defaultEpisode = 1,
+  selectedSeason,
+  selectedEpisodeId
 }: EpisodeSelectorProps) {
-  const [selectedSeason, setSelectedSeason] = useState(defaultSeason);
-  const [selectedEpisode, setSelectedEpisode] = useState(defaultEpisode);
+  const currentSeason = seasons.find(s => s.season === selectedSeason);
+  const episodes = currentSeason?.episodes ?? [];
 
-  const currentSeason = seasons.find((s) => s.season === selectedSeason);
-  const episodes = currentSeason?.episodes || [];
-
-  const handleSeasonChange = (season: number) => {
-    setSelectedSeason(season);
-    setSelectedEpisode(1);
-    const firstEpisode = episodes[0];
+  const handleSeasonChange = (value: string) => {
+    const season = parseInt(value, 10);
+    const seasonData = seasons.find(s => s.season === season);
+    const firstEpisode = seasonData?.episodes[0];
     if (firstEpisode) {
       onEpisodeChange(firstEpisode.id);
     }
   };
 
-  const handleEpisodeChange = (episodeId: string) => {
-    const episode = episodes.find((e) => e.id === episodeId);
-    if (episode) {
-      setSelectedEpisode(episode.episode);
-      onEpisodeChange(episodeId);
-    }
-  };
-
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col sm:flex-row gap-4">
       <div className="flex-1">
         <label className="text-sm font-medium mb-2 block">Сезон</label>
-        <Select
-          value={String(selectedSeason)}
-          onValueChange={(value) => handleSeasonChange(parseInt(value))}
-        >
+        <Select value={String(selectedSeason)} onValueChange={handleSeasonChange}>
           <SelectTrigger>
             <SelectValue placeholder="Выбрать сезон" />
           </SelectTrigger>
           <SelectContent>
-            {seasons.map((season) => (
+            {seasons.map(season => (
               <SelectItem key={season.season} value={String(season.season)}>
                 Сезон {season.season}
               </SelectItem>
@@ -69,17 +60,12 @@ export function EpisodeSelector({
 
       <div className="flex-1">
         <label className="text-sm font-medium mb-2 block">Серия</label>
-        <Select
-          value={
-            episodes.find((e) => e.episode === selectedEpisode)?.id || ""
-          }
-          onValueChange={handleEpisodeChange}
-        >
+        <Select value={selectedEpisodeId} onValueChange={onEpisodeChange}>
           <SelectTrigger>
             <SelectValue placeholder="Выбрать серию" />
           </SelectTrigger>
           <SelectContent>
-            {episodes.map((episode) => (
+            {episodes.map(episode => (
               <SelectItem key={episode.id} value={episode.id}>
                 Серия {episode.episode}: {episode.title}
               </SelectItem>

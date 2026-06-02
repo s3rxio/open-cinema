@@ -12,7 +12,7 @@
     --popover-foreground: 0 0% 3.6%;
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 9.0%;
+    --accent: 0 0% 9%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
@@ -32,13 +32,32 @@
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
     --accent: 0 0% 98%;
-    --accent-foreground: 0 0% 9.0%;
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.3%;
   }
+}
+
+@keyframes player-action-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+.player-action-flash {
+  animation: player-action-flash 1s ease-out forwards;
 }
 
 @layer base {

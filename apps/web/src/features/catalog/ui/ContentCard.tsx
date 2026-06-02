@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@open-cinema/ui";
-import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
-import { Heart } from "lucide-react";
+import { useBookmarks } from "@/features/favorites/lib/useBookmarks";
+import { Bookmark } from "lucide-react";
+import { cn } from "@open-cinema/ui";
+import { useState } from "react";
+import type { ContentType } from "@/shared/api/operation-types";
+import { routes } from "@/shared/lib/routes";
 
 interface ContentCardProps {
   id: string;
@@ -11,8 +15,7 @@ interface ContentCardProps {
   description: string;
   posterUrl?: string;
   rating?: number;
-  type: "MOVIE" | "SERIES";
-  onToggleFavorite?: (id: string, isFavorite: boolean) => Promise<void>;
+  type: ContentType;
 }
 
 export function ContentCard({
@@ -21,30 +24,28 @@ export function ContentCard({
   description,
   posterUrl,
   rating,
-  type,
-  onToggleFavorite,
+  type
 }: ContentCardProps) {
-  const isFavorite = useFavoritesStore((state) => state.isFavorite(id));
-  const toggleFavorite = useFavoritesStore((state) =>
-    state.isFavorite(id) ? state.removeFavorite : state.addFavorite
-  );
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const bookmarked = isBookmarked(id);
+  const [pending, setPending] = useState(false);
 
-  const handleFavoriteClick = async (e: React.MouseEvent) => {
+  const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    const newFavorite = !isFavorite;
-    toggleFavorite(id);
+    e.stopPropagation();
+    if (pending) return;
 
-    if (onToggleFavorite) {
-      try {
-        await onToggleFavorite(id, newFavorite);
-      } catch (error) {
-        // Revert on error
-        toggleFavorite(id);
-      }
+    setPending(true);
+    try {
+      await toggleBookmark(id, type);
+    } catch {
+      // optimistic revert handled in hook
+    } finally {
+      setPending(false);
     }
   };
 
-  const href = type === "MOVIE" ? `/player/${id}` : `/series/${id}`;
+  const href = type === "MOVIE" ? routes.movie(id) : routes.series(id);
 
   return (
     <Link href={href}>
@@ -63,13 +64,23 @@ export function ContentCard({
               </div>
             )}
             <button
-              onClick={handleFavoriteClick}
-              className="absolute top-2 right-2 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-colors"
+              type="button"
+              onClick={handleBookmarkClick}
+              disabled={pending}
+              aria-label={bookmarked ? "Убрать из закладок" : "Добавить в закладки"}
+              className={cn(
+                "absolute top-2 right-2 rounded-full p-2 transition-colors",
+                "bg-black/50 hover:bg-black/70",
+                bookmarked && "bg-yellow-500/90 hover:bg-yellow-500"
+              )}
             >
-              <Heart
-                className="w-5 h-5"
-                fill={isFavorite ? "currentColor" : "none"}
-                color={isFavorite ? "#ef4444" : "#fff"}
+              <Bookmark
+                className={cn(
+                  "h-5 w-5",
+                  bookmarked
+                    ? "fill-yellow-300 text-yellow-300"
+                    : "fill-none text-white"
+                )}
               />
             </button>
           </div>
@@ -78,9 +89,11 @@ export function ContentCard({
             <p className="text-sm text-muted-foreground line-clamp-2">
               {description}
             </p>
-            {rating && (
+            {rating != null && (
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-medium">⭐ {rating.toFixed(1)}</span>
+                <span className="text-sm font-medium">
+                  ⭐ {rating.toFixed(1)}
+                </span>
                 <span className="text-xs text-muted-foreground">
                   {type === "MOVIE" ? "Фильм" : "Сериал"}
                 </span>
@@ -92,4 +105,3 @@ export function ContentCard({
     </Link>
   );
 }
-

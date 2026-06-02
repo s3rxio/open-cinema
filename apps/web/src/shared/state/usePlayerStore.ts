@@ -16,19 +16,19 @@ export type PlayerState = {
   reset: () => void;
 };
 
-export const usePlayerStore = create<PlayerState>((set) => ({
+export const usePlayerStore = create<PlayerState>(set => ({
   currentQuality: null,
   currentAudio: null,
   currentSubtitle: null,
   currentTime: 0,
   isPlaying: false,
   volume: 1,
-  setQuality: (quality) => set({ currentQuality: quality }),
-  setAudio: (audio) => set({ currentAudio: audio }),
-  setSubtitle: (subtitle) => set({ currentSubtitle: subtitle }),
-  setCurrentTime: (time) => set({ currentTime: time }),
-  setIsPlaying: (playing) => set({ isPlaying: playing }),
-  setVolume: (volume) => set({ volume: Math.max(0, Math.min(1, volume)) }),
+  setQuality: quality => set({ currentQuality: quality }),
+  setAudio: audio => set({ currentAudio: audio }),
+  setSubtitle: subtitle => set({ currentSubtitle: subtitle }),
+  setCurrentTime: time => set({ currentTime: time }),
+  setIsPlaying: playing => set({ isPlaying: playing }),
+  setVolume: volume => set({ volume: Math.max(0, Math.min(1, volume)) }),
   reset: () =>
     set({
       currentQuality: null,
@@ -36,6 +36,6 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       currentSubtitle: null,
       currentTime: 0,
       isPlaying: false,
-      volume: 1,
-    }),
+      volume: 1
+    })
 }));

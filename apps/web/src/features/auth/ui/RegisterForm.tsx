@@ -1,58 +1,72 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@apollo/client/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Input, Card, CardContent, CardHeader, CardTitle } from "@open-cinema/ui";
-import { QUERIES } from "@/shared/api/queries";
+import {
+  Button,
+  Input,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from "@open-cinema/ui";
+import { REGISTER_MUTATION } from "@/shared/api/operations/auth";
 import { useAuthStore } from "@/shared/state/useAuthStore";
+import { registerSchema, type RegisterFormValues } from "../lib/schemas";
 
 export function RegisterForm() {
   const router = useRouter();
-  const setToken = useAuthStore((state) => state.setToken);
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const setAuth = useAuthStore(state => state.setAuth);
+  const [serverError, setServerError] = useState("");
 
-  const [register, { loading }] = useMutation<any>(QUERIES.register, {
-    onCompleted: (data) => {
-      const { token } = data.register;
-      setToken(token);
-      localStorage.setItem("authToken", token);
-      router.push("/");
-    },
-    onError: (err) => {
-      setError(err.message || "Ошибка при регистрации");
-    },
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+      confirmPassword: ""
+    }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    if (!email || !username || !password || !confirmPassword) {
-      setError("Пожалуйста, заполните все поля");
-      return;
+  const [executeRegister, registerMutationResult] = useMutation(
+    REGISTER_MUTATION,
+    {
+      onCompleted: data => {
+        const { accessToken, refreshToken } = data.register;
+        setAuth(accessToken, refreshToken);
+        localStorage.setItem("authToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+        router.push("/");
+      },
+      onError: err => {
+        setServerError(err.message || "Ошибка при регистрации");
+      }
     }
+  );
 
-    if (password.length < 6) {
-      setError("Пароль должен быть не менее 6 символов");
-      return;
-    }
+  const loading = isSubmitting || registerMutationResult.loading;
 
-    if (password !== confirmPassword) {
-      setError("Пароли не совпадают");
-      return;
-    }
-
+  const onSubmit = async ({
+    email,
+    username,
+    password
+  }: RegisterFormValues) => {
+    setServerError("");
     try {
-      await register({
-        variables: { email, username, password },
+      await executeRegister({
+        variables: { registerInput: { email, username, password } }
       });
-    } catch (err) {
-      setError("Ошибка при регистрации");
+    } catch {
+      setServerError("Ошибка при регистрации");
     }
   };
 
@@ -62,65 +76,105 @@ export function RegisterForm() {
         <CardTitle className="text-2xl">Регистрация</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {serverError && (
             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive border border-destructive/20">
-              {error}
+              {serverError}
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
+              Email
+            </label>
             <Input
+              id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
               disabled={loading}
               autoComplete="email"
+              aria-invalid={errors.email ? true : undefined}
+              {...register("email")}
             />
+            {errors.email && (
+              <p className="mt-1 text-sm text-destructive">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Логин (имя пользователя)</label>
+            <label htmlFor="username" className="block text-sm font-medium mb-2">
+              Логин (имя пользователя)
+            </label>
             <Input
+              id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               placeholder="username"
               disabled={loading}
               autoComplete="username"
+              aria-invalid={errors.username ? true : undefined}
+              {...register("username")}
             />
+            {errors.username && (
+              <p className="mt-1 text-sm text-destructive">
+                {errors.username.message}
+              </p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Пароль</label>
+            <label htmlFor="password" className="block text-sm font-medium mb-2">
+              Пароль
+            </label>
             <Input
+              id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
               autoComplete="new-password"
+              aria-invalid={errors.password ? true : undefined}
+              {...register("password")}
             />
-            <p className="text-xs text-muted-foreground mt-1">Минимум 6 символов</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Минимум 6 символов
+            </p>
+            {errors.password && (
+              <p className="mt-1 text-sm text-destructive">
+                {errors.password.message}
+              </p>
+            )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-2">Подтверждение пароля</label>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium mb-2"
+            >
+              Подтверждение пароля
+            </label>
             <Input
+              id="confirmPassword"
               type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
               autoComplete="new-password"
+              aria-invalid={errors.confirmPassword ? true : undefined}
+              {...register("confirmPassword")}
             />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-destructive">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Загрузка..." : "Зарегистрироваться"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Уже есть аккаунт?{" "}
-            <a href="/auth/login" className="text-primary hover:underline font-medium">
+            <Link
+              href="/auth/login"
+              className="text-primary font-medium hover:underline"
+            >
               Войти
-            </a>
+            </Link>
           </p>
         </form>
       </CardContent>

@@ -9,4 +9,3 @@ export * from "./lib/select";
 export * from "./lib/slider";
 export * from "./lib/loader";
 export * from "./lib/utils";
-
