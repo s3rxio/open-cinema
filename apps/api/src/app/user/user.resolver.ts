@@ -1,4 +1,11 @@
-import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent
+} from "@nestjs/graphql";
 import { UserService } from "./user.service";
 import { User } from "./entities/user.entity";
 import { CreateUserInput } from "./dto/create-user.input";
@@ -6,10 +13,28 @@ import { UpdateUserInput } from "./dto/update-user.input";
 import { PaginatedUsers } from "./dto/paginated-user.response";
 import { PaginationArgs } from "@open-cinema/core";
 import { UserMe } from "./user-me.decorator";
+import { FavoriteService } from "../favorite/favorite.service";
+import { Favorite } from "../favorite/entities/favorite.entity";
+import { WatchHistoryService } from "../watch-history/watch-history.service";
+import { WatchHistory } from "../watch-history/entities/watch-history.entity";
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly favoriteService: FavoriteService,
+    private readonly watchHistoryService: WatchHistoryService
+  ) {}
+
+  @ResolveField(() => [Favorite], { nullable: true })
+  favorites(@Parent() user: User) {
+    return this.favoriteService.findByUserId(user.id);
+  }
+
+  @ResolveField(() => [WatchHistory], { nullable: true })
+  watchHistory(@Parent() user: User) {
+    return this.watchHistoryService.findByUserId(user.id);
+  }
 
   @Query(() => User, { name: "me" })
   me(@UserMe() user: User) {

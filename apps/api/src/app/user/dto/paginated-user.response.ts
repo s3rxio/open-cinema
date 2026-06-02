@@ -4,5 +4,5 @@ import { PaginateQuery } from "@open-cinema/core";
 
 @ObjectType()
 export class PaginatedUsers extends PaginateQuery(
-  OmitType(User, ["favorites"])
+  OmitType(User, ["favorites", "watchHistory"])
 ) {}
