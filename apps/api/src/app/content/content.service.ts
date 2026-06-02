@@ -3,8 +3,6 @@ import { PrismaService } from "../prisma/prisma.service";
 import { SearchContentInput } from "./dto/search-content.input";
 import {
   ContentType,
-  SearchResult,
-  SearchResultItem,
   CreateContentData,
   UpdateContentData
 } from "./content.types";
@@ -14,6 +12,8 @@ import {
   SeriesModel,
   SeriesWhereInput
 } from "../../../prisma/generated/models";
+import { Content } from "./content.entity";
+import { ContentSearchResult } from "./dto/content-search.result";
 
 type ContentWhereInput = MovieWhereInput & SeriesWhereInput;
 
@@ -21,7 +21,7 @@ type ContentWhereInput = MovieWhereInput & SeriesWhereInput;
 export class ContentService {
   constructor(private prisma: PrismaService) {}
 
-  async searchContent(input: SearchContentInput): Promise<SearchResult> {
+  async searchContent(input: SearchContentInput): Promise<ContentSearchResult> {
     const {
       query,
       skip = 0,
@@ -127,7 +127,7 @@ export class ContentService {
         })
       ]);
 
-      const items: SearchResultItem[] = [
+      const items: Content[] = [
         ...movies.map(movie => this.mapMovieToSearchResult(movie)),
         ...series.map(ser => this.mapSeriesToSearchResult(ser))
       ];
@@ -148,7 +148,7 @@ export class ContentService {
 
   private async fallbackSearch(
     input: SearchContentInput
-  ): Promise<SearchResult> {
+  ): Promise<ContentSearchResult> {
     const { query, skip = 0, take = 10, minRating = 0, maxRating = 10 } = input;
 
     const where: ContentWhereInput = {
@@ -198,7 +198,7 @@ export class ContentService {
       this.prisma.series.count({ where })
     ]);
 
-    const items: SearchResultItem[] = [
+    const items: Content[] = [
       ...movies.map(movie => this.mapMovieToSearchResult(movie)),
       ...series.map(ser => this.mapSeriesToSearchResult(ser))
     ];
@@ -212,7 +212,7 @@ export class ContentService {
     };
   }
 
-  async getContentById(id: string): Promise<SearchResultItem | null> {
+  async getContentById(id: string): Promise<Content | null> {
     const movie = await this.prisma.movie.findUnique({
       where: { id }
     });
@@ -280,31 +280,19 @@ export class ContentService {
   }
 
   /* Mappers */
-  private mapMovieToSearchResult(movie: MovieModel): SearchResultItem {
+  private mapMovieToSearchResult(movie: MovieModel): Content {
     return {
-      id: String(movie.id),
-      title: String(movie.title),
-      description: String(movie.description),
-      releaseDate: movie.releaseDate,
+      ...movie,
       rating: Number(movie.rating),
-      type: ContentType.MOVIE,
-      createdAt: movie.createdAt,
-      updatedAt: movie.updatedAt,
-      deletedAt: movie.deletedAt
+      type: ContentType.MOVIE
     };
   }
 
-  private mapSeriesToSearchResult(series: SeriesModel): SearchResultItem {
+  private mapSeriesToSearchResult(series: SeriesModel): Content {
     return {
-      id: String(series.id),
-      title: String(series.title),
-      description: String(series.description),
-      releaseDate: series.releaseDate,
-      rating: Number(series.rating),
-      type: ContentType.SERIES,
-      createdAt: series.createdAt,
-      updatedAt: series.updatedAt,
-      deletedAt: series.deletedAt
+      ...series,
+      releaseDate: new Date(),
+      type: ContentType.SERIES
     };
   }
 }

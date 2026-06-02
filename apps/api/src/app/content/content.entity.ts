@@ -1,5 +1,10 @@
-import { ObjectType, Field } from "@nestjs/graphql";
+import { ObjectType, Field, registerEnumType } from "@nestjs/graphql";
 import { BaseEntity } from "@open-cinema/core";
+import { ContentType } from "./content.types";
+
+registerEnumType(ContentType, {
+  name: "ContentType"
+});
 
 @ObjectType()
 export class Content extends BaseEntity {
@@ -20,4 +25,10 @@ export class Content extends BaseEntity {
 
   @Field()
   director: string;
+
+  @Field({ nullable: true })
+  posterUrl?: string | null;
+
+  @Field(() => ContentType)
+  type: ContentType;
 }

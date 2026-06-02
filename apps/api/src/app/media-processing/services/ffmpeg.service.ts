@@ -25,7 +25,7 @@ export class FfmpegService {
     const command = [
       "ffmpeg -y",
       `-i "${inputPath}"`,
-      "-an -c:v libx264 -preset medium -g 48 -keyint_min 48 -sc_threshold 0",
+      "-an -c:v libx264 -preset fast -g 48 -keyint_min 48 -sc_threshold 0",
       `-b:v ${config.bitrate} -maxrate ${config.maxrate} -bufsize ${config.bufsize}`,
       `-vf scale=${config.width}:${config.height}`,
       "-f hls -hls_time 6 -hls_list_size 0 -hls_segment_type mpegts",

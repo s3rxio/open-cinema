@@ -127,6 +127,17 @@ export class FavoriteService {
     });
   }
 
+  async findByUserId(userId: string): Promise<Favorite[]> {
+    return this.prisma.favorite.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        movie: true,
+        series: true
+      }
+    });
+  }
+
   async findOne(id: string): Promise<Favorite> {
     const favorite = await this.prisma.favorite.findUnique({
       where: { id },

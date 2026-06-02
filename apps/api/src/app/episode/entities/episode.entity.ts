@@ -4,7 +4,13 @@ import { EpisodeModel } from "../../../../prisma/generated/models";
 
 @ObjectType()
 export class Episode
-  extends OmitType(Content, ["genre", "director"] as const)
+  extends OmitType(Content, [
+    "genre",
+    "director",
+    "releaseDate",
+    "posterUrl",
+    "type"
+  ] as const)
   implements Partial<EpisodeModel>
 {
   @Field(() => Int)
@@ -15,4 +21,7 @@ export class Episode
 
   @Field()
   seriesId: string;
+
+  @Field({ nullable: true })
+  streamId: string | null;
 }

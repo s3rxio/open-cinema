@@ -27,6 +27,11 @@ export class SeriesService {
           genre: createSeriesInput.genre,
           director: createSeriesInput.director,
           rating: createSeriesInput.rating
+        },
+        include: {
+          episodes: {
+            orderBy: [{ season: "asc" }, { episode: "asc" }]
+          }
         }
       });
     } catch (error) {

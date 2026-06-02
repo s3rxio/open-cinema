@@ -21,6 +21,31 @@ export class StreamResolver {
     return this.streamService.getStreamInfo(streamId);
   }
 
+  @BypassAuth()
+  @Query(() => Stream, {
+    description:
+      "Get stream for a movie or episode by content id (same id as createStream)"
+  })
+  async getStreamForContent(@Args("contentId") contentId: string) {
+    return this.streamService.getStreamForContent(contentId);
+  }
+
+  @BypassAuth()
+  @Query(() => Stream, {
+    description: "Get stream for a movie by movie id"
+  })
+  async getStreamForMovie(@Args("movieId") movieId: string) {
+    return this.streamService.getStreamForMovie(movieId);
+  }
+
+  @BypassAuth()
+  @Query(() => Stream, {
+    description: "Get stream for an episode by episode id"
+  })
+  async getStreamForEpisode(@Args("episodeId") episodeId: string) {
+    return this.streamService.getStreamForEpisode(episodeId);
+  }
+
   @Mutation(() => Stream, {
     description: "Create a new stream"
   })

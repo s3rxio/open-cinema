@@ -25,6 +25,7 @@ import { StreamModule } from "./stream/stream.module";
 import { MediaProcessingModule } from "./media-processing/media-processing.module";
 import { StorageModule } from "./storage/storage.module";
 import { FavoriteModule } from "./favorite/favorite.module";
+import { WatchHistoryModule } from "./watch-history/watch-history.module";
 import bullConfig from "../common/configs/bull.config";
 
 @Module({
@@ -75,7 +76,8 @@ import bullConfig from "../common/configs/bull.config";
     ContentModule,
     StreamModule,
     MediaProcessingModule,
-    FavoriteModule
+    FavoriteModule,
+    WatchHistoryModule
   ],
   controllers: [AppController],
   providers: [

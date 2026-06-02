@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { S3StorageService } from "../storage/s3-storage.service";
 import { MediaQueueService } from "../media-processing/services/media-queue.service";
@@ -45,61 +50,76 @@ export class StreamService {
 
     const bucket = this.configService.getOrThrow("s3.bucket");
 
-    // Get signed URLs for all metas
-    stream.videoMetas.forEach(async (meta, i) => {
-      let url = "";
+    const signKey = async (key: string) => {
       try {
-        url = await this.s3Storage.getSignedUrl({
-          bucket,
-          key: meta.url
-        });
-        stream.videoMetas[i].url = url;
+        return await this.s3Storage.getSignedUrl({ bucket, key });
       } catch (e) {
         this.logger.error(e);
+        return null;
       }
-    });
+    };
 
-    stream.audioMetas.forEach(async (meta, i) => {
-      let url = "";
-      try {
-        url = await this.s3Storage.getSignedUrl({
-          bucket,
-          key: meta.url
-        });
-        stream.audioMetas[i].url = url;
-      } catch (e) {
-        this.logger.error(e);
-      }
-    });
+    const signMetaUrls = async <T extends { url: string }>(metas: T[]) =>
+      Promise.all(
+        metas.map(async meta => {
+          const signedUrl = await signKey(meta.url);
+          return signedUrl ? { ...meta, url: signedUrl } : meta;
+        })
+      );
 
-    stream.subtitleMetas.forEach(async (meta, i) => {
-      let url = "";
-      try {
-        url = await this.s3Storage.getSignedUrl({
-          bucket,
-          key: meta.url
-        });
-        stream.subtitleMetas[i].url = url;
-      } catch (e) {
-        this.logger.error(e);
-      }
-    });
-
-    let masterPlaylistUrl: string | null = null;
-    try {
-      masterPlaylistUrl = await this.s3Storage.getSignedUrl({
-        bucket,
-        key: `${streamId}/master.m3u8`
-      });
-    } catch (e) {
-      this.logger.error(e);
-      masterPlaylistUrl = null;
-    }
+    const [videoMetas, audioMetas, subtitleMetas, masterPlaylistUrl] =
+      await Promise.all([
+        signMetaUrls(stream.videoMetas),
+        signMetaUrls(stream.audioMetas),
+        signMetaUrls(stream.subtitleMetas),
+        signKey(`${streamId}/master.m3u8`)
+      ]);
 
     return {
       ...stream,
+      videoMetas,
+      audioMetas,
+      subtitleMetas,
       masterPlaylistUrl
     };
+  }
+
+  async getStreamForContent(contentId: string): Promise<Stream> {
+    const movie = await this.prisma.movie.findUnique({
+      where: { id: contentId },
+      select: { id: true, streamId: true }
+    });
+
+    if (movie) {
+      if (!movie.streamId) {
+        throw new NotFoundException(`Movie ${contentId} has no stream`);
+      }
+
+      return this.getStreamInfo(movie.streamId);
+    }
+
+    const episode = await this.prisma.episode.findUnique({
+      where: { id: contentId },
+      select: { id: true, streamId: true }
+    });
+
+    if (episode) {
+      if (!episode.streamId) {
+        throw new NotFoundException(`Episode ${contentId} has no stream`);
+      }
+
+      return this.getStreamInfo(episode.streamId);
+    }
+
+    throw new NotFoundException(`Content ${contentId} not found`);
+  }
+
+  async getStreamForMovie(movieId: string): Promise<Stream> {
+    return this.getStreamForContent(movieId);
+  }
+
+  async getStreamForEpisode(episodeId: string): Promise<Stream> {
+    return this.getStreamForContent(episodeId);
   }
 
   async createStream(input: CreateStreamInput): Promise<Stream> {
@@ -186,7 +206,7 @@ export class StreamService {
       createWriteStream(tempFilePath)
     );
 
-    this.uploadAudio(
+    await this.uploadAudio(
       {
         slug: "source",
         displayName: "Source",
@@ -214,21 +234,40 @@ export class StreamService {
     const { streamId, slug, displayName, orderNumer, isDefault, file } =
       uploadAudioInput;
 
-    const audioMeta = await this.prisma.audioMeta.create({
-      data: {
-        slug,
-        displayName,
-        isDefault,
-        orderNumer,
-        url: "processing",
-        bitrate: 0,
-        stream: {
-          connect: {
-            id: streamId
-          }
-        }
+    const stream = await this.prisma.stream.findUnique({
+      where: { id: streamId },
+      include: {
+        audioMetas: true
       }
     });
+
+    if (!stream) {
+      throw new NotFoundException(`Stream ${streamId} not found`);
+    }
+
+    // if (stream.audioMetas.find(audio => audio.slug === slug)) {
+    //   throw new BadRequestException(`Audio with slug ${slug} already exists`);
+    // }
+
+    let audioMeta = stream.audioMetas.find(audio => audio.slug === slug);
+
+    if (!audioMeta) {
+      audioMeta = await this.prisma.audioMeta.create({
+        data: {
+          slug,
+          displayName,
+          isDefault,
+          orderNumer,
+          url: "processing",
+          bitrate: 0,
+          stream: {
+            connect: {
+              id: streamId
+            }
+          }
+        }
+      });
+    }
 
     const tempDir = await this.createTempDirectory(
       streamId,

@@ -53,7 +53,7 @@ export class ContentResolver {
       sortBy: "rating",
       sortOrder: "DESC"
     });
-    return result as unknown as ContentSearchResult;
+    return result;
   }
 
   @BypassAuth()
@@ -70,7 +70,7 @@ export class ContentResolver {
       sortBy: "releaseDate",
       sortOrder: "DESC"
     });
-    return result as unknown as ContentSearchResult;
+    return result;
   }
 
   @Mutation(() => Content, {
