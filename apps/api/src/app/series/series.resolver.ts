@@ -12,6 +12,7 @@ import { Series } from "./entities/series.entity";
 import { CreateSeriesInput } from "./dto/create-series.input";
 import { UpdateSeriesInput } from "./dto/update-series.input";
 import { PaginatedSeries } from "./dto/paginated-series.response";
+import { BypassAuth } from "../auth/bypass-auth.decorator";
 import { Permission, RequiredPermission } from "../rbac";
 import { ReviewService } from "../review/review.service";
 
@@ -22,14 +23,14 @@ export class SeriesResolver {
     private readonly reviewService: ReviewService
   ) {}
 
-  @RequiredPermission(Permission.ReviewsRead)
+  @BypassAuth()
   @ResolveField(() => Number, { nullable: true })
   async userRating(@Parent() series: Series) {
     const stats = await this.reviewService.getStatsForSeries(series.id);
     return stats.userRating;
   }
 
-  @RequiredPermission(Permission.ReviewsRead)
+  @BypassAuth()
   @ResolveField(() => Int, { nullable: true })
   async reviewCount(@Parent() series: Series) {
     const stats = await this.reviewService.getStatsForSeries(series.id);
@@ -44,7 +45,7 @@ export class SeriesResolver {
     return this.seriesService.create(createSeriesInput);
   }
 
-  @RequiredPermission(Permission.SeriesRead)
+  @BypassAuth()
   @Query(() => PaginatedSeries, { name: "seriesList" })
   findAll(
     @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
@@ -54,7 +55,7 @@ export class SeriesResolver {
     return this.seriesService.findAll({ first, cursor, search });
   }
 
-  @RequiredPermission(Permission.SeriesRead)
+  @BypassAuth()
   @Query(() => Series, { name: "series" })
   findOne(@Args("id") id: string) {
     return this.seriesService.findOne(id);

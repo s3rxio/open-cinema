@@ -21,6 +21,7 @@ import {
   type ContentFormValues
 } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
+import { ContentImageUpload } from "./ContentImageUpload";
 import { Container } from "@/shared/ui/Container";
 
 type ContentAdminEditProps = {
@@ -97,6 +98,12 @@ function MovieAdminEdit({ id, backHref }: { id: string; backHref: string }) {
             }}
           />
           {status ? <StatusMessage message={status} /> : null}
+          <ContentImageUpload
+            contentId={id}
+            posterUrl={movie.posterUrl}
+            bannerUrl={movie.bannerUrl}
+            onUploaded={() => detailQuery.refetch()}
+          />
         </TabsContent>
 
         <TabsContent value="player" className="mt-6">
@@ -181,6 +188,12 @@ function SeriesAdminEdit({ id, backHref }: { id: string; backHref: string }) {
             }}
           />
           {status ? <StatusMessage message={status} /> : null}
+          <ContentImageUpload
+            contentId={id}
+            posterUrl={series.posterUrl}
+            bannerUrl={series.bannerUrl}
+            onUploaded={() => detailQuery.refetch()}
+          />
         </TabsContent>
 
         <TabsContent value="episodes" className="mt-6">
@@ -318,7 +331,7 @@ function toFormValues(item: {
   title: string;
   description: string;
   director: string;
-  genre: string;
+  genres: string[];
   releaseDate: string;
   rating: number;
 }): ContentFormValues {
@@ -326,7 +339,7 @@ function toFormValues(item: {
     title: item.title,
     description: item.description,
     director: item.director,
-    genre: item.genre,
+    genres: item.genres as ContentFormValues["genres"],
     releaseDate: item.releaseDate,
     rating: String(item.rating)
   };
@@ -338,7 +351,7 @@ function buildUpdateInput(id: string, values: ContentFormValues) {
     title: values.title,
     description: values.description,
     director: values.director,
-    genre: values.genre,
+    genres: values.genres,
     releaseDate: new Date(values.releaseDate).toISOString(),
     rating: Number(values.rating)
   };

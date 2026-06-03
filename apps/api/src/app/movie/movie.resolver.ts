@@ -12,6 +12,7 @@ import { Movie } from "./entities/movie.entity";
 import { CreateMovieInput } from "./dto/create-movie.input";
 import { UpdateMovieInput } from "./dto/update-movie.input";
 import { PaginatedMovies } from "./dto/paginated-movie.response";
+import { BypassAuth } from "../auth/bypass-auth.decorator";
 import { Permission, RequiredPermission } from "../rbac";
 import { ReviewService } from "../review/review.service";
 
@@ -22,14 +23,14 @@ export class MovieResolver {
     private readonly reviewService: ReviewService
   ) {}
 
-  @RequiredPermission(Permission.ReviewsRead)
+  @BypassAuth()
   @ResolveField(() => Number, { nullable: true })
   async userRating(@Parent() movie: Movie) {
     const stats = await this.reviewService.getStatsForMovie(movie.id);
     return stats.userRating;
   }
 
-  @RequiredPermission(Permission.ReviewsRead)
+  @BypassAuth()
   @ResolveField(() => Int, { nullable: true })
   async reviewCount(@Parent() movie: Movie) {
     const stats = await this.reviewService.getStatsForMovie(movie.id);
@@ -42,7 +43,7 @@ export class MovieResolver {
     return this.movieService.create(createMovieInput);
   }
 
-  @RequiredPermission(Permission.MovieRead)
+  @BypassAuth()
   @Query(() => PaginatedMovies, { name: "movies" })
   findAll(
     @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
@@ -52,7 +53,7 @@ export class MovieResolver {
     return this.movieService.findAll({ first, cursor, search });
   }
 
-  @RequiredPermission(Permission.MovieRead)
+  @BypassAuth()
   @Query(() => Movie, { name: "movie" })
   findOne(@Args("id") id: string) {
     return this.movieService.findOne(id);

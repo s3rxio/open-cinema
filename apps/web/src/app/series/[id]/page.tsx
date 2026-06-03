@@ -9,6 +9,7 @@ import { Container } from "@/shared/ui/Container";
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
+import { formatGenres } from "@/shared/lib/genres";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -73,7 +74,7 @@ export default function SeriesPage() {
       watchDisabled={!firstEpisode}
       meta={[
         { label: "Режиссёр", value: series.director },
-        { label: "Жанр", value: series.genre },
+        { label: "Жанры", value: formatGenres(series.genres) },
         { label: "Официальный рейтинг", value: `⭐ ${series.rating}` },
         { label: "Рейтинг пользователей", value: userRatingLabel }
       ]}

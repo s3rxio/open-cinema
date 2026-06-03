@@ -56,7 +56,11 @@ import type {
   UploadSubtitleMutation,
   UploadSubtitleMutationVariables,
   UploadVideoMutation,
-  UploadVideoMutationVariables
+  UploadVideoMutationVariables,
+  UploadContentPosterMutation,
+  UploadContentPosterMutationVariables,
+  UploadContentBannerMutation,
+  UploadContentBannerMutationVariables
 } from "../operation-types";
 import { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY } from "./content";
 import { GET_STREAM_INFO_QUERY } from "./stream";
@@ -72,9 +76,10 @@ export const DASHBOARD_MOVIES_QUERY = gql`
         description
         releaseDate
         rating
-        genre
+        genres
         director
         posterUrl
+        bannerUrl
         streamId
         createdAt
       }
@@ -97,9 +102,10 @@ export const DASHBOARD_SERIES_LIST_QUERY = gql`
         description
         releaseDate
         rating
-        genre
+        genres
         director
         posterUrl
+        bannerUrl
         createdAt
       }
       total
@@ -183,10 +189,11 @@ export const UPDATE_MOVIE_MUTATION = gql`
       title
       description
       director
-      genre
       releaseDate
       rating
+      genres
       posterUrl
+      bannerUrl
       streamId
     }
   }
@@ -202,15 +209,44 @@ export const UPDATE_SERIES_MUTATION = gql`
       title
       description
       director
-      genre
       releaseDate
       rating
+      genres
       posterUrl
+      bannerUrl
     }
   }
 ` as TypedDocumentNode<
   UpdateSeriesMutation,
   UpdateSeriesMutationVariables
+>;
+
+export const UPLOAD_CONTENT_POSTER_MUTATION = gql`
+  mutation UploadContentPoster($input: UploadContentPosterInput!) {
+    uploadContentPoster(input: $input) {
+      id
+      posterUrl
+      bannerUrl
+      type
+    }
+  }
+` as TypedDocumentNode<
+  UploadContentPosterMutation,
+  UploadContentPosterMutationVariables
+>;
+
+export const UPLOAD_CONTENT_BANNER_MUTATION = gql`
+  mutation UploadContentBanner($input: UploadContentBannerInput!) {
+    uploadContentBanner(input: $input) {
+      id
+      posterUrl
+      bannerUrl
+      type
+    }
+  }
+` as TypedDocumentNode<
+  UploadContentBannerMutation,
+  UploadContentBannerMutationVariables
 >;
 
 export const REMOVE_MOVIE_MUTATION = gql`

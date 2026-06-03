@@ -84,7 +84,7 @@ export class WatchHistoryService {
 
     try {
       if (input.movieId) {
-        return this.prisma.watchHistory.upsert({
+        const entry = await this.prisma.watchHistory.upsert({
           where: {
             userId_movieId: {
               userId: input.userId,
@@ -99,9 +99,10 @@ export class WatchHistoryService {
           update: data,
           include: watchHistoryInclude
         });
+        return entry as WatchHistory;
       }
 
-      return this.prisma.watchHistory.upsert({
+      const entry = await this.prisma.watchHistory.upsert({
         where: {
           userId_episodeId: {
             userId: input.userId,
@@ -116,6 +117,7 @@ export class WatchHistoryService {
         update: data,
         include: watchHistoryInclude
       });
+      return entry as WatchHistory;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -126,7 +128,7 @@ export class WatchHistoryService {
     return this.prisma.watchHistory.findMany({
       orderBy: { updatedAt: "desc" },
       include: watchHistoryInclude
-    });
+    }) as Promise<WatchHistory[]>;
   }
 
   async findByUserId(userId: string): Promise<WatchHistory[]> {
@@ -134,7 +136,7 @@ export class WatchHistoryService {
       where: { userId },
       orderBy: { updatedAt: "desc" },
       include: watchHistoryInclude
-    });
+    }) as Promise<WatchHistory[]>;
   }
 
   async findOne(id: string): Promise<WatchHistory> {
@@ -147,7 +149,7 @@ export class WatchHistoryService {
       throw new NotFoundException(`Watch history entry with id ${id} not found`);
     }
 
-    return entry;
+    return entry as WatchHistory;
   }
 
   async update(
@@ -159,7 +161,7 @@ export class WatchHistoryService {
     const { progress, duration, completed } = updateWatchHistoryInput;
 
     try {
-      return this.prisma.watchHistory.update({
+      const entry = await this.prisma.watchHistory.update({
         where: { id },
         data: {
           ...(progress !== undefined && { progress }),
@@ -168,6 +170,7 @@ export class WatchHistoryService {
         },
         include: watchHistoryInclude
       });
+      return entry as WatchHistory;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

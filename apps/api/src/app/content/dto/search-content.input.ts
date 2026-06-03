@@ -6,8 +6,10 @@ import {
   Min,
   Max,
   IsInt,
-  IsIn
+  IsIn,
+  IsEnum
 } from "class-validator";
+import { Genre } from "../genre.enum";
 
 @InputType()
 export class SearchContentInput {
@@ -55,10 +57,10 @@ export class SearchContentInput {
   @IsIn(["ASC", "DESC"])
   sortOrder?: "ASC" | "DESC";
 
-  @Field({ nullable: true })
-  @IsString()
+  @Field(() => Genre, { nullable: true })
+  @IsEnum(Genre)
   @IsOptional()
-  genre?: string;
+  genre?: Genre;
 
   @Field({ nullable: true })
   @IsString()

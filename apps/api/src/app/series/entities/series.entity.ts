@@ -6,7 +6,7 @@ import { Episode } from "../../episode/entities/episode.entity";
 @ObjectType()
 export class Series
   extends OmitType(Content, ["type"] as const)
-  implements Partial<SeriesModel>
+  implements Omit<Partial<SeriesModel>, "genres">
 {
   @Field(() => [Episode], { nullable: true })
   episodes?: Episode[];

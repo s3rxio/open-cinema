@@ -6,6 +6,7 @@ import { CreateEpisodesBulkInput } from "./dto/create-episodes-bulk.input";
 import { UpdateEpisodeInput } from "./dto/update-episode.input";
 import { PaginatedEpisodes } from "./dto/paginated-episode.response";
 import { PaginationArgs } from "@open-cinema/core";
+import { BypassAuth } from "../auth/bypass-auth.decorator";
 import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver(() => Episode)
@@ -28,19 +29,19 @@ export class EpisodeResolver {
     return this.episodeService.createBulk(createEpisodesBulkInput);
   }
 
-  @RequiredPermission(Permission.EpisodeRead)
+  @BypassAuth()
   @Query(() => PaginatedEpisodes, { name: "episodes" })
   findAll(@Args() paginationArgs: PaginationArgs) {
     return this.episodeService.findAll(paginationArgs);
   }
 
-  @RequiredPermission(Permission.EpisodeRead)
+  @BypassAuth()
   @Query(() => Episode, { name: "episode" })
   findOne(@Args("id") id: string) {
     return this.episodeService.findOne(id);
   }
 
-  @RequiredPermission(Permission.EpisodeRead)
+  @BypassAuth()
   @Query(() => PaginatedEpisodes, { name: "episodesBySeries" })
   findBySeriesId(
     @Args("seriesId") seriesId: string,

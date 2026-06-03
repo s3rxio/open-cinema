@@ -12,7 +12,7 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
         description:
           "A wealthy man with quadriplegia hires a caregiver from the projects to help him with his daily life.",
         releaseDate: new Date("2011-11-02"),
-        genre: "Drama",
+        genres: ["DRAMA"],
         director: "Olivier Nakache, Éric Toledano",
         rating: 8.3
       }
@@ -30,7 +30,7 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
         description:
           "A high schooler who becomes the human host of a chainsaw devil fights for survival while seeking revenge.",
         releaseDate: new Date("2022-10-11"),
-        genre: "Action, Supernatural",
+        genres: ["ANIME", "ACTION", "SUPERNATURAL"],
         director: "Mitsuyuki Masuhara",
         rating: 8.5
       }
@@ -78,7 +78,7 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
         description:
           "Humanity's last bastion against the Titans comes to an end in this climactic final season.",
         releaseDate: new Date("2023-03-03"),
-        genre: "Action, Adventure, Dark Fantasy",
+        genres: ["ANIME", "ACTION", "ADVENTURE", "FANTASY"],
         director: "Yuichiro Hayashi",
         rating: 9.0
       }
@@ -126,6 +126,24 @@ export default async function seed(prisma: PrismaClient, pool: Pool) {
     );
   } catch (e) {
     console.log("Series 'Attack on Titan: The Final Attack' already exists");
+  }
+
+  // Create comedy movie for genre sections demo
+  try {
+    await prisma.movie.create({
+      data: {
+        title: "The Grand Budapest Hotel",
+        description:
+          "The adventures of a legendary concierge and his young protégé at a famous European hotel.",
+        releaseDate: new Date("2014-03-28"),
+        genres: ["COMEDY", "ADVENTURE"],
+        director: "Wes Anderson",
+        rating: 8.1
+      }
+    });
+    console.log("Movie 'The Grand Budapest Hotel' created");
+  } catch (e) {
+    console.log("Movie 'The Grand Budapest Hotel' already exists");
   }
 
   console.log("Sample content created successfully");

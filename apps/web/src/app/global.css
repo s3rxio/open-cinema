@@ -20,6 +20,11 @@
     --input: 0 0% 89.8%;
     --ring: 0 0% 3.6%;
     --radius: 0.5rem;
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.4);
+    --home-blur: blur(20px) saturate(180%);
+    --home-radius: 24px;
+    --home-content: hsl(0 0% 100%);
   }
 
   .dark {
@@ -38,6 +43,9 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.3%;
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --home-content: hsl(0 0% 7%);
   }
 }
 

@@ -14,6 +14,21 @@ enum Gender {
   OTHER
 }
 
+enum Genre {
+  ANIME
+  DRAMA
+  COMEDY
+  ACTION
+  ADVENTURE
+  SUPERNATURAL
+  FANTASY
+  THRILLER
+  HORROR
+  SCI_FI
+  ROMANCE
+  DOCUMENTARY
+}
+
 model User {
   id       String @id @default(uuid())
   email    String @unique
@@ -89,10 +104,11 @@ model Movie {
   title       String
   description String
   releaseDate DateTime @map("release_date")
-  genre       String
+  genres      Genre[]
   director    String
   rating      Float
-  posterUrl   String?
+  posterUrl   String?  @map("poster_url")
+  bannerUrl   String?  @map("banner_url")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -113,10 +129,11 @@ model Series {
   title       String
   description String
   releaseDate DateTime @map("release_date")
-  genre       String
+  genres      Genre[]
   director    String
   rating      Float
-  posterUrl   String?
+  posterUrl   String?  @map("poster_url")
+  bannerUrl   String?  @map("banner_url")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -155,11 +172,11 @@ model Episode {
 }
 
 model Review {
-  id      String @id @default(uuid())
-  content String
-  rating  Float
-  userId  String  @map("user_id")
-  movieId String? @map("movie_id")
+  id       String  @id @default(uuid())
+  content  String
+  rating   Float
+  userId   String  @map("user_id")
+  movieId  String? @map("movie_id")
   seriesId String? @map("series_id")
 
   createdAt DateTime  @default(now()) @map("created_at")

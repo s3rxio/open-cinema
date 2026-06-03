@@ -7,6 +7,8 @@ import {
 } from "@nestjs/common";
 import { Prisma } from "../../../prisma/generated/client";
 import { PrismaService } from "../prisma/prisma.service";
+import { RbacService } from "../rbac/rbac.service";
+import { RoleSlug } from "../rbac/permissions";
 import { CreateReviewInput } from "./dto/create-review.input";
 import { UpdateReviewInput } from "./dto/update-review.input";
 import { Review } from "./entities/review.entity";
@@ -35,7 +37,10 @@ export type ContentRatingStats = {
 export class ReviewService {
   private readonly logger = new Logger(ReviewService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly rbacService: RbacService
+  ) {}
 
   private assertValidTarget(input: { movieId?: string; seriesId?: string }) {
     const hasMovie = input.movieId !== undefined && input.movieId !== null;
@@ -198,7 +203,10 @@ export class ReviewService {
     const review = await this.findOne(id);
 
     if (review.userId !== userId) {
-      throw new BadRequestException("You can only delete your own review");
+      const isAdmin = await this.rbacService.userHasRole(userId, RoleSlug.Admin);
+      if (!isAdmin) {
+        throw new BadRequestException("You can only delete your own review");
+      }
     }
 
     await this.prisma.review.delete({ where: { id } });

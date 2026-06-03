@@ -5,7 +5,7 @@ import { MovieModel } from "../../../../prisma/generated/models";
 @ObjectType()
 export class Movie
   extends OmitType(Content, ["type"] as const)
-  implements Partial<MovieModel>
+  implements Omit<Partial<MovieModel>, "genres">
 {
   @Field({ nullable: true })
   streamId: string | null;

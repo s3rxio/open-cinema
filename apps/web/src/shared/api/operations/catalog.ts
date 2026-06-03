@@ -19,7 +19,9 @@ export const GET_RECENT_CONTENT_QUERY = gql`
         releaseDate
         rating
         type
+        genres
         posterUrl
+        bannerUrl
       }
     }
   }
@@ -37,7 +39,9 @@ export const GET_TRENDING_CONTENT_QUERY = gql`
         releaseDate
         rating
         type
+        genres
         posterUrl
+        bannerUrl
       }
     }
   }

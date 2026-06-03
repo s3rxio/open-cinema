@@ -7,6 +7,7 @@ import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
 import { Container } from "@/shared/ui/Container";
 import { MOVIE_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
+import { formatGenres } from "@/shared/lib/genres";
 import { useParams } from "next/navigation";
 
 export default function MoviePage() {
@@ -60,7 +61,7 @@ export default function MoviePage() {
         watchHref={routes.watchMovie(id)}
         meta={[
           { label: "Режиссёр", value: movie.director },
-          { label: "Жанр", value: movie.genre },
+          { label: "Жанры", value: formatGenres(movie.genres) },
           { label: "Официальный рейтинг", value: `⭐ ${movie.rating}` },
           { label: "Рейтинг пользователей", value: userRatingLabel }
         ]}

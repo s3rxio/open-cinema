@@ -14,12 +14,13 @@ import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
+import { formatGenres, type Genre } from "@/shared/lib/genres";
 import { Container } from "@/shared/ui/Container";
 
 type SeriesRow = {
   id: string;
   title: string;
-  genre: string;
+  genres: Genre[];
   director: string;
   rating: number;
   releaseDate: string;
@@ -27,7 +28,7 @@ type SeriesRow = {
 
 const columns: DataTableColumn<SeriesRow>[] = [
   { key: "title", header: "Название", cell: row => row.title },
-  { key: "genre", header: "Жанр", cell: row => row.genre },
+  { key: "genres", header: "Жанры", cell: row => formatGenres(row.genres) },
   { key: "director", header: "Режиссёр", cell: row => row.director },
   {
     key: "rating",

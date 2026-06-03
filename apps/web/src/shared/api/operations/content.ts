@@ -14,12 +14,13 @@ export const MOVIE_BY_ID_QUERY = gql`
       title
       description
       director
-      genre
       releaseDate
       rating
+      genres
       userRating
       reviewCount
       posterUrl
+      bannerUrl
       streamId
     }
   }
@@ -32,12 +33,13 @@ export const SERIES_BY_ID_QUERY = gql`
       title
       description
       director
-      genre
       releaseDate
       rating
+      genres
       userRating
       reviewCount
       posterUrl
+      bannerUrl
       episodes {
         id
         title

@@ -51,6 +51,7 @@ export const QUERIES = {
           rating
           type
           posterUrl
+          bannerUrl
         }
       }
     }
@@ -69,6 +70,7 @@ export const QUERIES = {
           rating
           type
           posterUrl
+          bannerUrl
         }
       }
     }
@@ -124,7 +126,7 @@ export const QUERIES = {
         title
         description
         director
-        genre
+        genres
         releaseDate
         rating
         posterUrl
@@ -139,7 +141,7 @@ export const QUERIES = {
         title
         description
         director
-        genre
+        genres
         releaseDate
         rating
         posterUrl
@@ -207,6 +209,7 @@ export const QUERIES = {
           rating
           type
           posterUrl
+          bannerUrl
         }
       }
     }

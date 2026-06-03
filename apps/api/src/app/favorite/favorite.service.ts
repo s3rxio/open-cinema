@@ -100,7 +100,7 @@ export class FavoriteService {
     }
 
     try {
-      return this.prisma.favorite.create({
+      const favorite = await this.prisma.favorite.create({
         data: {
           userId: createFavoriteInput.userId,
           movieId: createFavoriteInput.movieId,
@@ -111,6 +111,7 @@ export class FavoriteService {
           series: true
         }
       });
+      return favorite as Favorite;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -124,7 +125,7 @@ export class FavoriteService {
         movie: true,
         series: true
       }
-    });
+    }) as Promise<Favorite[]>;
   }
 
   async findByUserId(userId: string): Promise<Favorite[]> {
@@ -135,7 +136,7 @@ export class FavoriteService {
         movie: true,
         series: true
       }
-    });
+    }) as Promise<Favorite[]>;
   }
 
   async findOne(id: string): Promise<Favorite> {
@@ -153,7 +154,7 @@ export class FavoriteService {
       throw new NotFoundException(`Favorite with id ${id} not found`);
     }
 
-    return favorite;
+    return favorite as Favorite;
   }
 
   async update(
@@ -163,7 +164,7 @@ export class FavoriteService {
     await this.findOne(id);
 
     try {
-      return this.prisma.favorite.update({
+      const favorite = await this.prisma.favorite.update({
         where: { id },
         data: {
           userId: updateFavoriteInput.userId,
@@ -175,6 +176,7 @@ export class FavoriteService {
           series: true
         }
       });
+      return favorite as Favorite;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

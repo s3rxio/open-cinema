@@ -20,12 +20,12 @@ export class SeriesService {
 
   async create(createSeriesInput: CreateSeriesInput): Promise<Series> {
     try {
-      return this.prisma.series.create({
+      const series = await this.prisma.series.create({
         data: {
           title: createSeriesInput.title,
           description: createSeriesInput.description,
           releaseDate: createSeriesInput.releaseDate,
-          genre: createSeriesInput.genre,
+          genres: createSeriesInput.genres,
           director: createSeriesInput.director,
           rating: createSeriesInput.rating
         },
@@ -35,6 +35,7 @@ export class SeriesService {
           }
         }
       });
+      return series as Series;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -59,7 +60,7 @@ export class SeriesService {
     const nextCursor = series.length > 0 ? series[series.length - 1].id : null;
 
     return {
-      data: series,
+      data: series as Series[],
       total: await this.prisma.series.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
@@ -80,7 +81,7 @@ export class SeriesService {
       throw new NotFoundException(`Series with id ${id} not found`);
     }
 
-    return series;
+    return series as Series;
   }
 
   async findById(id: string): Promise<Series | null> {
@@ -91,7 +92,7 @@ export class SeriesService {
           orderBy: [{ season: "asc" }, { episode: "asc" }]
         }
       }
-    });
+    }) as Promise<Series | null>;
   }
 
   async update(
@@ -101,13 +102,13 @@ export class SeriesService {
     await this.findOne(id);
 
     try {
-      return this.prisma.series.update({
+      const series = await this.prisma.series.update({
         where: { id: id },
         data: {
           title: updateSeriesInput.title,
           description: updateSeriesInput.description,
           releaseDate: updateSeriesInput.releaseDate,
-          genre: updateSeriesInput.genre,
+          genres: updateSeriesInput.genres,
           director: updateSeriesInput.director,
           rating: updateSeriesInput.rating
         },
@@ -117,6 +118,7 @@ export class SeriesService {
           }
         }
       });
+      return series as Series;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

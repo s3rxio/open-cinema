@@ -14,6 +14,7 @@ import {
 } from "../../../prisma/generated/models";
 import { Content } from "./content.entity";
 import { ContentSearchResult } from "./dto/content-search.result";
+import { Genre } from "./genre.enum";
 
 type ContentWhereInput = MovieWhereInput & SeriesWhereInput;
 
@@ -40,9 +41,8 @@ export class ContentService {
 
     const genreFilter: ContentWhereInput = genre
       ? {
-          genre: {
-            contains: genre,
-            mode: "insensitive" as const
+          genres: {
+            has: genre
           }
         }
       : {};
@@ -283,6 +283,7 @@ export class ContentService {
   private mapMovieToSearchResult(movie: MovieModel): Content {
     return {
       ...movie,
+      genres: movie.genres as Genre[],
       rating: Number(movie.rating),
       type: ContentType.MOVIE
     };
@@ -291,6 +292,7 @@ export class ContentService {
   private mapSeriesToSearchResult(series: SeriesModel): Content {
     return {
       ...series,
+      genres: series.genres as Genre[],
       releaseDate: new Date(),
       type: ContentType.SERIES
     };

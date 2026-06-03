@@ -5,9 +5,10 @@ import { EpisodeModel } from "../../../../prisma/generated/models";
 @ObjectType()
 export class Episode
   extends OmitType(Content, [
-    "genre",
+    "genres",
     "director",
     "posterUrl",
+    "bannerUrl",
     "type"
   ] as const)
   implements Partial<EpisodeModel>

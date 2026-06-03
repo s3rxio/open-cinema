@@ -5,7 +5,7 @@ export function defaultContentFormValues(): ContentFormValues {
     title: "",
     description: "",
     director: "",
-    genre: "",
+    genres: [],
     releaseDate: new Date().toISOString().slice(0, 10),
     rating: "0"
   };
@@ -16,7 +16,7 @@ export function contentFormToInput(values: ContentFormValues) {
     title: values.title,
     description: values.description,
     director: values.director,
-    genre: values.genre,
+    genres: values.genres,
     releaseDate: new Date(values.releaseDate).toISOString(),
     rating: Number(values.rating)
   };

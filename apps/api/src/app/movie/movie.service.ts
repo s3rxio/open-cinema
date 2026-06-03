@@ -20,16 +20,17 @@ export class MovieService {
 
   async create(createMovieInput: CreateMovieInput): Promise<Movie> {
     try {
-      return this.prisma.movie.create({
+      const movie = await this.prisma.movie.create({
         data: {
           title: createMovieInput.title,
           description: createMovieInput.description,
           releaseDate: createMovieInput.releaseDate,
-          genre: createMovieInput.genre,
+          genres: createMovieInput.genres,
           director: createMovieInput.director,
           rating: createMovieInput.rating
         }
       });
+      return movie as Movie;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -49,7 +50,7 @@ export class MovieService {
     const nextCursor = movies.length > 0 ? movies[movies.length - 1].id : null;
 
     return {
-      data: movies,
+      data: movies as Movie[],
       total: await this.prisma.movie.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
@@ -65,30 +66,31 @@ export class MovieService {
       throw new NotFoundException(`Movie with id ${id} not found`);
     }
 
-    return movie;
+    return movie as Movie;
   }
 
   async findById(id: string): Promise<Movie | null> {
     return this.prisma.movie.findUnique({
       where: { id: id }
-    });
+    }) as Promise<Movie | null>;
   }
 
   async update(id: string, updateMovieInput: UpdateMovieInput): Promise<Movie> {
     await this.findOne(id);
 
     try {
-      return this.prisma.movie.update({
+      const movie = await this.prisma.movie.update({
         where: { id: id },
         data: {
           title: updateMovieInput.title,
           description: updateMovieInput.description,
           releaseDate: updateMovieInput.releaseDate,
-          genre: updateMovieInput.genre,
+          genres: updateMovieInput.genres,
           director: updateMovieInput.director,
           rating: updateMovieInput.rating
         }
       });
+      return movie as Movie;
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

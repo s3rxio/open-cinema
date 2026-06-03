@@ -21,7 +21,7 @@ type UseReviewsOptions = {
 
 export function useReviews({ contentId, type }: UseReviewsOptions) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, canManageUsers } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
   const reviewsQuery = useQuery(
@@ -63,11 +63,22 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
   );
 
   const reviews = useMemo(() => {
-    if (type === "MOVIE") {
-      return reviewsQuery.data?.movieReviews ?? [];
+    const list =
+      type === "MOVIE"
+        ? (reviewsQuery.data?.movieReviews ?? [])
+        : (reviewsQuery.data?.seriesReviews ?? []);
+
+    if (!user?.id) {
+      return list;
     }
-    return reviewsQuery.data?.seriesReviews ?? [];
-  }, [reviewsQuery.data, type]);
+
+    const mine = list.find(review => review.userId === user.id);
+    if (!mine) {
+      return list;
+    }
+
+    return [mine, ...list.filter(review => review.userId !== user.id)];
+  }, [reviewsQuery.data, type, user?.id]);
 
   const myReview = useMemo(
     () => reviews.find(review => review.userId === user?.id) ?? null,
@@ -75,33 +86,35 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
   );
 
   const submitReview = useCallback(
-    async (content: string, rating: number) => {
+    async (content: string, rating: number, reviewId?: string) => {
       setFormError(null);
 
       if (!isAuthenticated || !user?.id) {
         router.push("/auth/login");
-        return;
+        return false;
       }
 
       const trimmed = content.trim();
       if (!trimmed) {
         setFormError("Напишите текст рецензии");
-        return;
+        return false;
       }
 
+      const targetId = reviewId ?? myReview?.id;
+
       try {
-        if (myReview) {
+        if (targetId) {
           await updateReview({
             variables: {
               updateReviewInput: {
-                id: myReview.id,
+                id: targetId,
                 userId: user.id,
                 content: trimmed,
                 rating
               }
             }
           });
-          return;
+          return true;
         }
 
         await createReview({
@@ -116,8 +129,10 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
             }
           }
         });
+        return true;
       } catch {
         setFormError("Не удалось сохранить рецензию");
+        return false;
       }
     },
     [
@@ -132,18 +147,23 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
     ]
   );
 
-  const deleteMyReview = useCallback(async () => {
-    if (!myReview || !user?.id) return;
+  const deleteReview = useCallback(
+    async (reviewId: string) => {
+      if (!user?.id) return false;
 
-    setFormError(null);
-    try {
-      await removeReview({
-        variables: { id: myReview.id, userId: user.id }
-      });
-    } catch {
-      setFormError("Не удалось удалить рецензию");
-    }
-  }, [myReview, user?.id, removeReview]);
+      setFormError(null);
+      try {
+        await removeReview({
+          variables: { id: reviewId, userId: user.id }
+        });
+        return true;
+      } catch {
+        setFormError("Не удалось удалить рецензию");
+        return false;
+      }
+    },
+    [user?.id, removeReview]
+  );
 
   return {
     reviews,
@@ -153,7 +173,9 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
     removing,
     formError,
     submitReview,
-    deleteMyReview,
-    isAuthenticated
+    deleteReview,
+    isAuthenticated,
+    canManageUsers,
+    userId: user?.id
   };
 }

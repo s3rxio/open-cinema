@@ -1,3 +1,5 @@
+import { Genre } from "./genre.enum";
+
 export enum ContentType {
   MOVIE = "MOVIE",
   SERIES = "SERIES"
@@ -25,9 +27,12 @@ export interface CreateContentData {
   title: string;
   description: string;
   releaseDate: Date;
-  genre?: string;
+  genres?: Genre[];
   director?: string;
   rating: number;
 }
 
-export type UpdateContentData = Partial<CreateContentData>;
+export type UpdateContentData = Partial<CreateContentData> & {
+  posterUrl?: string | null;
+  bannerUrl?: string | null;
+};

@@ -7,7 +7,6 @@ export function buildContentListSearchFilter(search?: string) {
   return {
     OR: [
       { title: { contains: query, mode: "insensitive" as const } },
-      { genre: { contains: query, mode: "insensitive" as const } },
       { director: { contains: query, mode: "insensitive" as const } }
     ]
   };

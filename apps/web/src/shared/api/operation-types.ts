@@ -11,6 +11,20 @@ export interface TypedDocumentNode<
 
 export type ContentType = "MOVIE" | "SERIES";
 
+export type Genre =
+  | "ANIME"
+  | "DRAMA"
+  | "COMEDY"
+  | "ACTION"
+  | "ADVENTURE"
+  | "SUPERNATURAL"
+  | "FANTASY"
+  | "THRILLER"
+  | "HORROR"
+  | "SCI_FI"
+  | "ROMANCE"
+  | "DOCUMENTARY";
+
 export type ContentItem = {
   id: string;
   title: string;
@@ -18,7 +32,9 @@ export type ContentItem = {
   releaseDate: string;
   rating: number;
   type: ContentType;
+  genres: Genre[];
   posterUrl?: string | null;
+  bannerUrl?: string | null;
 };
 
 export type LoginMutationVariables = {
@@ -72,13 +88,23 @@ export type GetTrendingContentQuery = {
   getTrendingContent: ContentSearchResult;
 };
 
+export type GetContentByGenreQueryVariables = {
+  genre: Genre;
+  skip: number;
+  take: number;
+};
+
+export type GetContentByGenreQuery = {
+  getContentByGenre: ContentSearchResult;
+};
+
 export type SearchContentQueryVariables = {
   input: {
     query?: string;
     skip?: number;
     take?: number;
     contentType?: string;
-    genre?: string;
+    genre?: Genre;
     minRating?: number;
     maxRating?: number;
     sortBy?: string;
@@ -158,12 +184,13 @@ export type MovieByIdQuery = {
     title: string;
     description: string;
     director: string;
-    genre: string;
+    genres: Genre[];
     releaseDate: string;
     rating: number;
     userRating?: number | null;
     reviewCount?: number | null;
     posterUrl?: string | null;
+    bannerUrl?: string | null;
     streamId?: string | null;
   };
 };
@@ -189,12 +216,13 @@ export type SeriesByIdQuery = {
     title: string;
     description: string;
     director: string;
-    genre: string;
+    genres: Genre[];
     releaseDate: string;
     rating: number;
     userRating?: number | null;
     reviewCount?: number | null;
     posterUrl?: string | null;
+    bannerUrl?: string | null;
     episodes: SeriesEpisode[] | null;
   };
 };
@@ -308,9 +336,10 @@ export type PaginatedListItem = {
   description: string;
   releaseDate: string;
   rating: number;
-  genre: string;
   director: string;
+  genres: Genre[];
   posterUrl?: string | null;
+  bannerUrl?: string | null;
   createdAt: string;
 };
 
@@ -366,7 +395,7 @@ export type CreateContentInputFields = {
   title: string;
   description: string;
   director: string;
-  genre: string;
+  genres: Genre[];
   releaseDate: string;
   rating: number;
 };
@@ -407,7 +436,7 @@ export type UpdateMovieMutationVariables = {
     title?: string;
     description?: string;
     director?: string;
-    genre?: string;
+    genres?: Genre[];
     releaseDate?: string;
     rating?: number;
   };
@@ -608,4 +637,36 @@ export type UploadSubtitleMutation = {
     SubtitleMeta,
     "id" | "displayName" | "slug" | "orderNumer"
   >;
+};
+
+export type UploadContentPosterMutationVariables = {
+  input: {
+    contentId: string;
+    file: File;
+  };
+};
+
+export type UploadContentPosterMutation = {
+  uploadContentPoster: {
+    id: string;
+    posterUrl?: string | null;
+    bannerUrl?: string | null;
+    type: ContentType;
+  };
+};
+
+export type UploadContentBannerMutationVariables = {
+  input: {
+    contentId: string;
+    file: File;
+  };
+};
+
+export type UploadContentBannerMutation = {
+  uploadContentBanner: {
+    id: string;
+    posterUrl?: string | null;
+    bannerUrl?: string | null;
+    type: ContentType;
+  };
 };
