@@ -183,6 +183,58 @@ export class WatchPartyGateway
     return { ok: true };
   }
 
+  @SubscribeMessage("room:set-content")
+  async handleSetRoomContent(
+    @ConnectedSocket() client: WatchPartySocket,
+    @MessageBody() body: { contentId?: string }
+  ) {
+    const user = this.requireUser(client);
+    if (!user) return { ok: false };
+
+    const roomId = client.data.roomId;
+    if (!roomId) {
+      return this.emitError(client, "Вы не в комнате");
+    }
+
+    const contentId = body?.contentId?.trim();
+    if (!contentId) {
+      return this.emitError(client, "Укажите эпизод");
+    }
+
+    const room = await this.watchPartyService.getRoom(roomId);
+    if (!room) {
+      return this.emitError(client, "Комната не найдена");
+    }
+
+    if (room.hostUserId !== user.id) {
+      return this.emitError(client, "Только ведущий может сменить эпизод");
+    }
+
+    if (room.contentType !== "episode") {
+      return this.emitError(client, "Смена эпизода доступна только для сериалов");
+    }
+
+    if (contentId === room.contentId) {
+      return { ok: true };
+    }
+
+    const updated = await this.watchPartyService.updateRoomContent(
+      roomId,
+      contentId,
+      user.id
+    );
+    if (!updated) {
+      return this.emitError(client, "Комната не найдена");
+    }
+
+    this.server.to(roomId).emit("room:content-changed", {
+      contentId,
+      playback: updated.playback
+    });
+
+    return { ok: true };
+  }
+
   @SubscribeMessage("player:update")
   async handlePlayerUpdate(
     @ConnectedSocket() client: WatchPartySocket,

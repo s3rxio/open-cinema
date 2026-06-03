@@ -10,6 +10,40 @@ export type PartyPlaybackClock = {
   updatedAt: string;
 };
 
+export type VideoPlayResult = "played" | "muted" | "not-ready" | "blocked";
+
+/** Attempt play(); guests may use muted autoplay when the browser blocks sound. */
+export async function tryPlayVideo(
+  video: HTMLVideoElement,
+  options?: { mutedFallback?: boolean }
+): Promise<VideoPlayResult> {
+  if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+    return "not-ready";
+  }
+
+  try {
+    await video.play();
+    return "played";
+  } catch (error) {
+    const isAutoplayBlocked =
+      error instanceof DOMException && error.name === "NotAllowedError";
+
+    if (!isAutoplayBlocked || !options?.mutedFallback || video.muted) {
+      return "blocked";
+    }
+
+    const previousMuted = video.muted;
+    video.muted = true;
+    try {
+      await video.play();
+      return "muted";
+    } catch {
+      video.muted = previousMuted;
+      return "blocked";
+    }
+  }
+}
+
 /** Where the host should be right now, accounting for time since the last update. */
 export function getExpectedPartyTime(remote: PartyPlaybackClock): number {
   if (!remote.isPlaying) {

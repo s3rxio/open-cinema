@@ -6,11 +6,12 @@ import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
 import { useQuery } from "@apollo/client/react";
 import { Loader } from "@open-cinema/ui";
-import { useParams, useSearchParams } from "next/navigation";
-import { Suspense, useMemo } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useMemo } from "react";
 
 function WatchPartySeriesContent() {
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const id = params.id as string;
   const roomCode = searchParams.get("room");
@@ -37,6 +38,25 @@ function WatchPartySeriesContent() {
   }, [series?.episodes, episodeIdFromUrl, defaultEpisode]);
 
   const activeEpisodeId = episodeIdFromUrl ?? selectedEpisode?.id;
+
+  const handleEpisodeChange = useCallback(
+    (nextEpisodeId: string) => {
+      router.replace(routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined), {
+        scroll: false
+      });
+    },
+    [id, router, roomCode]
+  );
+
+  const handleContentChanged = useCallback(
+    (nextEpisodeId: string) => {
+      if (nextEpisodeId === activeEpisodeId) return;
+      router.replace(routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined), {
+        scroll: false
+      });
+    },
+    [id, router, roomCode, activeEpisodeId]
+  );
 
   if (!id) {
     return (
@@ -78,6 +98,11 @@ function WatchPartySeriesContent() {
       contentId={activeEpisodeId}
       contentType="episode"
       roomCode={roomCode}
+      seasons={seasons}
+      selectedSeason={selectedEpisode?.season}
+      selectedEpisodeId={selectedEpisode?.id}
+      onEpisodeChange={handleEpisodeChange}
+      onContentChanged={handleContentChanged}
     />
   );
 }

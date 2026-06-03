@@ -10,6 +10,13 @@ import { useWatchParty } from "../lib/useWatchParty";
 import type { WatchPartyContentType } from "../lib/types";
 import { WatchPartyChat } from "./WatchPartyChat";
 
+type EpisodeOption = {
+  id: string;
+  title: string;
+  season: number;
+  episode: number;
+};
+
 type WatchPartyShellProps = {
   backHref: string;
   backLabel?: string;
@@ -17,6 +24,11 @@ type WatchPartyShellProps = {
   contentId: string;
   contentType: WatchPartyContentType;
   roomCode?: string | null;
+  seasons?: { season: number; episodes: EpisodeOption[] }[];
+  selectedSeason?: number;
+  selectedEpisodeId?: string;
+  onEpisodeChange?: (episodeId: string) => void;
+  onContentChanged?: (contentId: string) => void;
 };
 
 export function WatchPartyShell({
@@ -25,7 +37,12 @@ export function WatchPartyShell({
   title,
   contentId,
   contentType,
-  roomCode
+  roomCode,
+  seasons,
+  selectedSeason,
+  selectedEpisodeId,
+  onEpisodeChange,
+  onContentChanged
 }: WatchPartyShellProps) {
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
@@ -34,8 +51,28 @@ export function WatchPartyShell({
     contentId,
     contentType,
     roomCode,
-    enabled: true
+    enabled: true,
+    onContentChanged
   });
+
+  const handleEpisodeChange = useCallback(
+    (episodeId: string) => {
+      onEpisodeChange?.(episodeId);
+      if (party.isHost && party.room) {
+        party.setRoomContent(episodeId);
+      }
+    },
+    [onEpisodeChange, party.isHost, party.room, party.setRoomContent]
+  );
+
+  const showEpisodePicker = Boolean(
+    seasons &&
+      seasons.length > 0 &&
+      onEpisodeChange &&
+      selectedEpisodeId &&
+      selectedSeason !== undefined &&
+      party.isHost
+  );
 
   const shareUrl = useMemo(() => {
     if (typeof window === "undefined" || !party.room) return "";
@@ -127,6 +164,7 @@ export function WatchPartyShell({
           <div className="relative min-h-[240px] bg-black lg:min-h-0">
             <VideoPlayer
               contentId={contentId}
+              episodeId={contentId}
               title={title}
               variant="cinema"
               autoPlay
@@ -136,6 +174,12 @@ export function WatchPartyShell({
                 remotePlayback: party.playback,
                 onLocalPlaybackChange: party.publishPlayback
               }}
+              seasons={showEpisodePicker ? seasons : undefined}
+              selectedSeason={showEpisodePicker ? selectedSeason : undefined}
+              selectedEpisodeId={showEpisodePicker ? selectedEpisodeId : undefined}
+              onEpisodeChange={
+                showEpisodePicker ? handleEpisodeChange : undefined
+              }
             />
           </div>
 

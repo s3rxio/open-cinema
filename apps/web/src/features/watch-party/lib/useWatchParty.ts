@@ -22,9 +22,15 @@ export function useWatchParty(options: {
   contentType: WatchPartyContentType;
   roomCode?: string | null;
   enabled: boolean;
+  onContentChanged?: (contentId: string) => void;
 }) {
   const { token, isAuthenticated, isReady, user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
+  const contentIdRef = useRef(options.contentId);
+  const onContentChangedRef = useRef(options.onContentChanged);
+
+  contentIdRef.current = options.contentId;
+  onContentChangedRef.current = options.onContentChanged;
 
   const [status, setStatus] = useState<ConnectionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -51,13 +57,10 @@ export function useWatchParty(options: {
     socket.on("connect", () => {
       setStatus("connected");
       if (options.roomCode) {
-        socket.emit("room:join", {
-          code: options.roomCode,
-          contentId: options.contentId
-        });
+        socket.emit("room:join", { code: options.roomCode });
       } else {
         socket.emit("room:create", {
-          contentId: options.contentId,
+          contentId: contentIdRef.current,
           contentType: options.contentType
         });
       }
@@ -113,10 +116,26 @@ export function useWatchParty(options: {
       setPlayback(state);
     });
 
+    socket.on(
+      "room:content-changed",
+      (payload: {
+        contentId: string;
+        playback: WatchPartyPlaybackState | null;
+      }) => {
+        setRoom(prev =>
+          prev ? { ...prev, contentId: payload.contentId } : prev
+        );
+        if (payload.playback) {
+          setPlayback(payload.playback);
+        }
+        onContentChangedRef.current?.(payload.contentId);
+      }
+    );
+
     socket.on("disconnect", () => {
       setStatus("idle");
     });
-  }, [token, user?.id, options.contentId, options.contentType, options.roomCode]);
+  }, [token, user?.id, options.contentType, options.roomCode]);
 
   useEffect(() => {
     if (!options.enabled || !isReady || !isAuthenticated || !token) return;
@@ -152,6 +171,10 @@ export function useWatchParty(options: {
     [isHost]
   );
 
+  const setRoomContent = useCallback((contentId: string) => {
+    socketRef.current?.emit("room:set-content", { contentId });
+  }, []);
+
   const resolvedHostId = hostUserId ?? room?.hostUserId ?? null;
   const resolvedIsHost = resolvedHostId !== null && resolvedHostId === user?.id;
 
@@ -166,6 +189,7 @@ export function useWatchParty(options: {
     hostUserId: resolvedHostId,
     sendChat,
     publishPlayback,
+    setRoomContent,
     needsAuth: isReady && !isAuthenticated
   };
 }

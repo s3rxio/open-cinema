@@ -103,6 +103,25 @@ export class WatchPartyService {
     return { ...room, hostUserId };
   }
 
+  async updateRoomContent(
+    roomId: string,
+    contentId: string,
+    hostUserId: string
+  ): Promise<{ room: WatchPartyRoom; playback: WatchPartyPlaybackState } | null> {
+    const room = await this.getRoom(roomId);
+    if (!room) return null;
+
+    await this.redis.client.hset(redisKeys.room(roomId), "contentId", contentId);
+
+    const playback = await this.savePlaybackState(roomId, {
+      currentTime: 0,
+      isPlaying: false,
+      updatedByUserId: hostUserId
+    });
+
+    return { room: { ...room, contentId }, playback };
+  }
+
   async getPlaybackState(roomId: string): Promise<WatchPartyPlaybackState | null> {
     const data = await this.redis.client.hgetall(redisKeys.state(roomId));
     if (!data.updatedAt) return null;

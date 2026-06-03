@@ -44,6 +44,7 @@ const CLICK_DELAY_MS = 250;
 const AUTO_NEXT_SECONDS = 5;
 import {
   getExpectedPartyTime,
+  tryPlayVideo,
   WATCH_PARTY_GUEST_DRIFT_CHECK_MS,
   WATCH_PARTY_SYNC_THRESHOLD_SEC
 } from "@/features/watch-party/lib/playbackSync";
@@ -173,6 +174,8 @@ export function VideoPlayer({
   } | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const [autoNextSeconds, setAutoNextSeconds] = useState<number | null>(null);
+  const [guestPlayBlocked, setGuestPlayBlocked] = useState(false);
+  const guestPendingPlayRef = useRef(false);
 
   const nextEpisode = useMemo(() => {
     if (!seasons?.length || !selectedEpisodeId) return null;
@@ -303,7 +306,7 @@ export function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
-      void video.play();
+      void tryPlayVideo(video);
     } else {
       video.pause();
     }
@@ -413,7 +416,10 @@ export function VideoPlayer({
   remotePlaybackRef.current = watchParty?.remotePlayback ?? null;
 
   const applyRemotePlayback = useCallback(
-    (remote: WatchPartyPlayback) => {
+    async (
+      remote: WatchPartyPlayback,
+      options?: { userGesture?: boolean }
+    ) => {
       const video = videoRef.current;
       if (!video) return;
 
@@ -429,25 +435,59 @@ export function VideoPlayer({
       }
 
       if (remote.isPlaying && video.paused) {
-        void video.play();
+        const playResult = await tryPlayVideo(video, {
+          mutedFallback: partyGuest && !options?.userGesture
+        });
+
+        if (playResult === "not-ready") {
+          guestPendingPlayRef.current = true;
+        } else if (playResult === "blocked") {
+          guestPendingPlayRef.current = true;
+          setGuestPlayBlocked(true);
+        } else {
+          guestPendingPlayRef.current = false;
+          setGuestPlayBlocked(false);
+        }
       } else if (!remote.isPlaying && !video.paused) {
         video.pause();
+        guestPendingPlayRef.current = false;
+        setGuestPlayBlocked(false);
+      } else if (!remote.isPlaying) {
+        guestPendingPlayRef.current = false;
+        setGuestPlayBlocked(false);
       }
 
       setTimeout(() => {
         applyingRemoteRef.current = false;
       }, 400);
     },
-    [playerState, suppressPlayPauseFlash]
+    [playerState, suppressPlayPauseFlash, partyGuest]
   );
+
+  const handleGuestUnlockPlayback = useCallback(() => {
+    const remote = remotePlaybackRef.current;
+    if (!remote?.isPlaying) {
+      setGuestPlayBlocked(false);
+      guestPendingPlayRef.current = false;
+      return;
+    }
+    void applyRemotePlayback(remote, { userGesture: true });
+  }, [applyRemotePlayback]);
 
   const remoteUpdatedAt = watchParty?.remotePlayback?.updatedAt;
   const remoteIsPlaying = watchParty?.remotePlayback?.isPlaying;
   const remoteCurrentTime = watchParty?.remotePlayback?.currentTime;
 
   useEffect(() => {
+    if (!partyGuest) {
+      setGuestPlayBlocked(false);
+      guestPendingPlayRef.current = false;
+    }
+  }, [partyGuest]);
+
+  useEffect(() => {
     if (!partyEnabled || partyIsHost || !watchParty?.remotePlayback) return;
-    applyRemotePlayback(watchParty.remotePlayback);
+    void applyRemotePlayback(watchParty.remotePlayback);
   }, [
     partyEnabled,
     partyIsHost,
@@ -474,7 +514,7 @@ export function VideoPlayer({
         return;
       }
 
-      applyRemotePlayback(remote);
+      void applyRemotePlayback(remote);
     };
 
     const intervalId = setInterval(checkDrift, WATCH_PARTY_GUEST_DRIFT_CHECK_MS);
@@ -495,7 +535,15 @@ export function VideoPlayer({
     };
     const onWaiting = () => setIsBuffering(true);
     const onStalled = () => setIsBuffering(true);
-    const onCanPlay = () => clearBuffering();
+    const onCanPlay = () => {
+      clearBuffering();
+      if (partyGuest && guestPendingPlayRef.current) {
+        const remote = remotePlaybackRef.current;
+        if (remote?.isPlaying) {
+          void applyRemotePlayback(remote);
+        }
+      }
+    };
     const onPlaying = () => clearBuffering();
 
     video.addEventListener("loadedmetadata", onDurationChange);
@@ -515,7 +563,14 @@ export function VideoPlayer({
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("playing", onPlaying);
     };
-  }, [playbackUrl, suppressPlayPauseFlash, clearBuffering, applyResume]);
+  }, [
+    playbackUrl,
+    suppressPlayPauseFlash,
+    clearBuffering,
+    applyResume,
+    partyGuest,
+    applyRemotePlayback
+  ]);
 
   useEffect(() => {
     if (playbackUrl) setIsBuffering(true);
@@ -683,7 +738,7 @@ export function VideoPlayer({
             key={playbackUrl}
             playerRef={videoRef}
             src={playbackUrl!}
-            autoPlay={autoPlay || isCinema}
+            autoPlay={(autoPlay || isCinema) && !partyGuest}
             className="w-full h-full object-contain"
             controls={false}
             playsInline
@@ -742,6 +797,22 @@ export function VideoPlayer({
           />
 
           <PlayerBufferingOverlay visible={isBuffering} />
+
+          {partyGuest && guestPlayBlocked && (
+            <button
+              type="button"
+              className="absolute inset-0 z-30 flex cursor-pointer flex-col items-center justify-center gap-3 bg-black/70 text-white"
+              onClick={handleGuestUnlockPlayback}
+              aria-label="Начать просмотр"
+            >
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
+                <Play className="h-8 w-8 fill-current" />
+              </span>
+              <span className="text-base font-medium sm:text-lg">
+                Нажмите, чтобы смотреть
+              </span>
+            </button>
+          )}
 
           {flash && (
             <PlayerActionFlash action={flash.action} animationKey={flash.key} />
@@ -941,7 +1012,7 @@ export function VideoPlayer({
                     const meta = videoMetas.find(m => m.id === value);
                     if (meta && videoRef.current) {
                       videoRef.current.src = meta.url;
-                      void videoRef.current.play();
+                      void tryPlayVideo(videoRef.current);
                     }
                   }
                   revealControls();
