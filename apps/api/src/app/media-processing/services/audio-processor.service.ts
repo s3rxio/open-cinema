@@ -58,7 +58,7 @@ export class AudioProcessorService {
 
   async uploadToS3(audioMeta: AudioMetaModel, playlistDir: string) {
     const bucket = this.configService.getOrThrow("s3.bucket");
-    const s3Key = `${audioMeta.streamId}/audios/${audioMeta.slug}`;
+    const s3Key = `streams/${audioMeta.streamId}/audios/${audioMeta.slug}`;
 
     this.s3Storage.uploadFolder({
       bucket,

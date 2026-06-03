@@ -59,7 +59,7 @@ export class SubtitleProcessorService {
 
   async uploadToS3(subtitleMeta: SubtitleMetaModel, playlistDir: string) {
     const bucket = this.configService.getOrThrow("s3.bucket");
-    const s3Key = `${subtitleMeta.streamId}/subtitles/${subtitleMeta.slug}`;
+    const s3Key = `streams/${subtitleMeta.streamId}/subtitles/${subtitleMeta.slug}`;
 
     this.s3Storage.uploadFolder({
       bucket,

@@ -63,7 +63,7 @@ export class VideoProcessorService {
     qualityDir: string
   ) {
     const bucket = this.configService.getOrThrow("s3.bucket");
-    const s3Key = `${streamId}/videos/${quality}`;
+    const s3Key = `streams/${streamId}/videos/${quality}`;
     this.s3Storage.uploadFolder({
       bucket,
       folderKey: s3Key,

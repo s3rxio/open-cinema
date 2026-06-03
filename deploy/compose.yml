@@ -1,0 +1,113 @@
+# Production stack (Compose / Swarm)
+#
+# Compose:
+#   cp deploy/.env.example deploy/.env
+#   docker compose -f deploy/compose.yml --env-file deploy/.env up -d --build
+#
+# Swarm:
+#   docker stack deploy -c deploy/stack.yml open-cinema
+
+name: open-cinema
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-open_cinema}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-open_cinema}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.6.3
+    command: ["redis-server"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      API_HOST: ${API_HOST:-0.0.0.0}
+      API_PORT: ${API_PORT:-5000}
+      API_URL: http://api:${API_PORT}
+      API_DB_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-open_cinema}
+      API_REDIS_HOST: redis
+      API_REDIS_PORT: "6379"
+      API_REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      API_SECRET: ${API_SECRET:?set API_SECRET}
+      API_BCRYPT_SALT: ${API_BCRYPT_SALT:?set API_BCRYPT_SALT}
+      API_BCRYPT_SALT_ROUNDS: ${API_BCRYPT_SALT_ROUNDS:-10}
+      API_JWT_SECRET: ${API_JWT_SECRET:?set API_JWT_SECRET}
+      API_TOKEN_ACCESS_LIFETIME: ${API_TOKEN_ACCESS_LIFETIME:-15m}
+      API_TOKEN_REFRESH_LIFETIME: ${API_TOKEN_REFRESH_LIFETIME:-7d}
+      API_S3_ENDPOINT: ${API_S3_ENDPOINT}
+      API_S3_REGION: ${API_S3_REGION}
+      API_S3_BUCKET: ${API_S3_BUCKET}
+      API_S3_ACCESS_KEY_ID: ${API_S3_ACCESS_KEY_ID:-rustfsadmin}
+      API_S3_SECRET_ACCESS_KEY: ${API_S3_SECRET_ACCESS_KEY:?set API_S3_SECRET_ACCESS_KEY}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
+      RUN_SEEDS: ${RUN_SEEDS:-false}
+    ports:
+      - "${API_PUBLISH_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:5000/api/health || exit 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web/Dockerfile
+      args:
+        NEXT_PUBLIC_GRAPHQL_URL: ${PUBLIC_GRAPHQL_URL:-http://localhost:5000/graphql}
+        NEXT_PUBLIC_API_WS_URL: ${PUBLIC_WS_URL:-}
+    environment:
+      NODE_ENV: production
+      PORT: ${WEB_PUBLISH_PORT:-3000}
+      HOSTNAME: ${WEB_HOST:-0.0.0.0}
+    ports:
+      - "${WEB_PUBLISH_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000 || exit 1"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,10 +1,17 @@
 allowBuilds:
+  "@apollo/protobufjs": true
   "@nestjs/core": false
   "@parcel/watcher": true
+  "@prisma/engines": true
   "@swc/core": true
-  cypress: true
+  bcrypt: true
+  cypress: false
+  esbuild: true
   less: false
+  msgpackr-extract: true
+  msw: true
   nx: false
-  sharp: false
+  prisma: true
+  sharp: true
   unrs-resolver: false
 autoInstallPeers: true

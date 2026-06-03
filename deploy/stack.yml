@@ -1,0 +1,53 @@
+# Docker Swarm stack
+#
+# Swarm не собирает образы из build: — сначала соберите и загрузите в registry:
+#   docker compose -f deploy/compose.yml --env-file deploy/.env build
+#   docker tag open-cinema-api:… your-registry/open-cinema-api:tag
+#   docker push your-registry/open-cinema-api:tag
+# Затем в deploy/.env задайте API_IMAGE и WEB_IMAGE и уберите build в override (см. документацию Swarm).
+#
+#   docker stack deploy -c deploy/stack.yml --env-file deploy/.env open-cinema
+#
+# WebSocket и Bull-очереди: для api оставлена 1 реплика.
+
+include:
+  - compose.yml
+
+services:
+  postgres:
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  rustfs:
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  api:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+
+  web:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
