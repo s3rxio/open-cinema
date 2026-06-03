@@ -9,6 +9,9 @@ import { PrismaService } from "../prisma/prisma.service";
 import { RecordWatchHistoryInput } from "./dto/record-watch-history.input";
 import { UpdateWatchHistoryInput } from "./dto/update-watch-history.input";
 import { WatchHistory } from "./entities/watch-history.entity";
+import { ContentMediaUrlService } from "../content/content-media-url.service";
+import { Movie } from "../movie/entities/movie.entity";
+import { Episode } from "../episode/entities/episode.entity";
 
 const watchHistoryInclude = {
   movie: true,
@@ -19,7 +22,38 @@ const watchHistoryInclude = {
 export class WatchHistoryService {
   private readonly logger = new Logger(WatchHistoryService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly contentMediaUrl: ContentMediaUrlService
+  ) {}
+
+  private async mapEntry(entry: WatchHistory): Promise<WatchHistory> {
+    return {
+      ...entry,
+      movie: entry.movie
+        ? this.contentMediaUrl.withPublicUrls(entry.movie as Movie)
+        : null,
+      episode: entry.episode
+        ? await this.mapEpisode(entry.episode as Episode)
+        : null
+    };
+  }
+
+  private async mapEpisode(episode: Episode): Promise<Episode> {
+    const series = await this.prisma.series.findUnique({
+      where: { id: episode.seriesId },
+      select: { posterUrl: true, bannerUrl: true }
+    });
+
+    const urls = series
+      ? this.contentMediaUrl.withPublicUrls(series)
+      : { posterUrl: null, bannerUrl: null };
+
+    return {
+      ...episode,
+      posterUrl: urls.posterUrl
+    };
+  }
 
   private assertValidRecordInput(input: RecordWatchHistoryInput) {
     const hasMovie = input.movieId !== undefined && input.movieId !== null;
@@ -99,7 +133,7 @@ export class WatchHistoryService {
           update: data,
           include: watchHistoryInclude
         });
-        return entry as WatchHistory;
+        return this.mapEntry(entry as WatchHistory);
       }
 
       const entry = await this.prisma.watchHistory.upsert({
@@ -117,7 +151,7 @@ export class WatchHistoryService {
         update: data,
         include: watchHistoryInclude
       });
-      return entry as WatchHistory;
+      return this.mapEntry(entry as WatchHistory);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -125,18 +159,26 @@ export class WatchHistoryService {
   }
 
   async findAll(): Promise<WatchHistory[]> {
-    return this.prisma.watchHistory.findMany({
+    const entries = await this.prisma.watchHistory.findMany({
       orderBy: { updatedAt: "desc" },
       include: watchHistoryInclude
-    }) as Promise<WatchHistory[]>;
+    });
+
+    return Promise.all(
+      entries.map(entry => this.mapEntry(entry as WatchHistory))
+    );
   }
 
   async findByUserId(userId: string): Promise<WatchHistory[]> {
-    return this.prisma.watchHistory.findMany({
+    const entries = await this.prisma.watchHistory.findMany({
       where: { userId },
       orderBy: { updatedAt: "desc" },
       include: watchHistoryInclude
-    }) as Promise<WatchHistory[]>;
+    });
+
+    return Promise.all(
+      entries.map(entry => this.mapEntry(entry as WatchHistory))
+    );
   }
 
   async findOne(id: string): Promise<WatchHistory> {
@@ -149,7 +191,7 @@ export class WatchHistoryService {
       throw new NotFoundException(`Watch history entry with id ${id} not found`);
     }
 
-    return entry as WatchHistory;
+    return this.mapEntry(entry as WatchHistory);
   }
 
   async update(
@@ -170,7 +212,7 @@ export class WatchHistoryService {
         },
         include: watchHistoryInclude
       });
-      return entry as WatchHistory;
+      return this.mapEntry(entry as WatchHistory);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

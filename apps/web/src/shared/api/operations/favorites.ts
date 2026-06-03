@@ -58,6 +58,7 @@ export const ME_QUERY = gql`
           season
           episode
           seriesId
+          posterUrl
         }
       }
     }

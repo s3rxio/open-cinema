@@ -61,7 +61,7 @@ function historyEntryToCardProps(entry: WatchHistoryEntry) {
       rating: 0,
       type: "SERIES" as ContentType,
       genres: [] as const,
-      posterUrl: null,
+      posterUrl: entry.episode.posterUrl ?? null,
       releaseDate: "",
       href: routes.watchSeries(entry.episode.seriesId, entry.episode.id),
       progressPercent: entry.completed ? undefined : progressPercent,

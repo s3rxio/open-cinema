@@ -7,6 +7,7 @@ export type WatchHistoryEpisodeFields = {
   episode: number;
   seriesId: string;
   description?: string;
+  posterUrl?: string | null;
 };
 
 export type WatchHistoryMovieFields = {

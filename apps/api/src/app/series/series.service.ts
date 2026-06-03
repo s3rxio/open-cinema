@@ -11,12 +11,16 @@ import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
 import { Series } from "./entities/series.entity";
 import { buildContentListSearchFilter } from "../common/list-search-filters";
+import { ContentMediaUrlService } from "../content/content-media-url.service";
 
 @Injectable()
 export class SeriesService {
   private readonly logger = new Logger(SeriesService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly contentMediaUrl: ContentMediaUrlService
+  ) {}
 
   async create(createSeriesInput: CreateSeriesInput): Promise<Series> {
     try {
@@ -35,7 +39,7 @@ export class SeriesService {
           }
         }
       });
-      return series as Series;
+      return this.contentMediaUrl.withPublicUrls(series as Series);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -60,7 +64,9 @@ export class SeriesService {
     const nextCursor = series.length > 0 ? series[series.length - 1].id : null;
 
     return {
-      data: series as Series[],
+      data: series.map(item =>
+        this.contentMediaUrl.withPublicUrls(item as Series)
+      ),
       total: await this.prisma.series.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
@@ -81,18 +87,22 @@ export class SeriesService {
       throw new NotFoundException(`Series with id ${id} not found`);
     }
 
-    return series as Series;
+    return this.contentMediaUrl.withPublicUrls(series as Series);
   }
 
   async findById(id: string): Promise<Series | null> {
-    return this.prisma.series.findUnique({
+    const series = await this.prisma.series.findUnique({
       where: { id: id },
       include: {
         episodes: {
           orderBy: [{ season: "asc" }, { episode: "asc" }]
         }
       }
-    }) as Promise<Series | null>;
+    });
+
+    return series
+      ? this.contentMediaUrl.withPublicUrls(series as Series)
+      : null;
   }
 
   async update(
@@ -118,7 +128,7 @@ export class SeriesService {
           }
         }
       });
-      return series as Series;
+      return this.contentMediaUrl.withPublicUrls(series as Series);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

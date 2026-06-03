@@ -1,6 +1,8 @@
-import { Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import { Parent, ResolveField, Resolver, Query, Mutation, Args } from "@nestjs/graphql";
 import { EpisodeService } from "./episode.service";
 import { Episode } from "./entities/episode.entity";
+import { PrismaService } from "../prisma/prisma.service";
+import { S3StorageService } from "../storage/s3-storage.service";
 import { CreateEpisodeInput } from "./dto/create-episode.input";
 import { CreateEpisodesBulkInput } from "./dto/create-episodes-bulk.input";
 import { UpdateEpisodeInput } from "./dto/update-episode.input";
@@ -11,7 +13,22 @@ import { Permission, RequiredPermission } from "../rbac";
 
 @Resolver(() => Episode)
 export class EpisodeResolver {
-  constructor(private readonly episodeService: EpisodeService) {}
+  constructor(
+    private readonly episodeService: EpisodeService,
+    private readonly prisma: PrismaService,
+    private readonly s3Storage: S3StorageService
+  ) {}
+
+  @BypassAuth()
+  @ResolveField(() => String, { nullable: true })
+  async posterUrl(@Parent() episode: Episode): Promise<string | null> {
+    const series = await this.prisma.series.findUnique({
+      where: { id: episode.seriesId },
+      select: { posterUrl: true }
+    });
+
+    return this.s3Storage.resolvePublicMediaUrl(series?.posterUrl);
+  }
 
   @RequiredPermission(Permission.EpisodeCreate)
   @Mutation(() => Episode)

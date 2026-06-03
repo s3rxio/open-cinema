@@ -86,7 +86,7 @@ export class ContentMediaService {
 
       const bucket = this.configService.getOrThrow("s3.bucket");
       const key = `content/${contentId}/${kind}.${extension}`;
-      const url = await this.s3Storage.uploadFile({
+      await this.s3Storage.uploadFile({
         bucket,
         key,
         filePath: tempFilePath,
@@ -94,7 +94,7 @@ export class ContentMediaService {
       });
 
       const data =
-        kind === "poster" ? { posterUrl: url } : { bannerUrl: url };
+        kind === "poster" ? { posterUrl: key } : { bannerUrl: key };
 
       if (contentType === ContentType.MOVIE) {
         await this.prisma.movie.update({

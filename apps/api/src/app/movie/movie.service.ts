@@ -11,12 +11,16 @@ import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
 import { Movie } from "./entities/movie.entity";
 import { buildContentListSearchFilter } from "../common/list-search-filters";
+import { ContentMediaUrlService } from "../content/content-media-url.service";
 
 @Injectable()
 export class MovieService {
   private readonly logger = new Logger(MovieService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly contentMediaUrl: ContentMediaUrlService
+  ) {}
 
   async create(createMovieInput: CreateMovieInput): Promise<Movie> {
     try {
@@ -30,7 +34,7 @@ export class MovieService {
           rating: createMovieInput.rating
         }
       });
-      return movie as Movie;
+      return this.contentMediaUrl.withPublicUrls(movie as Movie);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -50,7 +54,9 @@ export class MovieService {
     const nextCursor = movies.length > 0 ? movies[movies.length - 1].id : null;
 
     return {
-      data: movies as Movie[],
+      data: movies.map(movie =>
+        this.contentMediaUrl.withPublicUrls(movie as Movie)
+      ),
       total: await this.prisma.movie.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
@@ -66,13 +72,17 @@ export class MovieService {
       throw new NotFoundException(`Movie with id ${id} not found`);
     }
 
-    return movie as Movie;
+    return this.contentMediaUrl.withPublicUrls(movie as Movie);
   }
 
   async findById(id: string): Promise<Movie | null> {
-    return this.prisma.movie.findUnique({
+    const movie = await this.prisma.movie.findUnique({
       where: { id: id }
-    }) as Promise<Movie | null>;
+    });
+
+    return movie
+      ? this.contentMediaUrl.withPublicUrls(movie as Movie)
+      : null;
   }
 
   async update(id: string, updateMovieInput: UpdateMovieInput): Promise<Movie> {
@@ -90,7 +100,7 @@ export class MovieService {
           rating: updateMovieInput.rating
         }
       });
-      return movie as Movie;
+      return this.contentMediaUrl.withPublicUrls(movie as Movie);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

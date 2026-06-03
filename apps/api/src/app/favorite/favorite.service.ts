@@ -9,12 +9,30 @@ import { PrismaService } from "../prisma/prisma.service";
 import { CreateFavoriteInput } from "./dto/create-favorite.input";
 import { UpdateFavoriteInput } from "./dto/update-favorite.input";
 import { Favorite } from "./entities/favorite.entity";
+import { ContentMediaUrlService } from "../content/content-media-url.service";
+import { Movie } from "../movie/entities/movie.entity";
+import { Series } from "../series/entities/series.entity";
 
 @Injectable()
 export class FavoriteService {
   private readonly logger = new Logger(FavoriteService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly contentMediaUrl: ContentMediaUrlService
+  ) {}
+
+  private mapFavorite(favorite: Favorite): Favorite {
+    return {
+      ...favorite,
+      movie: favorite.movie
+        ? this.contentMediaUrl.withPublicUrls(favorite.movie as Movie)
+        : null,
+      series: favorite.series
+        ? this.contentMediaUrl.withPublicUrls(favorite.series as Series)
+        : null
+    };
+  }
 
   private assertValidCreateInput(input: CreateFavoriteInput) {
     const hasMovie = input.movieId !== undefined && input.movieId !== null;
@@ -111,7 +129,7 @@ export class FavoriteService {
           series: true
         }
       });
-      return favorite as Favorite;
+      return this.mapFavorite(favorite as Favorite);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();
@@ -119,24 +137,28 @@ export class FavoriteService {
   }
 
   async findAll(): Promise<Favorite[]> {
-    return this.prisma.favorite.findMany({
+    const favorites = await this.prisma.favorite.findMany({
       orderBy: { createdAt: "asc" },
       include: {
         movie: true,
         series: true
       }
-    }) as Promise<Favorite[]>;
+    });
+
+    return favorites.map(favorite => this.mapFavorite(favorite as Favorite));
   }
 
   async findByUserId(userId: string): Promise<Favorite[]> {
-    return this.prisma.favorite.findMany({
+    const favorites = await this.prisma.favorite.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
       include: {
         movie: true,
         series: true
       }
-    }) as Promise<Favorite[]>;
+    });
+
+    return favorites.map(favorite => this.mapFavorite(favorite as Favorite));
   }
 
   async findOne(id: string): Promise<Favorite> {
@@ -154,7 +176,7 @@ export class FavoriteService {
       throw new NotFoundException(`Favorite with id ${id} not found`);
     }
 
-    return favorite as Favorite;
+    return this.mapFavorite(favorite as Favorite);
   }
 
   async update(
@@ -176,7 +198,7 @@ export class FavoriteService {
           series: true
         }
       });
-      return favorite as Favorite;
+      return this.mapFavorite(favorite as Favorite);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException();

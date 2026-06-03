@@ -139,6 +139,7 @@ export type WatchHistoryItem = {
     season: number;
     episode: number;
     seriesId: string;
+    posterUrl?: string | null;
   } | null;
 };
 

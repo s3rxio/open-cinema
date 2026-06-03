@@ -20,7 +20,6 @@ export class S3StorageService {
 
   async uploadFile(options: S3UploadOptions): Promise<string> {
     const { bucket, key, filePath, contentType, retries = 3 } = options;
-    const s3Endpoint = this.configService.getOrThrow("s3.config.endpoint");
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -33,7 +32,7 @@ export class S3StorageService {
           ContentType: contentType
         });
 
-        return `https://${s3Endpoint}/${bucket}/${key}`;
+        return key;
       } catch (error) {
         if (attempt === retries) {
           throw new Error(
@@ -61,6 +60,32 @@ export class S3StorageService {
     );
 
     return Promise.all(promises);
+  }
+
+  resolvePublicMediaUrl(stored: string | null | undefined): string | null {
+    if (!stored) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(stored)) {
+      return stored;
+    }
+
+    return this.getPublicObjectUrl(stored);
+  }
+
+  getPublicObjectUrl(key: string): string {
+    const bucket = this.configService.getOrThrow("s3.bucket");
+    const endpoint = this.configService.getOrThrow("s3.config.endpoint");
+    const base = endpoint.replace(/\/+$/, "");
+    const objectKey = key.replace(/^\/+/, "");
+    const path = `${bucket}/${objectKey}`;
+
+    if (/^https?:\/\//i.test(base)) {
+      return `${base}/${path}`;
+    }
+
+    return `https://${base}/${path}`;
   }
 
   async getSignedUrl(options: SignedUrlOptions): Promise<string> {

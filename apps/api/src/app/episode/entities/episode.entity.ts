@@ -22,6 +22,9 @@ export class Episode
   @Field()
   seriesId: string;
 
+  @Field({ nullable: true, description: "Poster from parent series" })
+  posterUrl?: string | null;
+
   @Field({ nullable: true })
   streamId: string | null;
 }

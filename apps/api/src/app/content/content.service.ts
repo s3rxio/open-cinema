@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { ContentMediaUrlService } from "./content-media-url.service";
 import { SearchContentInput } from "./dto/search-content.input";
 import {
   ContentType,
@@ -20,7 +21,10 @@ type ContentWhereInput = MovieWhereInput & SeriesWhereInput;
 
 @Injectable()
 export class ContentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly contentMediaUrl: ContentMediaUrlService
+  ) {}
 
   async searchContent(input: SearchContentInput): Promise<ContentSearchResult> {
     try {
@@ -372,20 +376,20 @@ export class ContentService {
   }
 
   private mapMovieToSearchResult(movie: MovieModel): Content {
-    return {
+    return this.contentMediaUrl.withPublicUrls({
       ...movie,
       genres: movie.genres as Genre[],
       rating: Number(movie.rating),
       type: ContentType.MOVIE
-    };
+    });
   }
 
   private mapSeriesToSearchResult(series: SeriesModel): Content {
-    return {
+    return this.contentMediaUrl.withPublicUrls({
       ...series,
       genres: series.genres as Genre[],
       releaseDate: new Date(),
       type: ContentType.SERIES
-    };
+    });
   }
 }
