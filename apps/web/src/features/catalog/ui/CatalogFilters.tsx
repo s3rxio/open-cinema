@@ -1,6 +1,6 @@
 "use client";
 
-import { Label } from "@open-cinema/ui";
+import { Button, Label } from "@open-cinema/ui";
 import {
   Select,
   SelectContent,
@@ -30,13 +30,9 @@ export function CatalogFiltersPanel({
       <div className="sticky top-24 space-y-6 rounded-lg border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">Фильтры</h2>
-          <button
-            type="button"
-            onClick={onReset}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors"
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onReset}>
             Сбросить
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-2">

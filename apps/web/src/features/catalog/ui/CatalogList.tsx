@@ -2,6 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import {
+  Button,
   Tabs,
   TabsContent,
   TabsList,
@@ -66,12 +67,9 @@ export function CatalogList() {
 
       {content?.hasMore && (
         <div className="flex justify-center">
-          <button
-            onClick={() => setSkip(skip + take)}
-            className="px-8 py-2 border rounded-lg hover:bg-muted transition-colors"
-          >
+          <Button variant="outline" onClick={() => setSkip(skip + take)}>
             Загрузить ещё
-          </button>
+          </Button>
         </div>
       )}
     </div>

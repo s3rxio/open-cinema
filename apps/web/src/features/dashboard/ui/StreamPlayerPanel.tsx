@@ -155,7 +155,7 @@ export function StreamPlayerPanel({
             ? "Генерация…"
             : "Пересобрать master playlist"}
         </Button>
-        <Button type="button" variant="ghost" onClick={refreshStream}>
+        <Button type="button" variant="outline" onClick={refreshStream}>
           Обновить
         </Button>
         {isPolling ? (

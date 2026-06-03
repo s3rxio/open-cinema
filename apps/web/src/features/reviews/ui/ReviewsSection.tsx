@@ -151,7 +151,7 @@ function ReviewItem({
           {isOwn && !isEditing && (
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="icon"
               aria-label="Редактировать рецензию"
               onClick={onStartEdit}
@@ -162,12 +162,11 @@ function ReviewItem({
           {canDelete && !isEditing && (
             <Button
               type="button"
-              variant="ghost"
+              variant="destructiveOutline"
               size="icon"
               aria-label={showAdminDelete ? "Удалить рецензию (админ)" : "Удалить рецензию"}
               disabled={removing}
               onClick={onDelete}
-              className={showAdminDelete ? "text-destructive hover:text-destructive" : undefined}
             >
               <Trash2 className="size-4" />
             </Button>

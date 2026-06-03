@@ -57,9 +57,8 @@ function AuthNavButton({
   return (
     <Link href={href}>
       <Button
-        variant="ghost"
+        variant={isActive ? "default" : "outline"}
         size="sm"
-        className={cn(isActive && "bg-card")}
       >
         {children}
       </Button>
@@ -119,7 +118,7 @@ function UserMenu() {
         </SelectItem>
         <SelectItem
           value="logout"
-          className="[&>span:first-child]:hidden pl-2 text-destructive focus:text-destructive"
+          className="[&>span:first-child]:hidden pl-2 text-destructive focus:bg-destructive/10 focus:text-destructive"
         >
           <span className="flex items-center gap-2">
             <LogOut className="h-4 w-4 shrink-0" aria-hidden />

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input, Loader } from "@open-cinema/ui";
+import { Button, Input, Loader } from "@open-cinema/ui";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -117,12 +117,7 @@ export function CatalogPageContent() {
               aria-invalid={errors.query ? true : undefined}
               {...register("query")}
             />
-            <button
-              type="submit"
-              className="px-6 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-            >
-              Найти
-            </button>
+            <Button type="submit">Найти</Button>
           </div>
           {errors.query && (
             <p className="text-sm text-destructive">{errors.query.message}</p>
@@ -156,14 +151,14 @@ export function CatalogPageContent() {
 
         {content?.hasMore && (
           <div className="flex justify-center">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={loadMore}
               disabled={catalogQuery.loading}
-              className="px-8 py-2 border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
             >
               {catalogQuery.loading ? "Загрузка…" : "Загрузить ещё"}
-            </button>
+            </Button>
           </div>
         )}
       </div>

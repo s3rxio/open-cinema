@@ -28,7 +28,7 @@ function SearchResultItem({
     <Link
       href={getContentHref(item)}
       onClick={onSelect}
-      className="flex items-center gap-3 px-3 py-2 hover:bg-accent transition-colors"
+      className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-muted/60"
     >
       <div className="h-12 w-8 shrink-0 overflow-hidden rounded bg-muted">
         {item.posterUrl ? (
@@ -152,7 +152,7 @@ export function NavbarSearch() {
             <Link
               href={`${routes.catalog}?q=${encodeURIComponent(debouncedQuery)}`}
               onClick={closeDropdown}
-              className="block border-t border-border px-3 py-2 text-center text-sm text-primary hover:bg-accent"
+              className="block border-t border-border px-3 py-2 text-center text-sm text-primary transition-colors hover:bg-muted/60"
             >
               Все результаты
             </Link>

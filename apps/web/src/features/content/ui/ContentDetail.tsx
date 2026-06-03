@@ -23,7 +23,7 @@ type ContentDetailProps = {
 };
 
 const watchButtonClass =
-  "inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-orange-500 px-8 text-sm font-semibold text-white shadow-md transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-primary px-8 text-sm font-semibold text-primary-foreground shadow-md transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 export function ContentDetail({
   title,
