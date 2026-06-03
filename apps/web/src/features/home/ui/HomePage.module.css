@@ -402,10 +402,6 @@
 }
 
 /* Poster card */
-.cardFluid {
-  width: 100%;
-}
-
 .myGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -428,6 +424,10 @@
     border-color 0.35s ease;
   text-decoration: none;
   color: inherit;
+}
+
+.cardFluid {
+  width: 100%;
 }
 
 .card:hover {
