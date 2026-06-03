@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@open-cinema/ui";
 import { routes } from "@/shared/lib/routes";
 import { Container } from "@/shared/ui/Container";
@@ -17,11 +18,12 @@ type ContentDetailProps = {
   watchHref: string;
   watchDisabled?: boolean;
   watchLabel?: string;
+  sectionTitle?: string;
   children?: React.ReactNode;
 };
 
 const watchButtonClass =
-  "inline-flex h-11 w-full sm:w-auto items-center justify-center rounded-md bg-orange-500 px-8 text-sm font-semibold text-white shadow-md transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-md bg-orange-500 px-8 text-sm font-semibold text-white shadow-md transition-colors hover:bg-orange-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50";
 
 export function ContentDetail({
   title,
@@ -32,6 +34,7 @@ export function ContentDetail({
   watchHref,
   watchDisabled,
   watchLabel = "Смотреть",
+  sectionTitle = "Сезоны",
   children
 }: ContentDetailProps) {
   return (
@@ -84,10 +87,12 @@ export function ContentDetail({
                     className={cn(watchButtonClass, "opacity-50 cursor-not-allowed")}
                     aria-disabled
                   >
+                    <Play className="h-4 w-4 fill-current" aria-hidden />
                     {watchLabel}
                   </span>
                 ) : (
                   <Link href={watchHref} className={watchButtonClass}>
+                    <Play className="h-4 w-4 fill-current" aria-hidden />
                     {watchLabel}
                   </Link>
                 )}
@@ -102,7 +107,7 @@ export function ContentDetail({
           <Container>
             <Card>
               <CardHeader>
-                <CardTitle>Эпизоды</CardTitle>
+                <CardTitle>{sectionTitle}</CardTitle>
               </CardHeader>
               <CardContent>{children}</CardContent>
             </Card>
