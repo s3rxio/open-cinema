@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ContentCard, contentCardStyles } from "@/shared/ui/ContentCard";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
 import { CatalogFiltersPanel } from "./CatalogFilters";
 import {
   catalogFiltersToQueryString,
@@ -141,7 +141,7 @@ export function CatalogPageContent() {
                 Найдено: {content.total}
               </p>
             )}
-            <div className={contentCardStyles.grid}>
+            <div className={CONTENT_CARD_GRID_CLASS}>
               {items.map(item => (
                 <ContentCard key={item.id} {...item} fluid />
               ))}

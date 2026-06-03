@@ -9,7 +9,7 @@ import {
   TabsTrigger,
   Loader
 } from "@open-cinema/ui";
-import { ContentCard, contentCardStyles } from "@/shared/ui/ContentCard";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
 import {
   GET_RECENT_CONTENT_QUERY,
   GET_TRENDING_CONTENT_QUERY
@@ -78,7 +78,7 @@ export function CatalogList() {
 
 function CatalogGrid({ items }: { items: ContentItem[] }) {
   return (
-    <div className={contentCardStyles.grid}>
+    <div className={CONTENT_CARD_GRID_CLASS}>
       {items.map(item => (
         <ContentCard key={item.id} {...item} fluid />
       ))}
