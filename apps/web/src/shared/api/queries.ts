@@ -208,6 +208,7 @@ export const QUERIES = {
           releaseDate
           rating
           type
+          genres
           posterUrl
           bannerUrl
         }

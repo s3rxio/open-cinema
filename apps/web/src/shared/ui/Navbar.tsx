@@ -148,6 +148,7 @@ export function Navbar() {
             <NavLink href="/" exact>
               Главная
             </NavLink>
+            <NavLink href="/catalog">Каталог</NavLink>
             {isAuthenticated && <NavLink href="/my">Моё</NavLink>}
           </nav>
         </div>

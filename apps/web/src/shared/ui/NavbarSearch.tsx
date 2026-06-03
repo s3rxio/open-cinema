@@ -150,7 +150,7 @@ export function NavbarSearch() {
 
           {canSearch && !searchQuery.loading && items.length > 0 && (
             <Link
-              href={`/search?q=${encodeURIComponent(debouncedQuery)}`}
+              href={`${routes.catalog}?q=${encodeURIComponent(debouncedQuery)}`}
               onClick={closeDropdown}
               className="block border-t border-border px-3 py-2 text-center text-sm text-primary hover:bg-accent"
             >

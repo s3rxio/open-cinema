@@ -2,8 +2,7 @@
 
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, Loader } from "@open-cinema/ui";
-import { HomeContentCard } from "@/features/home/ui/HomeContentCard";
-import styles from "@/features/home/ui/HomePage.module.css";
+import { ContentCard, contentCardStyles } from "@/shared/ui/ContentCard";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
 import type { ContentItem, ContentType } from "@/shared/api/operation-types";
 import { useAuth } from "@/shared/auth/AuthContext";
@@ -103,9 +102,9 @@ export function FavoritesList() {
   }
 
   return (
-    <div className={styles.myGrid}>
+    <div className={contentCardStyles.grid}>
       {items.map(item => (
-        <HomeContentCard key={item.id} {...item} fluid />
+        <ContentCard key={item.id} {...item} fluid />
       ))}
     </div>
   );

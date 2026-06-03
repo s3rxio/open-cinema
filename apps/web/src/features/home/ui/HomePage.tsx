@@ -9,6 +9,7 @@ import {
 } from "@/shared/api/operations/catalog";
 import { GET_CONTENT_BY_GENRE_QUERY } from "@/shared/api/operations/genres";
 import { GENRE_LABELS, type Genre } from "@/shared/lib/genres";
+import { routes } from "@/shared/lib/routes";
 import { Container } from "@/shared/ui/Container";
 import { ContentRow } from "./ContentRow";
 import { HeroCarousel } from "./HeroCarousel";
@@ -55,10 +56,10 @@ function GenreSection({ genre, title, icon }: (typeof GENRE_SECTIONS)[number]) {
         <ContentRow
           title={title}
           titleIcon={icon}
-          viewAllHref={`/search?genre=${genre}`}
+          viewAllHref={`${routes.catalog}?genre=${genre}`}
           items={items}
           showCatalogLink
-          catalogHref="/search"
+          catalogHref={routes.catalog}
         />
       </Container>
     </section>
@@ -136,10 +137,10 @@ export function HomePage() {
               <ContentRow
                 title="Популярное"
                 titleIcon={<Flame size={22} aria-hidden />}
-                viewAllHref="/search?q=popular"
+                viewAllHref={`${routes.catalog}?sortBy=rating&sortOrder=DESC`}
                 items={trending}
                 showCatalogLink
-                catalogHref="/search"
+                catalogHref={routes.catalog}
               />
             </Container>
           </section>
@@ -151,10 +152,10 @@ export function HomePage() {
               <ContentRow
                 title="Новинки"
                 titleIcon={<Sparkles size={22} aria-hidden />}
-                viewAllHref="/search"
+                viewAllHref={`${routes.catalog}?sortBy=releaseDate&sortOrder=DESC`}
                 items={recent}
                 showCatalogLink
-                catalogHref="/search"
+                catalogHref={routes.catalog}
               />
             </Container>
           </section>

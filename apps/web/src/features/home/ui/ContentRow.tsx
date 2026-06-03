@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ContentItem } from "@/shared/api/operation-types";
-import { HomeContentCard } from "./HomeContentCard";
+import { routes } from "@/shared/lib/routes";
+import { ContentCard } from "@/shared/ui/ContentCard";
 import styles from "./HomePage.module.css";
 
 type ContentRowProps = {
@@ -24,7 +25,7 @@ export function ContentRow({
   viewAllLabel = "Смотреть все",
   items,
   showCatalogLink = false,
-  catalogHref = "/search"
+  catalogHref = routes.catalog
 }: ContentRowProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -93,7 +94,7 @@ export function ContentRow({
           <div className={styles.trackInner}>
             {items.map(item => (
               <div key={item.id} className={styles.slideItem}>
-                <HomeContentCard {...item} />
+                <ContentCard {...item} />
               </div>
             ))}
             {showCatalogLink ? (

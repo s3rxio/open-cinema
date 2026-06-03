@@ -17,6 +17,7 @@ export const SEARCH_CONTENT_QUERY = gql`
         releaseDate
         rating
         type
+        genres
         posterUrl
       }
     }

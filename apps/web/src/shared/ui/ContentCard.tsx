@@ -8,9 +8,11 @@ import { useBookmarks } from "@/features/favorites/lib/useBookmarks";
 import { routes } from "@/shared/lib/routes";
 import { primaryGenreLabel } from "@/shared/lib/genres";
 import { cn } from "@open-cinema/ui";
-import styles from "./HomePage.module.css";
+import styles from "./ContentCard.module.css";
 
-type HomeContentCardProps = ContentItem & {
+export { styles as contentCardStyles };
+
+export type ContentCardProps = ContentItem & {
   href?: string;
   progressPercent?: number;
   statusLabel?: string;
@@ -19,7 +21,7 @@ type HomeContentCardProps = ContentItem & {
   fluid?: boolean;
 };
 
-export function HomeContentCard({
+export function ContentCard({
   id,
   title,
   description,
@@ -33,7 +35,7 @@ export function HomeContentCard({
   statusCompleted = false,
   showBookmark = true,
   fluid = false
-}: HomeContentCardProps) {
+}: ContentCardProps) {
   const { isBookmarked, toggleBookmark } = useBookmarks();
   const bookmarked = isBookmarked(id);
   const [pending, setPending] = useState(false);
@@ -86,7 +88,12 @@ export function HomeContentCard({
         ) : null}
         <div className={styles.posterWrapper}>
           {posterUrl ? (
-            <img src={posterUrl} alt={title} className={styles.posterImage} loading="lazy" />
+            <img
+              src={posterUrl}
+              alt={title}
+              className={styles.posterImage}
+              loading="lazy"
+            />
           ) : (
             <div className={styles.posterPlaceholder}>Нет постера</div>
           )}
@@ -116,7 +123,12 @@ export function HomeContentCard({
           </span>
         ) : (
           <div className={styles.rating}>
-            <Star className={styles.starIcon} size={14} fill="#faad14" stroke="#faad14" />
+            <Star
+              className={styles.starIcon}
+              size={14}
+              fill="#faad14"
+              stroke="#faad14"
+            />
             <span>{rating.toFixed(1)}</span>
           </div>
         )}

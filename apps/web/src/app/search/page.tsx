@@ -1,30 +1,23 @@
-import { Suspense } from "react";
-import { SearchContent } from "@/features/search/ui/SearchContent";
-import { Container } from "@/shared/ui/Container";
-import { Loader } from "@open-cinema/ui";
+import { redirect } from "next/navigation";
 
-export const metadata = {
-  title: "Поиск | Open Cinema",
-  description: "Поиск фильмов и сериалов"
+type SearchRedirectPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default function SearchPage() {
-  return (
-    <main className="py-8">
-      <section>
-        <Container>
-          <h1 className="text-4xl font-bold mb-6">Поиск</h1>
-          <Suspense
-            fallback={
-              <div className="flex justify-center py-12">
-                <Loader size="lg" />
-              </div>
-            }
-          >
-            <SearchContent />
-          </Suspense>
-        </Container>
-      </section>
-    </main>
-  );
+export default async function SearchRedirectPage({
+  searchParams
+}: SearchRedirectPageProps) {
+  const params = await searchParams;
+  const query = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") {
+      query.set(key, value);
+    } else if (Array.isArray(value)) {
+      value.forEach(item => query.append(key, item));
+    }
+  }
+
+  const queryString = query.toString();
+  redirect(queryString ? `/catalog?${queryString}` : "/catalog");
 }

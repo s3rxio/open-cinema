@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent, Loader } from "@open-cinema/ui";
-import { HomeContentCard } from "@/features/home/ui/HomeContentCard";
-import styles from "@/features/home/ui/HomePage.module.css";
+import { ContentCard, contentCardStyles } from "@/shared/ui/ContentCard";
 import { formatTime } from "@/features/player/ui/PlayerProgressBar";
 import { useAuth } from "@/shared/auth/AuthContext";
 import { routes } from "@/shared/lib/routes";
@@ -116,12 +115,12 @@ export function WatchHistoryList() {
   }
 
   return (
-    <div className={styles.myGrid}>
+    <div className={contentCardStyles.grid}>
       {items.map(entry => {
         const props = historyEntryToCardProps(entry);
         if (!props) return null;
         const { key, ...cardProps } = props;
-        return <HomeContentCard key={key} {...cardProps} />;
+        return <ContentCard key={key} {...cardProps} />;
       })}
     </div>
   );
