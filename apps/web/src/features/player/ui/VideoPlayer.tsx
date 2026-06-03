@@ -33,6 +33,10 @@ import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
 import { formatTime, PlayerProgressBar } from "./PlayerProgressBar";
 import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
 import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
+import {
+  PlayerControlTooltip,
+  PlayerControlTooltipWrap
+} from "./PlayerControlTooltip";
 import { useWatchProgress } from "@/features/watch-history/lib/useWatchProgress";
 
 const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), { ssr: false });
@@ -76,28 +80,30 @@ function SeekButton({
     direction === "back" ? "Отмотать на 10 секунд" : "Перемотать на 10 секунд";
 
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      onClick={onClick}
-      aria-label={label}
-      className="relative h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        className={cn(
-          "h-5 w-5 fill-current",
-          direction === "forward" && "scale-x-[-1]"
-        )}
-        aria-hidden
+    <PlayerControlTooltip label={label}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onClick}
+        aria-label={label}
+        className="relative h-9 w-9 shrink-0 hover:bg-white/20 text-white"
       >
-        <path d="M12.5 8c-2.65 0-5.05 1.04-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8zm-1 11h-2v-6h2v6zm4 0h-2v-6h2v6z" />
-      </svg>
-      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-semibold leading-none">
-        10
-      </span>
-    </Button>
+        <svg
+          viewBox="0 0 24 24"
+          className={cn(
+            "h-5 w-5 fill-current",
+            direction === "forward" && "scale-x-[-1]"
+          )}
+          aria-hidden
+        >
+          <path d="M12.5 8c-2.65 0-5.05 1.04-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8zm-1 11h-2v-6h2v6zm4 0h-2v-6h2v6z" />
+        </svg>
+        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-semibold leading-none">
+          10
+        </span>
+      </Button>
+    </PlayerControlTooltip>
   );
 }
 
@@ -874,20 +880,26 @@ export function VideoPlayer({
                 onClick={() => seekBy(-SEEK_STEP_SEC)}
               />
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={togglePlay}
-                className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                aria-label={playerState.isPlaying ? "Пауза" : "Воспроизведение"}
+              <PlayerControlTooltip
+                label={playerState.isPlaying ? "Пауза" : "Воспроизведение"}
               >
-                {playerState.isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5" />
-                )}
-              </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePlay}
+                  className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+                  aria-label={
+                    playerState.isPlaying ? "Пауза" : "Воспроизведение"
+                  }
+                >
+                  {playerState.isPlaying ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5" />
+                  )}
+                </Button>
+              </PlayerControlTooltip>
 
               <SeekButton
                 direction="forward"
@@ -897,17 +909,20 @@ export function VideoPlayer({
           )}
 
           {nextEpisode && !partyGuest && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={goToNextEpisode}
-              className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-              aria-label="Следующая серия"
-              title={`Следующая серия: S${nextEpisode.season}E${nextEpisode.episode}`}
+            <PlayerControlTooltip
+              label={`Следующая серия: S${nextEpisode.season}E${nextEpisode.episode}`}
             >
-              <SkipForward className="h-5 w-5" />
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={goToNextEpisode}
+                className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+                aria-label="Следующая серия"
+              >
+                <SkipForward className="h-5 w-5" />
+              </Button>
+            </PlayerControlTooltip>
           )}
 
           {playbackReady && (
@@ -919,48 +934,64 @@ export function VideoPlayer({
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             {playbackReady && (
               <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleMute}
-                  className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                  aria-label={playerState.volume > 0 ? "Выключить звук" : "Включить звук"}
+                <PlayerControlTooltip
+                  label={
+                    playerState.volume > 0 ? "Выключить звук" : "Включить звук"
+                  }
                 >
-                  {playerState.volume > 0 ? (
-                    <Volume2 className="h-5 w-5" />
-                  ) : (
-                    <VolumeX className="h-5 w-5" />
-                  )}
-                </Button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.05"
-                  value={playerState.volume}
-                  onChange={e => {
-                    const volume = parseFloat(e.target.value);
-                    playerState.setVolume(volume);
-                    if (videoRef.current) {
-                      videoRef.current.volume = volume;
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleMute}
+                    className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+                    aria-label={
+                      playerState.volume > 0
+                        ? "Выключить звук"
+                        : "Включить звук"
                     }
-                  }}
-                  aria-label="Громкость"
-                  className="hidden h-1 w-16 cursor-pointer accent-white sm:block md:w-24"
-                />
+                  >
+                    {playerState.volume > 0 ? (
+                      <Volume2 className="h-5 w-5" />
+                    ) : (
+                      <VolumeX className="h-5 w-5" />
+                    )}
+                  </Button>
+                </PlayerControlTooltip>
+                <PlayerControlTooltipWrap
+                  label="Громкость"
+                  className="hidden sm:inline-flex"
+                >
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={playerState.volume}
+                    onChange={e => {
+                      const volume = parseFloat(e.target.value);
+                      playerState.setVolume(volume);
+                      if (videoRef.current) {
+                        videoRef.current.volume = volume;
+                      }
+                    }}
+                    aria-label="Громкость"
+                    className="h-1 w-16 cursor-pointer accent-white md:w-24"
+                  />
+                </PlayerControlTooltipWrap>
               </div>
             )}
 
             {playbackReady && watchPartyHref && !partyEnabled && (
-              <Link
-                href={watchPartyHref}
-                aria-label="Совместный просмотр"
-                title="Совместный просмотр"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/20"
-              >
-                <Users className="h-5 w-5" />
-              </Link>
+              <PlayerControlTooltip label="Совместный просмотр">
+                <Link
+                  href={watchPartyHref}
+                  aria-label="Совместный просмотр"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/20"
+                >
+                  <Users className="h-5 w-5" />
+                </Link>
+              </PlayerControlTooltip>
             )}
 
             {showEpisodeMenu && (
@@ -1032,20 +1063,32 @@ export function VideoPlayer({
               />
             )}
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={toggleFullscreen}
-              className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-              aria-label={isFullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
+            <PlayerControlTooltip
+              label={
+                isFullscreen
+                  ? "Выйти из полноэкранного режима"
+                  : "Полноэкранный режим"
+              }
             >
-              {isFullscreen ? (
-                <Minimize className="h-5 w-5" />
-              ) : (
-                <Maximize className="h-5 w-5" />
-              )}
-            </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={toggleFullscreen}
+                className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+                aria-label={
+                  isFullscreen
+                    ? "Выйти из полноэкранного режима"
+                    : "Полноэкранный режим"
+                }
+              >
+                {isFullscreen ? (
+                  <Minimize className="h-5 w-5" />
+                ) : (
+                  <Maximize className="h-5 w-5" />
+                )}
+              </Button>
+            </PlayerControlTooltip>
           </div>
         </div>
 

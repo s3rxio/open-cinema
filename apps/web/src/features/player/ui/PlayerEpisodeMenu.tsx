@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Captions, Check, ChevronDown } from "lucide-react";
 import { Button, cn } from "@open-cinema/ui";
+import { PlayerControlTooltip } from "./PlayerControlTooltip";
 
 type EpisodeOption = {
   id: string;
@@ -60,19 +61,24 @@ export function PlayerEpisodeMenu({
 
   return (
     <div className="relative shrink-0" ref={panelRef}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        data-episode-trigger
-        aria-expanded={open}
-        aria-haspopup="true"
-        aria-label="Выбор серии"
-        onClick={() => onOpenChange(!open)}
-        className={cn("hover:bg-white/20 text-white", open && "bg-white/20")}
-      >
-        <Captions className="h-5 w-5" />
-      </Button>
+      <PlayerControlTooltip label="Серии и эпизоды">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          data-episode-trigger
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="Выбор серии"
+          onClick={() => onOpenChange(!open)}
+          className={cn(
+            "h-9 w-9 shrink-0 hover:bg-white/20 text-white",
+            open && "bg-white/20"
+          )}
+        >
+          <Captions className="h-5 w-5" />
+        </Button>
+      </PlayerControlTooltip>
 
       {open && (
         <div

@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Check, Settings } from "lucide-react";
 import { Button, cn } from "@open-cinema/ui";
+import { PlayerControlTooltip } from "./PlayerControlTooltip";
 import type { AudioMeta, SubtitleMeta, VideoMeta } from "@/shared/api/operation-types";
 import { AUTO_QUALITY } from "../lib/useHlsTracks";
 
@@ -104,22 +105,24 @@ export function PlayerSettingsMenu({
 
   return (
     <div className="relative shrink-0" ref={panelRef}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        data-settings-trigger
-        aria-expanded={open}
-        aria-haspopup="true"
-        aria-label="Настройки воспроизведения"
-        onClick={() => onOpenChange(!open)}
-        className={cn(
-          "hover:bg-white/20 text-white",
-          open && "bg-white/20"
-        )}
-      >
-        <Settings className="h-5 w-5" />
-      </Button>
+      <PlayerControlTooltip label="Настройки">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          data-settings-trigger
+          aria-expanded={open}
+          aria-haspopup="true"
+          aria-label="Настройки воспроизведения"
+          onClick={() => onOpenChange(!open)}
+          className={cn(
+            "h-9 w-9 shrink-0 hover:bg-white/20 text-white",
+            open && "bg-white/20"
+          )}
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
+      </PlayerControlTooltip>
 
       {open && (
         <div
