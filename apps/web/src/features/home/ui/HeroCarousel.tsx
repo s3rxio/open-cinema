@@ -90,7 +90,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                 <h3 className="m-0 mb-4 text-[clamp(32px,4.5vw,52px)] font-semibold leading-[1.1] tracking-[-0.03em] text-foreground">
                   {slide.title}
                 </h3>
-                <p className="m-0 mb-10 max-w-[90%] text-[clamp(16px,2vw,19px)] font-normal leading-[1.45] tracking-[-0.01em] text-muted-foreground max-md:max-w-full">
+                <p className="m-0 mb-10 max-w-[90%] line-clamp-3 text-[clamp(16px,2vw,19px)] font-normal leading-[1.45] tracking-[-0.01em] text-muted-foreground max-md:max-w-full">
                   {slide.description}
                 </p>
                 <Link

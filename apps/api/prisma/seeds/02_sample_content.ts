@@ -1,150 +1,63 @@
 import { PrismaClient } from "../generated/client";
 import { Pool } from "pg";
+import { attackOnTitanEpisodes } from "./data/attack-on-titan.episodes";
+import { chainsawManEpisodes } from "./data/chainsaw-man.episodes";
+import { seedMovie, seedSeriesWithEpisodes } from "./lib/seed-helpers";
 
-export default async function seed(prisma: PrismaClient, pool: Pool) {
-  console.log("Creating sample movies and series...");
+export default async function seed(prisma: PrismaClient, _pool: Pool) {
+  console.log("Seeding content from Kinopoisk...");
 
-  // Create Movies
-  try {
-    await prisma.movie.create({
-      data: {
-        title: "1+1",
-        description:
-          "A wealthy man with quadriplegia hires a caregiver from the projects to help him with his daily life.",
-        releaseDate: new Date("2011-11-02"),
-        genres: ["DRAMA"],
-        director: "Olivier Nakache, Éric Toledano",
-        rating: 8.3
-      }
-    });
-    console.log("Movie '1+1' created");
-  } catch (e) {
-    console.log("Movie '1+1' already exists");
-  }
+  await seedMovie(prisma, {
+    title: "1+1",
+    description:
+      "Пострадав в результате несчастного случая, богатый аристократ Филипп нанимает в помощники человека, который менее всего подходит для этой работы — молодого жителя предместья Дрисса, только что освободившегося из тюрьмы. Несмотря на то что Филипп прикован к инвалидному креслу, Дриссу удаётся привнести в размеренную жизнь аристократа дух приключений.",
+    releaseDate: new Date("2011-09-23"),
+    genres: ["DRAMA", "COMEDY"],
+    director: "Оливье Накаш, Эрик Толедано",
+    rating: 8.9,
+    isPublished: true
+  });
 
-  // Create Series
-  try {
-    const chainsaw = await prisma.series.create({
-      data: {
-        title: "Chainsaw Man: Reze Arc",
-        description:
-          "A high schooler who becomes the human host of a chainsaw devil fights for survival while seeking revenge.",
-        releaseDate: new Date("2022-10-11"),
-        genres: ["ANIME", "ACTION", "SUPERNATURAL"],
-        director: "Mitsuyuki Masuhara",
-        rating: 8.5
-      }
-    });
+  await seedMovie(prisma, {
+    title: "Приключения пингвинёнка Лоло",
+    description:
+      "О занимательных приключениях пингвинёнка Лоло и его подруги Пепе, о природе и животном мире Антарктиды. Любознательный малыш познаёт суровый мир льдов, встречает друзей и врагов, переживает опасности и учится помогать другим — путь от беззаботного птенца до вожака стаи.",
+    releaseDate: new Date("1986-01-01"),
+    genres: ["ADVENTURE", "COMEDY"],
+    director: "Геннадий Сокольский",
+    rating: 8.2,
+    isPublished: true
+  });
 
-    // Add episodes for Chainsaw Man
-    const episodes = [
-      {
-        title: "Reze",
-        description: "A mysterious girl appears in Denji's life.",
-        season: 1,
-        episode: 7,
-        releaseDate: new Date("2022-11-08"),
-        rating: 8.4
-      },
-      {
-        title: "Reze, Explained",
-        description: "The story of Reze unfolds.",
-        season: 1,
-        episode: 8,
-        releaseDate: new Date("2022-11-15"),
-        rating: 8.5
-      }
-    ];
+  await seedSeriesWithEpisodes(
+    prisma,
+    {
+      title: "Атака титанов",
+      description:
+        "Уже многие годы человечество ведёт борьбу с титанами — огромными существами, которые не обладают особым интеллектом, зато едят людей и получают от этого удовольствие. После продолжительной борьбы остатки человечества построили высокую стену, окружившую страну людей, через которую титаны пройти не могли. С тех пор прошло сто лет, люди мирно живут под защитой стены. Но однажды подростки Эрен и Микаса становятся свидетелями страшного события — участок стены разрушается супертитаном, появившимся прямо из воздуха. Титаны нападают на город, и дети в ужасе видят, как один из монстров заживо съедает мать Эрена. Мальчик клянётся, что убьёт всех титанов и отомстит за человечество.",
+      releaseDate: new Date("2013-04-07"),
+      genres: ["ANIME", "ACTION", "ADVENTURE", "FANTASY", "DRAMA"],
+      director: "Тэцуро Араки, Масаси Коидзука, Юитиро Хаяси",
+      rating: 8.7,
+      isPublished: true
+    },
+    attackOnTitanEpisodes
+  );
 
-    for (const ep of episodes) {
-      await prisma.episode.create({
-        data: {
-          ...ep,
-          seriesId: chainsaw.id
-        }
-      });
-    }
+  await seedSeriesWithEpisodes(
+    prisma,
+    {
+      title: "Человек-бензопила",
+      description:
+        "Подросток Дэндзи всего лишь хотел жить обычной жизнью и есть досыта, но оставшиеся после смерти отца долги вынуждают парня влачить полуголодное существование и жить в халупе. Чтобы расплатиться с якудза, он уже продал некоторые свои органы и даже промышляет нелегальной охотой на демонов, в чём ему помогает необычный питомец Почита — демоническое существо с бензопилой. Однажды коварные бандиты заманивают Дэндзи в ловушку и приносят в жертву, но Почита не даёт парню умереть. Он сращивает его тело и становится сердцем своего хозяина — теперь Дэндзи обладает повышенной регенерацией, а также может превращать конечности в бензопилы. Такого ценного кадра нанимает Бюро общественной безопасности, чтобы тот снова охотился на демонов.",
+      releaseDate: new Date("2022-10-11"),
+      genres: ["ANIME", "ACTION", "SUPERNATURAL", "FANTASY"],
+      director: "Рю Накаяма, Масато Накадзоно, Тацуя Ёсихара",
+      rating: 8.5,
+      isPublished: true
+    },
+    chainsawManEpisodes
+  );
 
-    console.log("Series 'Chainsaw Man: Reze Arc' created with episodes");
-  } catch (e) {
-    console.log("Series 'Chainsaw Man: Reze Arc' already exists");
-  }
-
-  // Create Attack on Titan series
-  try {
-    const aot = await prisma.series.create({
-      data: {
-        title: "Attack on Titan: The Final Attack",
-        description:
-          "Humanity's last bastion against the Titans comes to an end in this climactic final season.",
-        releaseDate: new Date("2023-03-03"),
-        genres: ["ANIME", "ACTION", "ADVENTURE", "FANTASY"],
-        director: "Yuichiro Hayashi",
-        rating: 9.0
-      }
-    });
-
-    // Add episodes for Attack on Titan
-    const aotEpisodes = [
-      {
-        title: "Beneath the Tree",
-        description: "The final battle begins.",
-        season: 4,
-        episode: 25,
-        releaseDate: new Date("2023-03-03"),
-        rating: 9.1
-      },
-      {
-        title: "Thundering Footsteps",
-        description: "The fight continues.",
-        season: 4,
-        episode: 26,
-        releaseDate: new Date("2023-03-10"),
-        rating: 9.0
-      },
-      {
-        title: "The Final Chapters",
-        description: "The end of the world.",
-        season: 4,
-        episode: 27,
-        releaseDate: new Date("2023-03-17"),
-        rating: 9.2
-      }
-    ];
-
-    for (const ep of aotEpisodes) {
-      await prisma.episode.create({
-        data: {
-          ...ep,
-          seriesId: aot.id
-        }
-      });
-    }
-
-    console.log(
-      "Series 'Attack on Titan: The Final Attack' created with episodes"
-    );
-  } catch (e) {
-    console.log("Series 'Attack on Titan: The Final Attack' already exists");
-  }
-
-  // Create comedy movie for genre sections demo
-  try {
-    await prisma.movie.create({
-      data: {
-        title: "The Grand Budapest Hotel",
-        description:
-          "The adventures of a legendary concierge and his young protégé at a famous European hotel.",
-        releaseDate: new Date("2014-03-28"),
-        genres: ["COMEDY", "ADVENTURE"],
-        director: "Wes Anderson",
-        rating: 8.1
-      }
-    });
-    console.log("Movie 'The Grand Budapest Hotel' created");
-  } catch (e) {
-    console.log("Movie 'The Grand Budapest Hotel' already exists");
-  }
-
-  console.log("Sample content created successfully");
+  console.log("Content seeding completed");
 }
