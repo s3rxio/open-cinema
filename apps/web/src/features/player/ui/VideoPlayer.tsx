@@ -29,6 +29,7 @@ import {
 } from "./PlayerActionFlash";
 import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
 import { formatTime, PlayerProgressBar } from "./PlayerProgressBar";
+import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
 import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
 
 const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), { ssr: false });
@@ -95,6 +96,13 @@ function SeekButton({
   );
 }
 
+type EpisodeOption = {
+  id: string;
+  title: string;
+  season: number;
+  episode: number;
+};
+
 interface VideoPlayerProps {
   /** Movie or episode id (same as createStream contentId). */
   contentId?: string;
@@ -104,6 +112,10 @@ interface VideoPlayerProps {
   autoPlay?: boolean;
   watchPartyHref?: string;
   watchParty?: WatchPartyConfig;
+  seasons?: { season: number; episodes: EpisodeOption[] }[];
+  selectedSeason?: number;
+  selectedEpisodeId?: string;
+  onEpisodeChange?: (episodeId: string) => void;
 }
 
 export function VideoPlayer({
@@ -113,7 +125,11 @@ export function VideoPlayer({
   variant = "embedded",
   autoPlay = false,
   watchPartyHref,
-  watchParty
+  watchParty,
+  seasons,
+  selectedSeason,
+  selectedEpisodeId,
+  onEpisodeChange
 }: VideoPlayerProps) {
   const isCinema = variant === "cinema";
   const shellClass = isCinema
@@ -140,6 +156,7 @@ export function VideoPlayer({
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [episodeMenuOpen, setEpisodeMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [flash, setFlash] = useState<{
@@ -173,12 +190,12 @@ export function VideoPlayer({
 
   const scheduleHideControls = useCallback(() => {
     clearHideTimeout();
-    if (!playerState.isPlaying || settingsOpen || isHovering) return;
+    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || isHovering) return;
 
     hideTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, CONTROLS_HIDE_MS);
-  }, [clearHideTimeout, playerState.isPlaying, settingsOpen, isHovering]);
+  }, [clearHideTimeout, playerState.isPlaying, settingsOpen, episodeMenuOpen, isHovering]);
 
   const revealControls = useCallback(() => {
     setShowControls(true);
@@ -481,7 +498,7 @@ export function VideoPlayer({
   }, []);
 
   useEffect(() => {
-    if (!playerState.isPlaying || settingsOpen) {
+    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen) {
       setShowControls(true);
       clearHideTimeout();
       return;
@@ -491,6 +508,7 @@ export function VideoPlayer({
   }, [
     playerState.isPlaying,
     settingsOpen,
+    episodeMenuOpen,
     scheduleHideControls,
     clearHideTimeout
   ]);
@@ -551,7 +569,15 @@ export function VideoPlayer({
   const audioValue = playerState.currentAudio ?? defaultAudio?.id ?? "";
   const subtitleValue = playerState.currentSubtitle ?? "off";
 
-  const controlsVisible = showControls || !playerState.isPlaying || settingsOpen;
+  const controlsVisible =
+    showControls || !playerState.isPlaying || settingsOpen || episodeMenuOpen;
+
+  const showEpisodeMenu =
+    seasons &&
+    seasons.length > 0 &&
+    onEpisodeChange &&
+    selectedEpisodeId &&
+    selectedSeason !== undefined;
 
   return (
     <div
@@ -728,11 +754,32 @@ export function VideoPlayer({
               </Link>
             )}
 
+            {showEpisodeMenu && (
+              <PlayerEpisodeMenu
+                open={episodeMenuOpen}
+                onOpenChange={open => {
+                  setEpisodeMenuOpen(open);
+                  if (open) {
+                    setSettingsOpen(false);
+                    setShowControls(true);
+                    clearHideTimeout();
+                  } else {
+                    scheduleHideControls();
+                  }
+                }}
+                seasons={seasons}
+                selectedSeason={selectedSeason}
+                selectedEpisodeId={selectedEpisodeId}
+                onEpisodeChange={onEpisodeChange}
+              />
+            )}
+
             <PlayerSettingsMenu
               open={settingsOpen}
               onOpenChange={open => {
                 setSettingsOpen(open);
                 if (open) {
+                  setEpisodeMenuOpen(false);
                   setShowControls(true);
                   clearHideTimeout();
                 } else {

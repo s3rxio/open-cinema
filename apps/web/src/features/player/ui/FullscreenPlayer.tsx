@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Loader } from "@open-cinema/ui";
 import { ChevronLeft } from "lucide-react";
-import { EpisodeSelector } from "./EpisodeSelector";
 import { VideoPlayer } from "./VideoPlayer";
 
 type EpisodeOption = {
@@ -73,6 +72,10 @@ export function FullscreenPlayer({
             variant="cinema"
             autoPlay
             watchPartyHref={watchPartyHref}
+            seasons={showEpisodePicker ? seasons : undefined}
+            selectedSeason={showEpisodePicker ? selectedSeason : undefined}
+            selectedEpisodeId={showEpisodePicker ? selectedEpisodeId : undefined}
+            onEpisodeChange={showEpisodePicker ? onEpisodeChange : undefined}
           />
         ) : loading ? (
           <div className="flex h-full items-center justify-center">
@@ -98,17 +101,6 @@ export function FullscreenPlayer({
             {title}
           </h1>
         </div>
-
-        {showEpisodePicker && (
-          <div className="pointer-events-auto max-w-xl rounded-lg bg-black/60 p-3 backdrop-blur-sm border border-white/10 [&_label]:text-white/90">
-            <EpisodeSelector
-              seasons={seasons}
-              selectedSeason={selectedSeason}
-              selectedEpisodeId={selectedEpisodeId}
-              onEpisodeChange={onEpisodeChange}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
