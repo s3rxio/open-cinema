@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Hls from "hls.js";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Button, cn, Loader } from "@open-cinema/ui";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/shared/api/operations/stream";
 import { usePlayerStore } from "@/shared/state/usePlayerStore";
 import { resolvePlaybackUrl } from "../lib/resolvePlaybackUrl";
+import { getNextEpisode } from "../lib/getNextEpisodeId";
 import { usePlayerKeyboard } from "../lib/usePlayerKeyboard";
 import { AUTO_QUALITY, useHlsTracks } from "../lib/useHlsTracks";
 import {
@@ -18,6 +19,7 @@ import {
   Minimize,
   Pause,
   Play,
+  SkipForward,
   Users,
   Volume2,
   VolumeX
@@ -38,6 +40,7 @@ const CONTROLS_HIDE_MS = 3000;
 const FLASH_DURATION_MS = 1000;
 const SEEK_STEP_SEC = 10;
 const CLICK_DELAY_MS = 250;
+const AUTO_NEXT_SECONDS = 5;
 import {
   getExpectedPartyTime,
   WATCH_PARTY_GUEST_DRIFT_CHECK_MS,
@@ -164,6 +167,12 @@ export function VideoPlayer({
     key: number;
   } | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [autoNextSeconds, setAutoNextSeconds] = useState<number | null>(null);
+
+  const nextEpisode = useMemo(() => {
+    if (!seasons?.length || !selectedEpisodeId) return null;
+    return getNextEpisode(seasons, selectedEpisodeId);
+  }, [seasons, selectedEpisodeId]);
 
   const playerState = usePlayerStore();
   const resetPlayer = usePlayerStore(s => s.reset);
@@ -190,12 +199,12 @@ export function VideoPlayer({
 
   const scheduleHideControls = useCallback(() => {
     clearHideTimeout();
-    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || isHovering) return;
+    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || autoNextSeconds !== null || isHovering) return;
 
     hideTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, CONTROLS_HIDE_MS);
-  }, [clearHideTimeout, playerState.isPlaying, settingsOpen, episodeMenuOpen, isHovering]);
+  }, [clearHideTimeout, playerState.isPlaying, settingsOpen, episodeMenuOpen, autoNextSeconds, isHovering]);
 
   const revealControls = useCallback(() => {
     setShowControls(true);
@@ -225,6 +234,7 @@ export function VideoPlayer({
   const seekBy = useCallback(
     (delta: number) => {
       if (partyGuest) return;
+      if (autoNextSeconds !== null) setAutoNextSeconds(null);
       const video = videoRef.current;
       if (!video) return;
       const next = Math.min(
@@ -237,7 +247,7 @@ export function VideoPlayer({
       triggerFlash(delta > 0 ? "seek-forward" : "seek-back");
       revealControls();
     },
-    [duration, playerState, revealControls, triggerFlash, emitPartyPlayback, partyGuest]
+    [duration, playerState, revealControls, triggerFlash, emitPartyPlayback, partyGuest, autoNextSeconds]
   );
 
   const toggleFullscreen = useCallback(() => {
@@ -297,6 +307,13 @@ export function VideoPlayer({
     playerState.setVolume(nextVolume);
     revealControls();
   }, [playerState, revealControls]);
+
+  const goToNextEpisode = useCallback(() => {
+    if (!nextEpisode || !onEpisodeChange || partyGuest) return;
+    setAutoNextSeconds(null);
+    onEpisodeChange(nextEpisode.id);
+    revealControls();
+  }, [nextEpisode, onEpisodeChange, partyGuest, revealControls]);
 
   const cycleSubtitles = useCallback(() => {
     if (subtitleMetas.length === 0) return;
@@ -498,7 +515,29 @@ export function VideoPlayer({
   }, []);
 
   useEffect(() => {
-    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen) {
+    setAutoNextSeconds(null);
+  }, [selectedEpisodeId, sourceKey]);
+
+  useEffect(() => {
+    if (autoNextSeconds === null) return;
+
+    if (autoNextSeconds <= 0) {
+      if (nextEpisode && onEpisodeChange && !partyGuest) {
+        onEpisodeChange(nextEpisode.id);
+      }
+      setAutoNextSeconds(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setAutoNextSeconds(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [autoNextSeconds, nextEpisode, onEpisodeChange, partyGuest]);
+
+  useEffect(() => {
+    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || autoNextSeconds !== null) {
       setShowControls(true);
       clearHideTimeout();
       return;
@@ -509,6 +548,7 @@ export function VideoPlayer({
     playerState.isPlaying,
     settingsOpen,
     episodeMenuOpen,
+    autoNextSeconds,
     scheduleHideControls,
     clearHideTimeout
   ]);
@@ -527,6 +567,14 @@ export function VideoPlayer({
 
   const hasSource = useContentQuery || useStreamIdQuery;
 
+  const showEpisodeMenu = Boolean(
+    seasons &&
+      seasons.length > 0 &&
+      onEpisodeChange &&
+      selectedEpisodeId &&
+      selectedSeason !== undefined
+  );
+
   if (!hasSource) {
     return (
       <div className={stateShellClass}>
@@ -535,30 +583,38 @@ export function VideoPlayer({
     );
   }
 
-  if (activeQuery.loading) {
-    return (
-      <div className={isCinema ? stateShellClass : `${stateShellClass} rounded-lg`}>
-        <Loader size="lg" />
-      </div>
-    );
-  }
+  const playbackReady =
+    !activeQuery.loading &&
+    !activeQuery.error &&
+    Boolean(streamInfo && playbackUrl);
 
-  if (activeQuery.error || !streamInfo || !playbackUrl) {
+  const streamErrorMessage =
+    activeQuery.error?.message ?? "Для этой серии ещё не загружен стрим";
+
+  if (!playbackReady && !showEpisodeMenu) {
+    if (activeQuery.loading) {
+      return (
+        <div className={isCinema ? stateShellClass : `${stateShellClass} rounded-lg`}>
+          <Loader size="lg" />
+        </div>
+      );
+    }
+
     return (
       <div className={stateShellClass}>
         <div className="text-center px-4">
           <p className="mb-2">Ошибка загрузки видео</p>
           <p className="text-sm text-gray-400">
-            {activeQuery.error?.message ?? "Стрим недоступен"}
+            {streamErrorMessage}
           </p>
         </div>
       </div>
     );
   }
 
-  const videoMetas = streamInfo.videoMetas ?? [];
-  const audioMetas = streamInfo.audioMetas ?? [];
-  const useMaster = Boolean(streamInfo.masterPlaylistUrl);
+  const videoMetas = streamInfo?.videoMetas ?? [];
+  const audioMetas = streamInfo?.audioMetas ?? [];
+  const useMaster = Boolean(streamInfo?.masterPlaylistUrl);
 
   const defaultAudio = audioMetas.find(m => m.isDefault) ?? audioMetas[0];
   const defaultQuality = useMaster
@@ -570,14 +626,12 @@ export function VideoPlayer({
   const subtitleValue = playerState.currentSubtitle ?? "off";
 
   const controlsVisible =
-    showControls || !playerState.isPlaying || settingsOpen || episodeMenuOpen;
-
-  const showEpisodeMenu =
-    seasons &&
-    seasons.length > 0 &&
-    onEpisodeChange &&
-    selectedEpisodeId &&
-    selectedSeason !== undefined;
+    !playbackReady ||
+    showControls ||
+    !playerState.isPlaying ||
+    settingsOpen ||
+    episodeMenuOpen ||
+    autoNextSeconds !== null;
 
   return (
     <div
@@ -604,57 +658,94 @@ export function VideoPlayer({
         </div>
       )}
 
-      <ReactHlsPlayer
-        key={playbackUrl}
-        playerRef={videoRef}
-        src={playbackUrl}
-        autoPlay={autoPlay || isCinema}
-        className="w-full h-full object-contain"
-        controls={false}
-        playsInline
-        onHlsReady={handleHlsReady}
-        onClick={handleVideoClick}
-        onPlay={() => {
-          const video = videoRef.current;
-          playerState.setIsPlaying(true);
-          if (video) {
-            emitPartyPlayback(video.currentTime, true);
-          }
-          if (
-            !suppressPlayPauseFlashRef.current &&
-            !skipPlayPauseFlashRef.current
-          ) {
-            triggerFlash("play");
-          }
-          if (skipPlayPauseFlashRef.current) {
-            skipPlayPauseFlashRef.current = false;
-          }
-          scheduleHideControls();
-        }}
-        onPause={() => {
-          const video = videoRef.current;
-          playerState.setIsPlaying(false);
-          if (video) {
-            emitPartyPlayback(video.currentTime, false);
-          }
-          if (!suppressPlayPauseFlashRef.current) {
-            triggerFlash("pause");
-          }
-          setShowControls(true);
-          clearHideTimeout();
-        }}
-        onTimeUpdate={e =>
-          playerState.setCurrentTime((e.target as HTMLVideoElement).currentTime)
-        }
-        onVolumeChange={e =>
-          playerState.setVolume((e.target as HTMLVideoElement).volume)
-        }
-      />
+      {activeQuery.loading ? (
+        <div className="flex h-full items-center justify-center">
+          <Loader size="lg" />
+        </div>
+      ) : playbackReady ? (
+        <>
+          <ReactHlsPlayer
+            key={playbackUrl}
+            playerRef={videoRef}
+            src={playbackUrl!}
+            autoPlay={autoPlay || isCinema}
+            className="w-full h-full object-contain"
+            controls={false}
+            playsInline
+            onHlsReady={handleHlsReady}
+            onClick={handleVideoClick}
+            onPlay={() => {
+              const video = videoRef.current;
+              playerState.setIsPlaying(true);
+              if (video) {
+                emitPartyPlayback(video.currentTime, true);
+              }
+              if (
+                !suppressPlayPauseFlashRef.current &&
+                !skipPlayPauseFlashRef.current
+              ) {
+                triggerFlash("play");
+              }
+              if (skipPlayPauseFlashRef.current) {
+                skipPlayPauseFlashRef.current = false;
+              }
+              scheduleHideControls();
+            }}
+            onPause={() => {
+              const video = videoRef.current;
+              playerState.setIsPlaying(false);
+              if (video) {
+                emitPartyPlayback(video.currentTime, false);
+              }
+              if (!suppressPlayPauseFlashRef.current) {
+                triggerFlash("pause");
+              }
+              setShowControls(true);
+              clearHideTimeout();
+            }}
+            onEnded={() => {
+              playerState.setIsPlaying(false);
+              if (nextEpisode && !partyGuest) {
+                setAutoNextSeconds(AUTO_NEXT_SECONDS);
+                setShowControls(true);
+                clearHideTimeout();
+              }
+            }}
+            onTimeUpdate={e =>
+              playerState.setCurrentTime((e.target as HTMLVideoElement).currentTime)
+            }
+            onVolumeChange={e =>
+              playerState.setVolume((e.target as HTMLVideoElement).volume)
+            }
+          />
 
-      <PlayerBufferingOverlay visible={isBuffering} />
+          <PlayerBufferingOverlay visible={isBuffering} />
 
-      {flash && (
-        <PlayerActionFlash action={flash.action} animationKey={flash.key} />
+          {flash && (
+            <PlayerActionFlash action={flash.action} animationKey={flash.key} />
+          )}
+
+          {autoNextSeconds !== null && nextEpisode && (
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-black/40">
+              <div className="rounded-lg bg-black/80 px-6 py-4 text-center text-white backdrop-blur-sm">
+                <p className="text-lg font-medium">
+                  Следующая серия через {autoNextSeconds} сек
+                </p>
+                <p className="mt-1 text-sm text-white/70">
+                  S{nextEpisode.season}E{nextEpisode.episode} · {nextEpisode.title}
+                </p>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex h-full items-center justify-center px-4 text-center text-white">
+          <div>
+            <p className="mb-2 text-lg font-medium">Видео недоступно</p>
+            <p className="text-sm text-white/60">{streamErrorMessage}</p>
+            <p className="mt-3 text-sm text-white/50">Выберите другую серию</p>
+          </div>
+        </div>
       )}
 
       <div
@@ -664,86 +755,111 @@ export function VideoPlayer({
         onClick={e => e.stopPropagation()}
         onDoubleClick={e => e.stopPropagation()}
       >
-        <PlayerProgressBar
-          className="mb-2"
-          value={playerState.currentTime}
-          max={duration > 0 ? duration : 100}
-          onChange={value => {
-            if (partyGuest) return;
-            playerState.setCurrentTime(value);
-            if (videoRef.current) {
-              videoRef.current.currentTime = value;
-              emitPartyPlayback(value, !videoRef.current.paused);
-            }
-            revealControls();
-          }}
-        />
+        {playbackReady && (
+          <PlayerProgressBar
+            className="mb-2"
+            value={playerState.currentTime}
+            max={duration > 0 ? duration : 100}
+            onChange={value => {
+              if (partyGuest) return;
+              if (autoNextSeconds !== null) setAutoNextSeconds(null);
+              playerState.setCurrentTime(value);
+              if (videoRef.current) {
+                videoRef.current.currentTime = value;
+                emitPartyPlayback(value, !videoRef.current.paused);
+              }
+              revealControls();
+            }}
+          />
+        )}
 
         <div className="flex items-center gap-1 text-white sm:gap-2">
-          <SeekButton
-            direction="back"
-            onClick={() => seekBy(-SEEK_STEP_SEC)}
-          />
+          {playbackReady && (
+            <>
+              <SeekButton
+                direction="back"
+                onClick={() => seekBy(-SEEK_STEP_SEC)}
+              />
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={togglePlay}
-            className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-            aria-label={playerState.isPlaying ? "Пауза" : "Воспроизведение"}
-          >
-            {playerState.isPlaying ? (
-              <Pause className="h-5 w-5" />
-            ) : (
-              <Play className="h-5 w-5" />
-            )}
-          </Button>
-
-          <SeekButton
-            direction="forward"
-            onClick={() => seekBy(SEEK_STEP_SEC)}
-          />
-
-          <span className="ml-1 hidden text-xs tabular-nums text-white/90 sm:inline sm:text-sm">
-            {formatTime(playerState.currentTime)} / {formatTime(duration)}
-          </span>
-
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            <div className="flex items-center gap-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={toggleMute}
+                onClick={togglePlay}
                 className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                aria-label={playerState.volume > 0 ? "Выключить звук" : "Включить звук"}
+                aria-label={playerState.isPlaying ? "Пауза" : "Воспроизведение"}
               >
-                {playerState.volume > 0 ? (
-                  <Volume2 className="h-5 w-5" />
+                {playerState.isPlaying ? (
+                  <Pause className="h-5 w-5" />
                 ) : (
-                  <VolumeX className="h-5 w-5" />
+                  <Play className="h-5 w-5" />
                 )}
               </Button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={playerState.volume}
-                onChange={e => {
-                  const volume = parseFloat(e.target.value);
-                  playerState.setVolume(volume);
-                  if (videoRef.current) {
-                    videoRef.current.volume = volume;
-                  }
-                }}
-                aria-label="Громкость"
-                className="hidden h-1 w-16 cursor-pointer accent-white sm:block md:w-24"
-              />
-            </div>
 
-            {watchPartyHref && !partyEnabled && (
+              <SeekButton
+                direction="forward"
+                onClick={() => seekBy(SEEK_STEP_SEC)}
+              />
+            </>
+          )}
+
+          {nextEpisode && !partyGuest && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={goToNextEpisode}
+              className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+              aria-label="Следующая серия"
+              title={`Следующая серия: S${nextEpisode.season}E${nextEpisode.episode}`}
+            >
+              <SkipForward className="h-5 w-5" />
+            </Button>
+          )}
+
+          {playbackReady && (
+            <span className="ml-1 hidden text-xs tabular-nums text-white/90 sm:inline sm:text-sm">
+              {formatTime(playerState.currentTime)} / {formatTime(duration)}
+            </span>
+          )}
+
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            {playbackReady && (
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMute}
+                  className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
+                  aria-label={playerState.volume > 0 ? "Выключить звук" : "Включить звук"}
+                >
+                  {playerState.volume > 0 ? (
+                    <Volume2 className="h-5 w-5" />
+                  ) : (
+                    <VolumeX className="h-5 w-5" />
+                  )}
+                </Button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={playerState.volume}
+                  onChange={e => {
+                    const volume = parseFloat(e.target.value);
+                    playerState.setVolume(volume);
+                    if (videoRef.current) {
+                      videoRef.current.volume = volume;
+                    }
+                  }}
+                  aria-label="Громкость"
+                  className="hidden h-1 w-16 cursor-pointer accent-white sm:block md:w-24"
+                />
+              </div>
+            )}
+
+            {playbackReady && watchPartyHref && !partyEnabled && (
               <Link
                 href={watchPartyHref}
                 aria-label="Совместный просмотр"
@@ -767,59 +883,61 @@ export function VideoPlayer({
                     scheduleHideControls();
                   }
                 }}
-                seasons={seasons}
-                selectedSeason={selectedSeason}
-                selectedEpisodeId={selectedEpisodeId}
-                onEpisodeChange={onEpisodeChange}
+                seasons={seasons!}
+                selectedSeason={selectedSeason!}
+                selectedEpisodeId={selectedEpisodeId!}
+                onEpisodeChange={onEpisodeChange!}
               />
             )}
 
-            <PlayerSettingsMenu
-              open={settingsOpen}
-              onOpenChange={open => {
-                setSettingsOpen(open);
-                if (open) {
-                  setEpisodeMenuOpen(false);
-                  setShowControls(true);
-                  clearHideTimeout();
-                } else {
-                  scheduleHideControls();
-                }
-              }}
-              qualityValue={qualityValue}
-              audioValue={audioValue}
-              subtitleValue={subtitleValue}
-              videoMetas={videoMetas}
-              audioMetas={audioMetas}
-              subtitleMetas={subtitleMetas}
-              useMaster={useMaster}
-              onQualityChange={value => {
-                setIsBuffering(true);
-                playerState.setQuality(value);
-                if (useMaster) {
-                  setQuality(value, videoMetas);
-                } else {
-                  const meta = videoMetas.find(m => m.id === value);
-                  if (meta && videoRef.current) {
-                    videoRef.current.src = meta.url;
-                    void videoRef.current.play();
+            {playbackReady && (
+              <PlayerSettingsMenu
+                open={settingsOpen}
+                onOpenChange={open => {
+                  setSettingsOpen(open);
+                  if (open) {
+                    setEpisodeMenuOpen(false);
+                    setShowControls(true);
+                    clearHideTimeout();
+                  } else {
+                    scheduleHideControls();
                   }
-                }
-                revealControls();
-              }}
-              onAudioChange={value => {
-                setIsBuffering(true);
-                playerState.setAudio(value);
-                setAudio(value, audioMetas);
-                revealControls();
-              }}
-              onSubtitleChange={value => {
-                const id = value === "off" ? null : value;
-                playerState.setSubtitle(id);
-                setSubtitle(id, subtitleMetas);
-                revealControls();
-              }}
-            />
+                }}
+                qualityValue={qualityValue}
+                audioValue={audioValue}
+                subtitleValue={subtitleValue}
+                videoMetas={videoMetas}
+                audioMetas={audioMetas}
+                subtitleMetas={subtitleMetas}
+                useMaster={useMaster}
+                onQualityChange={value => {
+                  setIsBuffering(true);
+                  playerState.setQuality(value);
+                  if (useMaster) {
+                    setQuality(value, videoMetas);
+                  } else {
+                    const meta = videoMetas.find(m => m.id === value);
+                    if (meta && videoRef.current) {
+                      videoRef.current.src = meta.url;
+                      void videoRef.current.play();
+                    }
+                  }
+                  revealControls();
+                }}
+                onAudioChange={value => {
+                  setIsBuffering(true);
+                  playerState.setAudio(value);
+                  setAudio(value, audioMetas);
+                  revealControls();
+                }}
+                onSubtitleChange={value => {
+                  const id = value === "off" ? null : value;
+                  playerState.setSubtitle(id);
+                  setSubtitle(id, subtitleMetas);
+                  revealControls();
+                }}
+              />
+            )}
 
             <Button
               type="button"
@@ -838,9 +956,11 @@ export function VideoPlayer({
           </div>
         </div>
 
-        <span className="mt-1 text-xs tabular-nums text-white/90 sm:hidden">
-          {formatTime(playerState.currentTime)} / {formatTime(duration)}
-        </span>
+        {playbackReady && (
+          <span className="mt-1 text-xs tabular-nums text-white/90 sm:hidden">
+            {formatTime(playerState.currentTime)} / {formatTime(duration)}
+          </span>
+        )}
       </div>
     </div>
   );
