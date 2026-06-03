@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
+import { Clapperboard, Tv, Users } from "lucide-react";
 
 const tabs = [
-  { href: "/dashboard/movies", label: "Фильмы" },
-  { href: "/dashboard/series", label: "Сериалы" },
-  { href: "/dashboard/users", label: "Пользователи", adminOnly: true }
+  { href: "/dashboard/movies", label: "Фильмы", icon: Clapperboard },
+  { href: "/dashboard/series", label: "Сериалы", icon: Tv },
+  { href: "/dashboard/users", label: "Пользователи", icon: Users, adminOnly: true }
 ] as const;
 
 export function DashboardNav() {
@@ -19,10 +20,11 @@ export function DashboardNav() {
 
   return (
     <nav
-      className="inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground"
+      className="flex gap-1 overflow-x-auto rounded-lg border bg-muted/40 p-1 lg:flex-col lg:overflow-visible"
       aria-label="Разделы панели управления"
     >
       {visibleTabs.map(tab => {
+        const Icon = tab.icon;
         const isActive =
           pathname === tab.href || pathname.startsWith(`${tab.href}/`);
 
@@ -31,12 +33,13 @@ export function DashboardNav() {
             key={tab.href}
             href={tab.href}
             className={cn(
-              "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isActive
                 ? "bg-background text-foreground shadow-sm"
-                : "hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
+            <Icon className="h-4 w-4 shrink-0" aria-hidden />
             {tab.label}
           </Link>
         );

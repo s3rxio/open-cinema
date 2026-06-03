@@ -14,8 +14,6 @@ import { useDebouncedValue } from "../lib/useDebouncedValue";
 import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
-import { Container } from "@/shared/ui/Container";
-
 type UserRow = {
   id: string;
   username: string;
@@ -64,9 +62,7 @@ export function UsersListPage() {
   const total = connection?.total ?? 0;
 
   return (
-    <section>
-      <Container size="dashboard">
-        <div className="space-y-4">
+    <div className="space-y-4">
           <DashboardListToolbar
             createHref="/dashboard/users/new"
             createLabel="Создать пользователя"
@@ -97,8 +93,6 @@ export function UsersListPage() {
               goToPage(nextPage, connection?.nextCursor ?? null)
             }
           />
-        </div>
-      </Container>
-    </section>
+    </div>
   );
 }

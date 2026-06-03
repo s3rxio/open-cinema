@@ -15,8 +15,6 @@ import { formatDate } from "../lib/formatDate";
 import { DataTable, type DataTableColumn } from "./DataTable";
 import { DashboardListToolbar } from "./DashboardListToolbar";
 import { formatGenres, type Genre } from "@/shared/lib/genres";
-import { Container } from "@/shared/ui/Container";
-
 type SeriesRow = {
   id: string;
   title: string;
@@ -67,9 +65,7 @@ export function SeriesListPage() {
   const total = connection?.total ?? 0;
 
   return (
-    <section>
-      <Container size="dashboard">
-        <div className="space-y-4">
+    <div className="space-y-4">
           <DashboardListToolbar
             createHref="/dashboard/series/new"
             createLabel="Создать сериал"
@@ -100,8 +96,6 @@ export function SeriesListPage() {
               goToPage(nextPage, connection?.nextCursor ?? null)
             }
           />
-        </div>
-      </Container>
-    </section>
+    </div>
   );
 }

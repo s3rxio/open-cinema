@@ -1,6 +1,6 @@
 import { cn } from "@open-cinema/ui";
 
-type ContainerSize = "default" | "narrow" | "dashboard";
+type ContainerSize = "default" | "narrow";
 
 type ContainerProps = React.ComponentPropsWithoutRef<"div"> & {
   size?: ContainerSize;
@@ -8,8 +8,7 @@ type ContainerProps = React.ComponentPropsWithoutRef<"div"> & {
 
 const sizeClass: Record<ContainerSize, string> = {
   default: "max-w-7xl",
-  narrow: "max-w-2xl",
-  dashboard: "max-w-6xl"
+  narrow: "max-w-2xl"
 };
 
 export function Container({
