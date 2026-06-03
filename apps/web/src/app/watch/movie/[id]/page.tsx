@@ -33,6 +33,7 @@ export default function WatchMoviePage() {
       backLabel="К фильму"
       title={movie?.title ?? "Загрузка…"}
       contentId={id}
+      movieId={id}
       watchPartyHref={routes.watchPartyMovie(id)}
       notFoundMessage={!movieQuery.loading && !movie ? "Фильм не найден" : undefined}
     />

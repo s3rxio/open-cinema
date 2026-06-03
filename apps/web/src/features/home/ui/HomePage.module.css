@@ -402,6 +402,16 @@
 }
 
 /* Poster card */
+.cardFluid {
+  width: 100%;
+}
+
+.myGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
 .card {
   width: 260px;
   height: 100%;
@@ -567,6 +577,35 @@
   color: #faad14;
 }
 
+.progressTrack {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 12px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: #ff9f0a;
+  transition: width 0.3s ease;
+}
+
+.statusLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+}
+
+.statusCompleted {
+  color: #34c759;
+}
+
 .statusBlock,
 .loaderBlock {
   display: flex;
@@ -658,10 +697,19 @@
     margin-right: 12px;
   }
 
-  .card,
+  .card:not(.cardFluid),
   .catalogCard {
     width: 185px;
     min-height: 290px;
+  }
+
+  .cardFluid {
+    min-height: 290px;
+  }
+
+  .myGrid {
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 12px;
   }
 
   .cover {

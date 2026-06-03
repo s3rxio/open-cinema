@@ -2,7 +2,8 @@
 
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, Loader } from "@open-cinema/ui";
-import { ContentCard } from "@/features/catalog/ui/ContentCard";
+import { HomeContentCard } from "@/features/home/ui/HomeContentCard";
+import styles from "@/features/home/ui/HomePage.module.css";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
 import type { ContentItem, ContentType } from "@/shared/api/operation-types";
 import { useAuth } from "@/shared/auth/AuthContext";
@@ -10,14 +11,36 @@ import Link from "next/link";
 
 function favoriteToContentItem(fav: {
   id: string;
-  movie: Omit<ContentItem, "type"> | null;
-  series: Omit<ContentItem, "type"> | null;
-}): (ContentItem & { favoriteId: string }) | null {
+  movie: {
+    id: string;
+    title: string;
+    description: string;
+    rating: number;
+    posterUrl?: string | null;
+    releaseDate: string;
+  } | null;
+  series: {
+    id: string;
+    title: string;
+    description: string;
+    rating: number;
+    posterUrl?: string | null;
+    releaseDate: string;
+  } | null;
+}): ContentItem | null {
   if (fav.movie) {
-    return { ...fav.movie, type: "MOVIE" as ContentType, favoriteId: fav.id };
+    return {
+      ...fav.movie,
+      type: "MOVIE" as ContentType,
+      genres: []
+    };
   }
   if (fav.series) {
-    return { ...fav.series, type: "SERIES" as ContentType, favoriteId: fav.id };
+    return {
+      ...fav.series,
+      type: "SERIES" as ContentType,
+      genres: []
+    };
   }
   return null;
 }
@@ -64,8 +87,7 @@ export function FavoritesList() {
   const items =
     meQuery.data?.me?.favorites
       ?.map(favoriteToContentItem)
-      .filter((item): item is ContentItem & { favoriteId: string } => !!item) ||
-    [];
+      .filter((item): item is ContentItem => !!item) ?? [];
 
   if (items.length === 0) {
     return (
@@ -81,17 +103,9 @@ export function FavoritesList() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={styles.myGrid}>
       {items.map(item => (
-        <ContentCard
-          key={item.id}
-          id={item.id}
-          title={item.title}
-          description={item.description}
-          rating={item.rating}
-          type={item.type}
-          posterUrl={item.posterUrl ?? undefined}
-        />
+        <HomeContentCard key={item.id} {...item} fluid />
       ))}
     </div>
   );

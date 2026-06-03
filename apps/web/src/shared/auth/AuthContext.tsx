@@ -12,6 +12,7 @@ import { useQuery } from "@apollo/client/react";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
 import { useAuthStore, type AuthUser } from "@/shared/state/useAuthStore";
 import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
+import { useWatchHistoryStore } from "@/shared/state/useWatchHistoryStore";
 import {
   canAccessDashboard,
   canManageUsers
@@ -70,6 +71,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     state => state.setFromServer
   );
   const clearFavorites = useFavoritesStore(state => state.clear);
+  const setWatchHistoryFromServer = useWatchHistoryStore(
+    state => state.setFromServer
+  );
+  const clearWatchHistory = useWatchHistoryStore(state => state.clear);
 
   useEffect(() => {
     const me = meQuery.data?.me;
@@ -83,15 +88,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (me.favorites) {
         setFavoritesFromServer(me.favorites);
       }
+      if (me.watchHistory) {
+        setWatchHistoryFromServer(me.watchHistory);
+      }
     }
-  }, [meQuery.data, setUser, setFavoritesFromServer]);
+  }, [meQuery.data, setUser, setFavoritesFromServer, setWatchHistoryFromServer]);
 
   const logout = useCallback(() => {
     clear();
     clearFavorites();
+    clearWatchHistory();
     localStorage.removeItem("authToken");
     localStorage.removeItem("refreshToken");
-  }, [clear, clearFavorites]);
+  }, [clear, clearFavorites, clearWatchHistory]);
 
   const isUserLoaded =
     !accessToken || (!meQuery.loading && (meQuery.called || !!meQuery.data));

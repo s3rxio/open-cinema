@@ -7,6 +7,7 @@ import {
 } from "@nestjs/common";
 import { CreateUserInput } from "./dto/create-user.input";
 import { UpdateUserInput } from "./dto/update-user.input";
+import { UpdateProfileInput } from "./dto/update-profile.input";
 import { PaginatedUsers } from "./dto/paginated-user.response";
 import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
@@ -121,6 +122,18 @@ export class UserService {
         password: true,
         refreshToken: true
       }
+    });
+  }
+
+  async updateProfile(
+    id: string,
+    updateProfileInput: UpdateProfileInput
+  ): Promise<User> {
+    return this.update(id, {
+      id,
+      username: updateProfileInput.username,
+      email: updateProfileInput.email,
+      birthdate: updateProfileInput.birthdate
     });
   }
 

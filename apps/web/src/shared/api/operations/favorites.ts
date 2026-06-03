@@ -14,6 +14,7 @@ export const ME_QUERY = gql`
       id
       email
       username
+      birthdate
       roles {
         slug
       }
@@ -34,6 +35,29 @@ export const ME_QUERY = gql`
           rating
           posterUrl
           releaseDate
+        }
+      }
+      watchHistory {
+        id
+        progress
+        duration
+        completed
+        updatedAt
+        movie {
+          id
+          title
+          description
+          rating
+          posterUrl
+          releaseDate
+        }
+        episode {
+          id
+          title
+          description
+          season
+          episode
+          seriesId
         }
       }
     }

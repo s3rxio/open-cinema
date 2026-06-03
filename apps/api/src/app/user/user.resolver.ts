@@ -12,6 +12,7 @@ import { UserService } from "./user.service";
 import { User } from "./entities/user.entity";
 import { CreateUserInput } from "./dto/create-user.input";
 import { UpdateUserInput } from "./dto/update-user.input";
+import { UpdateProfileInput } from "./dto/update-profile.input";
 import { PaginatedUsers } from "./dto/paginated-user.response";
 import { UserMe } from "./user-me.decorator";
 import { FavoriteService } from "../favorite/favorite.service";
@@ -59,6 +60,15 @@ export class UserResolver {
   @Query(() => User, { name: "me" })
   me(@UserMe() user: User) {
     return user;
+  }
+
+  @RequiredPermission(Permission.ProfileUpdate)
+  @Mutation(() => User)
+  updateProfile(
+    @UserMe() user: User,
+    @Args("updateProfileInput") updateProfileInput: UpdateProfileInput
+  ) {
+    return this.userService.updateProfile(user.id, updateProfileInput);
   }
 
   @UseGuards(RequireAdminGuard, RequireAdminForRoleChangeGuard)

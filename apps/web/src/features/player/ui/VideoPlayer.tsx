@@ -33,6 +33,7 @@ import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
 import { formatTime, PlayerProgressBar } from "./PlayerProgressBar";
 import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
 import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
+import { useWatchProgress } from "@/features/watch-history/lib/useWatchProgress";
 
 const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), { ssr: false });
 
@@ -109,6 +110,8 @@ type EpisodeOption = {
 interface VideoPlayerProps {
   /** Movie or episode id (same as createStream contentId). */
   contentId?: string;
+  movieId?: string;
+  episodeId?: string;
   streamId?: string | null;
   title?: string;
   variant?: "embedded" | "cinema";
@@ -123,6 +126,8 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({
   contentId,
+  movieId,
+  episodeId,
   streamId,
   title,
   variant = "embedded",
@@ -181,6 +186,13 @@ export function VideoPlayer({
   const partyEnabled = Boolean(watchParty?.enabled);
   const partyIsHost = Boolean(watchParty?.isHost);
   const partyGuest = partyEnabled && !partyIsHost;
+
+  const { applyResume, handleTimeUpdate, handlePause, handleEnded } =
+    useWatchProgress({
+      movieId,
+      episodeId,
+      enabled: !partyEnabled
+    });
 
   const emitPartyPlayback = useCallback(
     (currentTime: number, isPlaying: boolean) => {
@@ -473,7 +485,10 @@ export function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
-    const onDurationChange = () => setDuration(video.duration || 0);
+    const onDurationChange = () => {
+      setDuration(video.duration || 0);
+      applyResume(video);
+    };
     const onSeeking = () => {
       suppressPlayPauseFlash();
       setIsBuffering(true);
@@ -500,7 +515,7 @@ export function VideoPlayer({
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("playing", onPlaying);
     };
-  }, [playbackUrl, suppressPlayPauseFlash, clearBuffering]);
+  }, [playbackUrl, suppressPlayPauseFlash, clearBuffering, applyResume]);
 
   useEffect(() => {
     if (playbackUrl) setIsBuffering(true);
@@ -696,6 +711,7 @@ export function VideoPlayer({
               playerState.setIsPlaying(false);
               if (video) {
                 emitPartyPlayback(video.currentTime, false);
+                handlePause(video.currentTime, video.duration || duration);
               }
               if (!suppressPlayPauseFlashRef.current) {
                 triggerFlash("pause");
@@ -704,16 +720,22 @@ export function VideoPlayer({
               clearHideTimeout();
             }}
             onEnded={() => {
+              const video = videoRef.current;
               playerState.setIsPlaying(false);
+              if (video) {
+                handleEnded(video.duration || duration);
+              }
               if (nextEpisode && !partyGuest) {
                 setAutoNextSeconds(AUTO_NEXT_SECONDS);
                 setShowControls(true);
                 clearHideTimeout();
               }
             }}
-            onTimeUpdate={e =>
-              playerState.setCurrentTime((e.target as HTMLVideoElement).currentTime)
-            }
+            onTimeUpdate={e => {
+              const video = e.target as HTMLVideoElement;
+              playerState.setCurrentTime(video.currentTime);
+              handleTimeUpdate(video.currentTime, video.duration || duration);
+            }}
             onVolumeChange={e =>
               playerState.setVolume((e.target as HTMLVideoElement).volume)
             }

@@ -1,4 +1,9 @@
-import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  UnauthorizedException
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginInput } from "./dto/login.input";
 import { UserService } from "../user/user.service";
@@ -11,6 +16,7 @@ import bcrypt from "bcrypt";
 import { RegisterInput } from "./dto/register.input";
 import { RbacService } from "../rbac/rbac.service";
 import { RoleSlug } from "../rbac/permissions";
+import { ChangePasswordInput } from "./dto/change-password.input";
 
 @Injectable()
 export class AuthService {
@@ -89,6 +95,42 @@ export class AuthService {
       accessToken,
       refreshToken
     };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordInput: ChangePasswordInput
+  ): Promise<boolean> {
+    const { currPass, newPass, confirmNewPass } = changePasswordInput;
+
+    if (newPass !== confirmNewPass) {
+      throw new BadRequestException("Новый пароль и подтверждение не совпадают");
+    }
+
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: { id: true, password: true }
+    });
+
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+
+    const isCurrentValid = bcrypt.compareSync(currPass, user.password);
+
+    if (!isCurrentValid) {
+      throw new BadRequestException("Неверный текущий пароль");
+    }
+
+    const salt = this.configService.getOrThrow<string>("crypto.salt");
+    const hashedPassword = bcrypt.hashSync(newPass, salt);
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+
+    return true;
   }
 
   async refreshToken(refreshTokenInput: RefreshTokenInput): Promise<TokenPair> {

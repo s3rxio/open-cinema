@@ -2,6 +2,7 @@ export const Permission = {
   All: "*",
 
   ProfileRead: "profile:read",
+  ProfileUpdate: "profile:update",
 
   UsersRead: "users:read",
   UsersCreate: "users:create",
@@ -68,6 +69,7 @@ type PermissionSeed = {
 export const PERMISSION_DEFINITIONS: PermissionSeed[] = [
   { slug: Permission.All, name: "Все права", description: "Полный доступ" },
   { slug: Permission.ProfileRead, name: "Профиль: чтение" },
+  { slug: Permission.ProfileUpdate, name: "Профиль: изменение" },
   { slug: Permission.UsersRead, name: "Пользователи: чтение" },
   { slug: Permission.UsersCreate, name: "Пользователи: создание" },
   { slug: Permission.UsersUpdate, name: "Пользователи: изменение" },
@@ -108,6 +110,7 @@ export const PERMISSION_DEFINITIONS: PermissionSeed[] = [
 
 const userPermissions: PermissionSlug[] = [
   Permission.ProfileRead,
+  Permission.ProfileUpdate,
   Permission.ContentRead,
   Permission.StreamRead,
   Permission.MovieRead,

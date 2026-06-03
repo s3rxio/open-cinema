@@ -125,18 +125,52 @@ export type FavoriteContentFields = {
   releaseDate: string;
 };
 
+export type WatchHistoryItem = {
+  id: string;
+  progress: number;
+  duration: number | null;
+  completed: boolean;
+  updatedAt?: string;
+  movie: FavoriteContentFields | null;
+  episode: {
+    id: string;
+    title: string;
+    description?: string;
+    season: number;
+    episode: number;
+    seriesId: string;
+  } | null;
+};
+
 export type MeQuery = {
   me: {
     id: string;
     email: string;
     username: string;
+    birthdate?: string | null;
     roles: Array<{ slug: string }>;
     favorites: Array<{
       id: string;
       movie: FavoriteContentFields | null;
       series: FavoriteContentFields | null;
     }>;
+    watchHistory: WatchHistoryItem[];
   };
+};
+
+export type RecordWatchHistoryMutationVariables = {
+  recordWatchHistoryInput: {
+    userId: string;
+    movieId?: string;
+    episodeId?: string;
+    progress: number;
+    duration?: number;
+    completed?: boolean;
+  };
+};
+
+export type RecordWatchHistoryMutation = {
+  recordWatchHistory: WatchHistoryItem;
 };
 
 export type CreateFavoriteMutationVariables = {
@@ -669,4 +703,37 @@ export type UploadContentBannerMutation = {
     bannerUrl?: string | null;
     type: ContentType;
   };
+};
+
+export type SettingsMeQuery = {
+  me: {
+    id: string;
+    email: string;
+    username: string;
+    birthdate?: string | null;
+  };
+};
+
+export type UpdateProfileMutationVariables = {
+  updateProfileInput: {
+    username?: string;
+    email?: string;
+    birthdate?: string | null;
+  };
+};
+
+export type UpdateProfileMutation = {
+  updateProfile: SettingsMeQuery["me"];
+};
+
+export type ChangePasswordMutationVariables = {
+  changePasswordInput: {
+    currPass: string;
+    newPass: string;
+    confirmNewPass: string;
+  };
+};
+
+export type ChangePasswordMutation = {
+  changePassword: boolean;
 };

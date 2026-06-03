@@ -1,6 +1,6 @@
 import { FavoritesList } from "@/features/favorites/ui/FavoritesList";
+import { WatchHistoryList } from "@/features/watch-history/ui/WatchHistoryList";
 import { Container } from "@/shared/ui/Container";
-import { Card, CardContent } from "@open-cinema/ui";
 
 export const metadata = {
   title: "Моё | Open Cinema",
@@ -26,13 +26,7 @@ export default function MyPage() {
       <section id="recent">
         <Container>
           <h2 className="text-2xl font-semibold mb-4">Смотрел недавно</h2>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-center text-muted-foreground">
-                Пока здесь пусто — история просмотров появится позже
-              </p>
-            </CardContent>
-          </Card>
+          <WatchHistoryList />
         </Container>
       </section>
     </main>

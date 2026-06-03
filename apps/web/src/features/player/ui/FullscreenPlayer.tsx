@@ -17,6 +17,8 @@ type FullscreenPlayerProps = {
   backLabel?: string;
   title: string;
   contentId?: string;
+  movieId?: string;
+  episodeId?: string;
   streamId?: string | null;
   watchPartyHref?: string;
   seasons?: { season: number; episodes: EpisodeOption[] }[];
@@ -32,6 +34,8 @@ export function FullscreenPlayer({
   backLabel = "Назад",
   title,
   contentId,
+  movieId,
+  episodeId,
   streamId,
   watchPartyHref,
   seasons,
@@ -67,6 +71,8 @@ export function FullscreenPlayer({
         {canPlay ? (
           <VideoPlayer
             contentId={contentId}
+            movieId={movieId}
+            episodeId={episodeId}
             streamId={streamId}
             title={title}
             variant="cinema"

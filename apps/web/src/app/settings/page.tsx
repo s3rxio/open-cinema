@@ -1,28 +1,22 @@
-import { Container } from "@/shared/ui/Container";
-import { Card, CardContent, CardHeader, CardTitle } from "@open-cinema/ui";
+import { ProfileSettingsForm } from "@/features/settings";
 
 export const metadata = {
-  title: "Настройки | Open Cinema",
-  description: "Настройки аккаунта"
+  title: "Профиль | Настройки | Open Cinema",
+  description: "Изменение профиля"
 };
 
-export default function SettingsPage() {
+export default function SettingsProfilePage() {
   return (
-    <main className="py-8">
-      <section>
-        <Container size="narrow">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Настройки</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Раздел настроек в разработке
-              </p>
-            </CardContent>
-          </Card>
-        </Container>
-      </section>
-    </main>
+    <div className="max-w-2xl space-y-6">
+      <header className="space-y-1">
+        <h2 className="text-2xl font-semibold tracking-tight">Профиль</h2>
+        <p className="text-sm text-muted-foreground">
+          Имя, email и дата рождения вашего аккаунта
+        </p>
+      </header>
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
+        <ProfileSettingsForm />
+      </div>
+    </div>
   );
 }
