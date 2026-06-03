@@ -103,7 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clear, clearFavorites, clearWatchHistory]);
 
   const isUserLoaded =
-    !accessToken || (!meQuery.loading && (meQuery.called || !!meQuery.data));
+    !accessToken ||
+    (!meQuery.loading &&
+      (meQuery.dataState !== "empty" || meQuery.error !== undefined));
 
   const value = useMemo<AuthContextValue>(
     () => ({

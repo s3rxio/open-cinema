@@ -4,13 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
-import { Clapperboard, Tv, Users } from "lucide-react";
+import { Clapperboard, Tv, Users, type LucideIcon } from "lucide-react";
 
-const tabs = [
+type DashboardTab = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  adminOnly?: boolean;
+};
+
+const tabs: DashboardTab[] = [
   { href: "/dashboard/movies", label: "Фильмы", icon: Clapperboard },
   { href: "/dashboard/series", label: "Сериалы", icon: Tv },
   { href: "/dashboard/users", label: "Пользователи", icon: Users, adminOnly: true }
-] as const;
+];
 
 export function DashboardNav() {
   const pathname = usePathname();

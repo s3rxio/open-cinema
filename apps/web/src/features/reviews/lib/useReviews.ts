@@ -24,30 +24,28 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
   const { isAuthenticated, user, canManageUsers } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
 
-  const reviewsQuery = useQuery(
-    type === "MOVIE" ? MOVIE_REVIEWS_QUERY : SERIES_REVIEWS_QUERY,
-    {
-      variables:
-        type === "MOVIE"
-          ? { movieId: contentId }
-          : { seriesId: contentId },
-      skip: !contentId
-    }
-  );
+  const movieReviewsQuery = useQuery(MOVIE_REVIEWS_QUERY, {
+    variables: { movieId: contentId },
+    skip: !contentId || type !== "MOVIE"
+  });
 
-  const refetchQueries = [
-    {
-      query: type === "MOVIE" ? MOVIE_REVIEWS_QUERY : SERIES_REVIEWS_QUERY,
-      variables:
-        type === "MOVIE"
-          ? { movieId: contentId }
-          : { seriesId: contentId }
-    },
-    {
-      query: type === "MOVIE" ? MOVIE_BY_ID_QUERY : SERIES_BY_ID_QUERY,
-      variables: { id: contentId }
-    }
-  ];
+  const seriesReviewsQuery = useQuery(SERIES_REVIEWS_QUERY, {
+    variables: { seriesId: contentId },
+    skip: !contentId || type !== "SERIES"
+  });
+
+  const reviewsQuery = type === "MOVIE" ? movieReviewsQuery : seriesReviewsQuery;
+
+  const refetchQueries =
+    type === "MOVIE"
+      ? [
+          { query: MOVIE_REVIEWS_QUERY, variables: { movieId: contentId } },
+          { query: MOVIE_BY_ID_QUERY, variables: { id: contentId } }
+        ]
+      : [
+          { query: SERIES_REVIEWS_QUERY, variables: { seriesId: contentId } },
+          { query: SERIES_BY_ID_QUERY, variables: { id: contentId } }
+        ];
 
   const [createReview, { loading: creating }] = useMutation(
     CREATE_REVIEW_MUTATION,
@@ -65,8 +63,8 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
   const reviews = useMemo(() => {
     const list =
       type === "MOVIE"
-        ? (reviewsQuery.data?.movieReviews ?? [])
-        : (reviewsQuery.data?.seriesReviews ?? []);
+        ? (movieReviewsQuery.data?.movieReviews ?? [])
+        : (seriesReviewsQuery.data?.seriesReviews ?? []);
 
     if (!user?.id) {
       return list;
@@ -78,7 +76,7 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
     }
 
     return [mine, ...list.filter(review => review.userId !== user.id)];
-  }, [reviewsQuery.data, type, user?.id]);
+  }, [movieReviewsQuery.data, seriesReviewsQuery.data, type, user?.id]);
 
   const myReview = useMemo(
     () => reviews.find(review => review.userId === user?.id) ?? null,
