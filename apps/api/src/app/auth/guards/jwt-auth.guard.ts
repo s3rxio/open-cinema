@@ -5,6 +5,7 @@ import { SHOULD_BYPASS_AUTH } from "../bypass-auth.decorator";
 import { GqlExecutionContext } from "@nestjs/graphql";
 import { Request } from "express";
 import { GraphQLContext } from "@open-cinema/core";
+import { isObservable, lastValueFrom } from "rxjs";
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard("jwt") {
@@ -12,17 +13,35 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     super();
   }
 
-  canActivate(context: ExecutionContext) {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const shouldBypassAuth = this.reflector.getAllAndOverride<boolean>(
       SHOULD_BYPASS_AUTH,
       [context.getHandler(), context.getClass()]
     );
 
     if (shouldBypassAuth) {
-      return true;
+      try {
+        return await this.resolveCanActivate(context);
+      } catch {
+        return true;
+      }
     }
 
-    return super.canActivate(context);
+    return this.resolveCanActivate(context);
+  }
+
+  private async resolveCanActivate(context: ExecutionContext): Promise<boolean> {
+    const result = super.canActivate(context);
+
+    if (typeof result === "boolean") {
+      return result;
+    }
+
+    if (isObservable(result)) {
+      return lastValueFrom(result);
+    }
+
+    return result;
   }
 
   getRequest(context: ExecutionContext): Request {

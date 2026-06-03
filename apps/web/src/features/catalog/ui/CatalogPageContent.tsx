@@ -149,7 +149,7 @@ export function CatalogPageContent() {
           </>
         )}
 
-        {content?.hasMore && (
+        {content?.hasMore === true && (
           <div className="flex justify-center">
             <Button
               type="button"

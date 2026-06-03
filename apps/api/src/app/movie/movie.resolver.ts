@@ -13,14 +13,17 @@ import { CreateMovieInput } from "./dto/create-movie.input";
 import { UpdateMovieInput } from "./dto/update-movie.input";
 import { PaginatedMovies } from "./dto/paginated-movie.response";
 import { BypassAuth } from "../auth/bypass-auth.decorator";
-import { Permission, RequiredPermission } from "../rbac";
+import { Permission, RequiredPermission, RbacService } from "../rbac";
 import { ReviewService } from "../review/review.service";
+import { UserMe } from "../user/user-me.decorator";
+import { User } from "../user/entities/user.entity";
 
 @Resolver(() => Movie)
 export class MovieResolver {
   constructor(
     private readonly movieService: MovieService,
-    private readonly reviewService: ReviewService
+    private readonly reviewService: ReviewService,
+    private readonly rbacService: RbacService
   ) {}
 
   @BypassAuth()
@@ -45,18 +48,35 @@ export class MovieResolver {
 
   @BypassAuth()
   @Query(() => PaginatedMovies, { name: "movies" })
-  findAll(
+  async findAll(
     @Args("first", { type: () => Int, defaultValue: 10 }) first: number,
     @Args("cursor", { nullable: true, type: () => String }) cursor?: string,
-    @Args("search", { nullable: true, type: () => String }) search?: string
+    @Args("search", { nullable: true, type: () => String }) search?: string,
+    @Args("includeUnpublished", {
+      nullable: true,
+      type: () => Boolean,
+      defaultValue: false
+    })
+    includeUnpublished?: boolean,
+    @UserMe() user?: User | null
   ) {
-    return this.movieService.findAll({ first, cursor, search });
+    const canIncludeUnpublished = await this.canIncludeUnpublished(
+      user?.id,
+      includeUnpublished ?? false
+    );
+
+    return this.movieService.findAll(
+      { first, cursor, search },
+      { includeUnpublished: canIncludeUnpublished }
+    );
   }
 
   @BypassAuth()
   @Query(() => Movie, { name: "movie" })
-  findOne(@Args("id") id: string) {
-    return this.movieService.findOne(id);
+  async findOne(@Args("id") id: string, @UserMe() user?: User | null) {
+    const includeUnpublished = await this.canViewUnpublished(user?.id);
+
+    return this.movieService.findOne(id, { includeUnpublished });
   }
 
   @RequiredPermission(Permission.MovieUpdate)
@@ -69,5 +89,28 @@ export class MovieResolver {
   @Mutation(() => Boolean)
   removeMovie(@Args("id") id: string) {
     return this.movieService.remove(id);
+  }
+
+  private async canViewUnpublished(userId?: string): Promise<boolean> {
+    if (!userId) {
+      return false;
+    }
+
+    const permissions = await this.rbacService.getPermissionsForUser(userId);
+
+    return this.rbacService.hasEveryPermission(permissions, [
+      Permission.MovieRead
+    ]);
+  }
+
+  private async canIncludeUnpublished(
+    userId: string | undefined,
+    requested: boolean
+  ): Promise<boolean> {
+    if (!requested) {
+      return false;
+    }
+
+    return this.canViewUnpublished(userId);
   }
 }

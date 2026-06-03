@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 import { CreateEpisodeInput } from "./create-episode.input";
 import { InputType, Field, PartialType } from "@nestjs/graphql";
 
@@ -7,4 +7,9 @@ export class UpdateEpisodeInput extends PartialType(CreateEpisodeInput) {
   @Field()
   @IsString()
   id: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isPublished?: boolean;
 }

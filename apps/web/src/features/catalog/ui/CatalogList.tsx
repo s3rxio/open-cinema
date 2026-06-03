@@ -65,7 +65,7 @@ export function CatalogList() {
         </TabsContent>
       </Tabs>
 
-      {content?.hasMore && (
+      {content?.hasMore === true && (
         <div className="flex justify-center">
           <Button variant="outline" onClick={() => setSkip(skip + take)}>
             Загрузить ещё

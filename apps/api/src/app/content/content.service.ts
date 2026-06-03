@@ -16,6 +16,7 @@ import {
 import { Content } from "./content.entity";
 import { ContentSearchResult } from "./dto/content-search.result";
 import { Genre } from "./genre.enum";
+import { publishedOnlyWhere } from "../common/content-publish.filter";
 
 type ContentWhereInput = MovieWhereInput & SeriesWhereInput;
 
@@ -132,7 +133,7 @@ export class ContentService {
     skip: number,
     take: number
   ): Promise<ContentSearchResult> {
-    const where = this.buildWhere(input);
+    const where = { ...this.buildWhere(input), ...publishedOnlyWhere() };
     const orderBy = this.buildOrderBy(input, Boolean(input.query?.trim()));
 
     const [movies, total] = await Promise.all([
@@ -152,7 +153,7 @@ export class ContentService {
     skip: number,
     take: number
   ): Promise<ContentSearchResult> {
-    const where = this.buildWhere(input);
+    const where = { ...this.buildWhere(input), ...publishedOnlyWhere() };
     const orderBy = this.buildOrderBy(input, Boolean(input.query?.trim()));
 
     const [series, total] = await Promise.all([
@@ -173,20 +174,29 @@ export class ContentService {
     take: number
   ): Promise<ContentSearchResult> {
     const where = this.buildWhere(input);
+    const publishedWhere = { ...where, ...publishedOnlyWhere() };
     const orderBy = this.buildOrderBy(input, Boolean(input.query?.trim()));
     const sortBy = input.sortBy ?? "title";
     const sortOrder = input.sortOrder ?? "ASC";
 
     const [moviesCount, seriesCount] = await Promise.all([
-      this.prisma.movie.count({ where }),
-      this.prisma.series.count({ where })
+      this.prisma.movie.count({ where: publishedWhere }),
+      this.prisma.series.count({ where: publishedWhere })
     ]);
     const total = moviesCount + seriesCount;
 
     const fetchLimit = skip + take;
     const [movies, series] = await Promise.all([
-      this.prisma.movie.findMany({ where, orderBy, take: fetchLimit }),
-      this.prisma.series.findMany({ where, orderBy, take: fetchLimit })
+      this.prisma.movie.findMany({
+        where: publishedWhere,
+        orderBy,
+        take: fetchLimit
+      }),
+      this.prisma.series.findMany({
+        where: publishedWhere,
+        orderBy,
+        take: fetchLimit
+      })
     ]);
 
     const items = [
@@ -251,28 +261,30 @@ export class ContentService {
     const fetchMovies = !contentType || contentType === "MOVIE";
     const fetchSeries = !contentType || contentType === "SERIES";
 
+    const publishedWhere = { ...where, ...publishedOnlyWhere() };
+
     const [movies, moviesCount, series, seriesCount] = await Promise.all([
       fetchMovies
         ? this.prisma.movie.findMany({
-            where,
+            where: publishedWhere,
             orderBy: prismaOrderBy,
             take: contentType === "MOVIE" ? take : skip + take,
             skip: contentType === "MOVIE" ? skip : 0
           })
         : Promise.resolve([] as MovieModel[]),
       fetchMovies
-        ? this.prisma.movie.count({ where })
+        ? this.prisma.movie.count({ where: publishedWhere })
         : Promise.resolve(0),
       fetchSeries
         ? this.prisma.series.findMany({
-            where,
+            where: publishedWhere,
             orderBy: prismaOrderBy,
             take: contentType === "SERIES" ? take : skip + take,
             skip: contentType === "SERIES" ? skip : 0
           })
         : Promise.resolve([] as SeriesModel[]),
       fetchSeries
-        ? this.prisma.series.count({ where })
+        ? this.prisma.series.count({ where: publishedWhere })
         : Promise.resolve(0)
     ]);
 
@@ -314,6 +326,10 @@ export class ContentService {
     });
 
     if (movie) {
+      if (!movie.isPublished) {
+        return null;
+      }
+
       return this.mapMovieToSearchResult(movie);
     }
 
@@ -322,6 +338,10 @@ export class ContentService {
     });
 
     if (series) {
+      if (!series.isPublished) {
+        return null;
+      }
+
       return this.mapSeriesToSearchResult(series);
     }
 

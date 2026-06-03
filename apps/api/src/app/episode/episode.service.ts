@@ -13,6 +13,8 @@ import { PaginatedEpisodes } from "./dto/paginated-episode.response";
 import { PaginationArgs } from "@open-cinema/core";
 import { PrismaService } from "../prisma/prisma.service";
 import { Episode } from "./entities/episode.entity";
+import { withPublishedFilter } from "../common/content-publish.filter";
+import { EpisodeUpdateInput } from "../../../prisma/generated/models";
 
 @Injectable()
 export class EpisodeService {
@@ -32,7 +34,8 @@ export class EpisodeService {
           rating: createEpisodeInput.rating,
           season: createEpisodeInput.season,
           episode: createEpisodeInput.episode,
-          seriesId: createEpisodeInput.seriesId
+          seriesId: createEpisodeInput.seriesId,
+          isPublished: false
         }
       });
     } catch (error) {
@@ -61,7 +64,8 @@ export class EpisodeService {
         title: `${titlePrefix} — S${input.season}E${episodeNumber}`,
         description: input.description,
         releaseDate: new Date(input.releaseDate),
-        rating: input.rating
+        rating: input.rating,
+        isPublished: false
       };
     });
 
@@ -105,9 +109,14 @@ export class EpisodeService {
     throw new InternalServerErrorException();
   }
 
-  async findAll(paginationArgs: PaginationArgs): Promise<PaginatedEpisodes> {
+  async findAll(
+    paginationArgs: PaginationArgs,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<PaginatedEpisodes> {
     const { first, cursor } = paginationArgs;
+    const where = withPublishedFilter(undefined, options?.includeUnpublished ?? false);
     const episodes = await this.prisma.episode.findMany({
+      where,
       orderBy: [{ season: "asc" }, { episode: "asc" }],
       take: first,
       cursor: cursor ? { id: cursor } : undefined
@@ -118,37 +127,70 @@ export class EpisodeService {
 
     return {
       data: episodes,
-      total: await this.prisma.episode.count(),
+      total: await this.prisma.episode.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
     };
   }
 
-  async findOne(id: string): Promise<Episode> {
+  async findOne(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Episode> {
     const episode = await this.prisma.episode.findUnique({
-      where: { id: id }
+      where: { id: id },
+      include: {
+        series: { select: { isPublished: true } }
+      }
     });
 
     if (!episode) {
       throw new NotFoundException(`Episode with id ${id} not found`);
     }
 
-    return episode;
+    if (!this.isEpisodeVisible(episode, options?.includeUnpublished ?? false)) {
+      throw new NotFoundException(`Episode with id ${id} not found`);
+    }
+
+    const { series: _series, ...rest } = episode;
+    return rest;
   }
 
-  async findById(id: string): Promise<Episode | null> {
-    return this.prisma.episode.findUnique({
-      where: { id: id }
+  async findById(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Episode | null> {
+    const episode = await this.prisma.episode.findUnique({
+      where: { id: id },
+      include: {
+        series: { select: { isPublished: true } }
+      }
     });
+
+    if (!episode) {
+      return null;
+    }
+
+    if (!this.isEpisodeVisible(episode, options?.includeUnpublished ?? false)) {
+      return null;
+    }
+
+    const { series: _series, ...rest } = episode;
+    return rest;
   }
 
   async findBySeriesId(
     seriesId: string,
-    paginationArgs: PaginationArgs
+    paginationArgs: PaginationArgs,
+    options?: { includeUnpublished?: boolean }
   ): Promise<PaginatedEpisodes> {
     const { first, cursor } = paginationArgs;
+    const where = withPublishedFilter(
+      { seriesId },
+      options?.includeUnpublished ?? false
+    );
     const episodes = await this.prisma.episode.findMany({
-      where: { seriesId: seriesId },
+      where,
       orderBy: [{ season: "asc" }, { episode: "asc" }],
       take: first,
       cursor: cursor ? { id: cursor } : undefined
@@ -159,7 +201,7 @@ export class EpisodeService {
 
     return {
       data: episodes,
-      total: await this.prisma.episode.count({ where: { seriesId: seriesId } }),
+      total: await this.prisma.episode.count({ where }),
       nextCursor: nextCursor,
       prevCursor: cursor
     };
@@ -169,20 +211,12 @@ export class EpisodeService {
     id: string,
     updateEpisodeInput: UpdateEpisodeInput
   ): Promise<Episode> {
-    await this.findOne(id);
+    await this.findOne(id, { includeUnpublished: true });
 
     try {
       return this.prisma.episode.update({
         where: { id: id },
-        data: {
-          title: updateEpisodeInput.title,
-          description: updateEpisodeInput.description,
-          releaseDate: updateEpisodeInput.releaseDate,
-          rating: updateEpisodeInput.rating,
-          season: updateEpisodeInput.season,
-          episode: updateEpisodeInput.episode,
-          seriesId: updateEpisodeInput.seriesId
-        }
+        data: this.buildUpdateData(updateEpisodeInput)
       });
     } catch (error) {
       this.logger.error(error);
@@ -191,7 +225,7 @@ export class EpisodeService {
   }
 
   async remove(id: string): Promise<boolean> {
-    const episode = await this.findOne(id);
+    const episode = await this.findOne(id, { includeUnpublished: true });
 
     await this.prisma.$transaction(async tx => {
       if (episode.streamId) {
@@ -202,5 +236,52 @@ export class EpisodeService {
     });
 
     return true;
+  }
+
+  private isEpisodeVisible(
+    episode: {
+      isPublished: boolean;
+      series: { isPublished: boolean };
+    },
+    includeUnpublished: boolean
+  ): boolean {
+    if (includeUnpublished) {
+      return true;
+    }
+
+    return episode.isPublished && episode.series.isPublished;
+  }
+
+  private buildUpdateData(
+    updateEpisodeInput: UpdateEpisodeInput
+  ): EpisodeUpdateInput {
+    const data: EpisodeUpdateInput = {};
+
+    if (updateEpisodeInput.title !== undefined) {
+      data.title = updateEpisodeInput.title;
+    }
+    if (updateEpisodeInput.description !== undefined) {
+      data.description = updateEpisodeInput.description;
+    }
+    if (updateEpisodeInput.releaseDate !== undefined) {
+      data.releaseDate = updateEpisodeInput.releaseDate;
+    }
+    if (updateEpisodeInput.rating !== undefined) {
+      data.rating = updateEpisodeInput.rating;
+    }
+    if (updateEpisodeInput.season !== undefined) {
+      data.season = updateEpisodeInput.season;
+    }
+    if (updateEpisodeInput.episode !== undefined) {
+      data.episode = updateEpisodeInput.episode;
+    }
+    if (updateEpisodeInput.seriesId !== undefined) {
+      data.series = { connect: { id: updateEpisodeInput.seriesId } };
+    }
+    if (updateEpisodeInput.isPublished !== undefined) {
+      data.isPublished = updateEpisodeInput.isPublished;
+    }
+
+    return data;
   }
 }

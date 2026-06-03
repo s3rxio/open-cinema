@@ -22,10 +22,17 @@ type MovieRow = {
   director: string;
   rating: number;
   releaseDate: string;
+  isPublished: boolean;
 };
 
 const columns: DataTableColumn<MovieRow>[] = [
   { key: "title", header: "Название", cell: row => row.title },
+  {
+    key: "isPublished",
+    header: "Статус",
+    cell: row => (row.isPublished ? "Опубликован" : "Черновик"),
+    className: "w-32"
+  },
   { key: "genres", header: "Жанры", cell: row => formatGenres(row.genres) },
   { key: "director", header: "Режиссёр", cell: row => row.director },
   {
@@ -56,7 +63,8 @@ export function MoviesListPage() {
     variables: {
       first: pageSize,
       cursor: cursor ?? undefined,
-      search: debouncedSearch || undefined
+      search: debouncedSearch || undefined,
+      includeUnpublished: true
     }
   });
 

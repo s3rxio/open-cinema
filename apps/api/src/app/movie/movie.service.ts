@@ -12,6 +12,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { Movie } from "./entities/movie.entity";
 import { buildContentListSearchFilter } from "../common/list-search-filters";
 import { ContentMediaUrlService } from "../content/content-media-url.service";
+import { withPublishedFilter } from "../common/content-publish.filter";
+import { MovieUpdateInput } from "../../../prisma/generated/models";
 
 @Injectable()
 export class MovieService {
@@ -31,7 +33,8 @@ export class MovieService {
           releaseDate: createMovieInput.releaseDate,
           genres: createMovieInput.genres,
           director: createMovieInput.director,
-          rating: createMovieInput.rating
+          rating: createMovieInput.rating,
+          isPublished: false
         }
       });
       return this.contentMediaUrl.withPublicUrls(movie as Movie);
@@ -41,9 +44,15 @@ export class MovieService {
     }
   }
 
-  async findAll(paginationArgs: PaginationArgs): Promise<PaginatedMovies> {
+  async findAll(
+    paginationArgs: PaginationArgs,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<PaginatedMovies> {
     const { first, cursor, search } = paginationArgs;
-    const where = buildContentListSearchFilter(search);
+    const where = withPublishedFilter(
+      buildContentListSearchFilter(search),
+      options?.includeUnpublished ?? false
+    );
     const movies = await this.prisma.movie.findMany({
       where,
       orderBy: { createdAt: "asc" },
@@ -63,7 +72,7 @@ export class MovieService {
     };
   }
 
-  async findOne(id: string): Promise<Movie> {
+  async findOne(id: string, options?: { includeUnpublished?: boolean }): Promise<Movie> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: id }
     });
@@ -72,33 +81,41 @@ export class MovieService {
       throw new NotFoundException(`Movie with id ${id} not found`);
     }
 
+    if (!movie.isPublished && !options?.includeUnpublished) {
+      throw new NotFoundException(`Movie with id ${id} not found`);
+    }
+
     return this.contentMediaUrl.withPublicUrls(movie as Movie);
   }
 
-  async findById(id: string): Promise<Movie | null> {
+  async findById(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Movie | null> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: id }
     });
 
-    return movie
-      ? this.contentMediaUrl.withPublicUrls(movie as Movie)
-      : null;
+    if (!movie) {
+      return null;
+    }
+
+    if (!movie.isPublished && !options?.includeUnpublished) {
+      return null;
+    }
+
+    return this.contentMediaUrl.withPublicUrls(movie as Movie);
   }
 
   async update(id: string, updateMovieInput: UpdateMovieInput): Promise<Movie> {
-    await this.findOne(id);
+    await this.findOne(id, { includeUnpublished: true });
+
+    const data = this.buildUpdateData(updateMovieInput);
 
     try {
       const movie = await this.prisma.movie.update({
         where: { id: id },
-        data: {
-          title: updateMovieInput.title,
-          description: updateMovieInput.description,
-          releaseDate: updateMovieInput.releaseDate,
-          genres: updateMovieInput.genres,
-          director: updateMovieInput.director,
-          rating: updateMovieInput.rating
-        }
+        data
       });
       return this.contentMediaUrl.withPublicUrls(movie as Movie);
     } catch (error) {
@@ -108,7 +125,7 @@ export class MovieService {
   }
 
   async remove(id: string): Promise<boolean> {
-    const movie = await this.findOne(id);
+    const movie = await this.findOne(id, { includeUnpublished: true });
 
     await this.prisma.$transaction(async tx => {
       if (movie.streamId) {
@@ -119,5 +136,33 @@ export class MovieService {
     });
 
     return true;
+  }
+
+  private buildUpdateData(updateMovieInput: UpdateMovieInput): MovieUpdateInput {
+    const data: MovieUpdateInput = {};
+
+    if (updateMovieInput.title !== undefined) {
+      data.title = updateMovieInput.title;
+    }
+    if (updateMovieInput.description !== undefined) {
+      data.description = updateMovieInput.description;
+    }
+    if (updateMovieInput.releaseDate !== undefined) {
+      data.releaseDate = updateMovieInput.releaseDate;
+    }
+    if (updateMovieInput.genres !== undefined) {
+      data.genres = updateMovieInput.genres;
+    }
+    if (updateMovieInput.director !== undefined) {
+      data.director = updateMovieInput.director;
+    }
+    if (updateMovieInput.rating !== undefined) {
+      data.rating = updateMovieInput.rating;
+    }
+    if (updateMovieInput.isPublished !== undefined) {
+      data.isPublished = updateMovieInput.isPublished;
+    }
+
+    return data;
   }
 }

@@ -14,6 +14,7 @@ import {
 import { toReleaseDateIso, type EpisodeFormValues } from "../lib/episodeForm";
 import { EpisodeEditDialog } from "./EpisodeEditDialog";
 import { EpisodeFormFields } from "./EpisodeFormFields";
+import { EpisodePublishButton } from "./EpisodePublishButton";
 
 type SeriesEpisodesPanelProps = {
   seriesId: string;
@@ -348,9 +349,15 @@ export function SeriesEpisodesPanel({
                       <p className="text-xs text-muted-foreground">
                         Рейтинг {item.rating.toFixed(1)}
                         {item.streamId ? " · есть стрим" : ""}
+                        {item.isPublished ? "" : " · черновик"}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                      <EpisodePublishButton
+                        episodeId={item.id}
+                        isPublished={item.isPublished}
+                        onChanged={onChanged}
+                      />
                       <Button
                         type="button"
                         size="sm"

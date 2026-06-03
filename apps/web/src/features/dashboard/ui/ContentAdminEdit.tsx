@@ -22,6 +22,8 @@ import {
 } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
 import { ContentImageUpload } from "./ContentImageUpload";
+import { MoviePublishButton } from "./MoviePublishButton";
+import { SeriesPublishButton } from "./SeriesPublishButton";
 type ContentAdminEditProps = {
   kind: "movie" | "series";
   id: string;
@@ -59,14 +61,23 @@ function MovieAdminEdit({ id, backHref }: { id: string; backHref: string }) {
     <ContentAdminShell
       title={movie.title}
       backHref={backHref}
-      deleteAction={
-        <AdminDeleteButton
-          label="Удалить фильм"
-          confirmMessage={`Удалить фильм «${movie.title}»?`}
-          redirectTo="/dashboard/movies"
-          refetchQueries={[DASHBOARD_MOVIES_QUERY]}
-          onDelete={() => removeMovie({ variables: { id } })}
-        />
+      headerActions={
+        <>
+          <MoviePublishButton
+            movieId={id}
+            isPublished={movie.isPublished}
+            onChanged={() => {
+              void detailQuery.refetch();
+            }}
+          />
+          <AdminDeleteButton
+            label="Удалить фильм"
+            confirmMessage={`Удалить фильм «${movie.title}»?`}
+            redirectTo="/dashboard/movies"
+            refetchQueries={[DASHBOARD_MOVIES_QUERY]}
+            onDelete={() => removeMovie({ variables: { id } })}
+          />
+        </>
       }
     >
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -100,7 +111,9 @@ function MovieAdminEdit({ id, backHref }: { id: string; backHref: string }) {
             contentId={id}
             posterUrl={movie.posterUrl}
             bannerUrl={movie.bannerUrl}
-            onUploaded={() => detailQuery.refetch()}
+            onUploaded={() => {
+              void detailQuery.refetch();
+            }}
           />
         </TabsContent>
 
@@ -148,14 +161,23 @@ function SeriesAdminEdit({ id, backHref }: { id: string; backHref: string }) {
     <ContentAdminShell
       title={series.title}
       backHref={backHref}
-      deleteAction={
-        <AdminDeleteButton
-          label="Удалить сериал"
-          confirmMessage={`Удалить сериал «${series.title}»?`}
-          redirectTo="/dashboard/series"
-          refetchQueries={[DASHBOARD_SERIES_LIST_QUERY]}
-          onDelete={() => removeSeries({ variables: { id } })}
-        />
+      headerActions={
+        <>
+          <SeriesPublishButton
+            seriesId={id}
+            isPublished={series.isPublished}
+            onChanged={() => {
+              void detailQuery.refetch();
+            }}
+          />
+          <AdminDeleteButton
+            label="Удалить сериал"
+            confirmMessage={`Удалить сериал «${series.title}»?`}
+            redirectTo="/dashboard/series"
+            refetchQueries={[DASHBOARD_SERIES_LIST_QUERY]}
+            onDelete={() => removeSeries({ variables: { id } })}
+          />
+        </>
       }
     >
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -190,7 +212,9 @@ function SeriesAdminEdit({ id, backHref }: { id: string; backHref: string }) {
             contentId={id}
             posterUrl={series.posterUrl}
             bannerUrl={series.bannerUrl}
-            onUploaded={() => detailQuery.refetch()}
+            onUploaded={() => {
+              void detailQuery.refetch();
+            }}
           />
         </TabsContent>
 
@@ -257,12 +281,12 @@ function SeriesAdminEdit({ id, backHref }: { id: string; backHref: string }) {
 function ContentAdminShell({
   title,
   backHref,
-  deleteAction,
+  headerActions,
   children
 }: {
   title: string;
   backHref: string;
-  deleteAction?: React.ReactNode;
+  headerActions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -277,7 +301,9 @@ function ContentAdminShell({
           </Link>
           <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
         </div>
-        {deleteAction}
+        {headerActions ? (
+          <div className="flex flex-wrap items-center gap-2">{headerActions}</div>
+        ) : null}
       </div>
 
       <div className="min-w-0">{children}</div>

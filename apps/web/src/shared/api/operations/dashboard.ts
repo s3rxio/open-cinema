@@ -68,8 +68,18 @@ import { GET_STREAM_INFO_QUERY } from "./stream";
 export { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY, GET_STREAM_INFO_QUERY };
 
 export const DASHBOARD_MOVIES_QUERY = gql`
-  query DashboardMovies($first: Int!, $cursor: String, $search: String) {
-    movies(first: $first, cursor: $cursor, search: $search) {
+  query DashboardMovies(
+    $first: Int!
+    $cursor: String
+    $search: String
+    $includeUnpublished: Boolean
+  ) {
+    movies(
+      first: $first
+      cursor: $cursor
+      search: $search
+      includeUnpublished: $includeUnpublished
+    ) {
       data {
         id
         title
@@ -81,6 +91,7 @@ export const DASHBOARD_MOVIES_QUERY = gql`
         posterUrl
         bannerUrl
         streamId
+        isPublished
         createdAt
       }
       total
@@ -94,8 +105,18 @@ export const DASHBOARD_MOVIES_QUERY = gql`
 >;
 
 export const DASHBOARD_SERIES_LIST_QUERY = gql`
-  query DashboardSeriesList($first: Int!, $cursor: String, $search: String) {
-    seriesList(first: $first, cursor: $cursor, search: $search) {
+  query DashboardSeriesList(
+    $first: Int!
+    $cursor: String
+    $search: String
+    $includeUnpublished: Boolean
+  ) {
+    seriesList(
+      first: $first
+      cursor: $cursor
+      search: $search
+      includeUnpublished: $includeUnpublished
+    ) {
       data {
         id
         title
@@ -106,6 +127,7 @@ export const DASHBOARD_SERIES_LIST_QUERY = gql`
         director
         posterUrl
         bannerUrl
+        isPublished
         createdAt
       }
       total
@@ -195,6 +217,7 @@ export const UPDATE_MOVIE_MUTATION = gql`
       posterUrl
       bannerUrl
       streamId
+      isPublished
     }
   }
 ` as TypedDocumentNode<
@@ -214,6 +237,7 @@ export const UPDATE_SERIES_MUTATION = gql`
       genres
       posterUrl
       bannerUrl
+      isPublished
     }
   }
 ` as TypedDocumentNode<
@@ -327,6 +351,7 @@ export const UPDATE_EPISODE_MUTATION = gql`
       releaseDate
       streamId
       seriesId
+      isPublished
     }
   }
 ` as TypedDocumentNode<

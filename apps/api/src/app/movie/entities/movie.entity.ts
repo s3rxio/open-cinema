@@ -18,4 +18,7 @@ export class Movie
 
   @Field(() => Int, { nullable: true })
   reviewCount?: number | null;
+
+  @Field()
+  isPublished: boolean;
 }

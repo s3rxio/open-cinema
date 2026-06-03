@@ -109,6 +109,7 @@ model Movie {
   rating      Float
   posterUrl   String?  @map("poster_url")
   bannerUrl   String?  @map("banner_url")
+  isPublished Boolean  @default(false) @map("is_published")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -134,6 +135,7 @@ model Series {
   rating      Float
   posterUrl   String?  @map("poster_url")
   bannerUrl   String?  @map("banner_url")
+  isPublished Boolean  @default(false) @map("is_published")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
@@ -152,6 +154,7 @@ model Episode {
   description String
   releaseDate DateTime @map("release_date")
   rating      Float
+  isPublished Boolean  @default(false) @map("is_published")
 
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")

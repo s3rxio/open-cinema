@@ -19,4 +19,7 @@ export class Series
 
   @Field(() => Int, { nullable: true })
   reviewCount?: number | null;
+
+  @Field()
+  isPublished: boolean;
 }

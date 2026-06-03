@@ -27,4 +27,7 @@ export class Episode
 
   @Field({ nullable: true })
   streamId: string | null;
+
+  @Field()
+  isPublished: boolean;
 }

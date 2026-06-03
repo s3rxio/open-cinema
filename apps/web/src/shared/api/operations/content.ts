@@ -22,6 +22,7 @@ export const MOVIE_BY_ID_QUERY = gql`
       posterUrl
       bannerUrl
       streamId
+      isPublished
     }
   }
 ` as TypedDocumentNode<MovieByIdQuery, MovieByIdQueryVariables>;
@@ -40,6 +41,7 @@ export const SERIES_BY_ID_QUERY = gql`
       reviewCount
       posterUrl
       bannerUrl
+      isPublished
       episodes {
         id
         title
@@ -49,6 +51,7 @@ export const SERIES_BY_ID_QUERY = gql`
         rating
         releaseDate
         streamId
+        isPublished
       }
     }
   }

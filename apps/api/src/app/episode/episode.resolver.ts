@@ -1,4 +1,12 @@
-import { Parent, ResolveField, Resolver, Query, Mutation, Args } from "@nestjs/graphql";
+import {
+  Parent,
+  ResolveField,
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int
+} from "@nestjs/graphql";
 import { EpisodeService } from "./episode.service";
 import { Episode } from "./entities/episode.entity";
 import { PrismaService } from "../prisma/prisma.service";
@@ -9,14 +17,17 @@ import { UpdateEpisodeInput } from "./dto/update-episode.input";
 import { PaginatedEpisodes } from "./dto/paginated-episode.response";
 import { PaginationArgs } from "@open-cinema/core";
 import { BypassAuth } from "../auth/bypass-auth.decorator";
-import { Permission, RequiredPermission } from "../rbac";
+import { Permission, RequiredPermission, RbacService } from "../rbac";
+import { UserMe } from "../user/user-me.decorator";
+import { User } from "../user/entities/user.entity";
 
 @Resolver(() => Episode)
 export class EpisodeResolver {
   constructor(
     private readonly episodeService: EpisodeService,
     private readonly prisma: PrismaService,
-    private readonly s3Storage: S3StorageService
+    private readonly s3Storage: S3StorageService,
+    private readonly rbacService: RbacService
   ) {}
 
   @BypassAuth()
@@ -48,23 +59,55 @@ export class EpisodeResolver {
 
   @BypassAuth()
   @Query(() => PaginatedEpisodes, { name: "episodes" })
-  findAll(@Args() paginationArgs: PaginationArgs) {
-    return this.episodeService.findAll(paginationArgs);
+  async findAll(
+    @Args() paginationArgs: PaginationArgs,
+    @Args("includeUnpublished", {
+      nullable: true,
+      type: () => Boolean,
+      defaultValue: false
+    })
+    includeUnpublished?: boolean,
+    @UserMe() user?: User | null
+  ) {
+    const canIncludeUnpublished = await this.canIncludeUnpublished(
+      user?.id,
+      includeUnpublished ?? false
+    );
+
+    return this.episodeService.findAll(paginationArgs, {
+      includeUnpublished: canIncludeUnpublished
+    });
   }
 
   @BypassAuth()
   @Query(() => Episode, { name: "episode" })
-  findOne(@Args("id") id: string) {
-    return this.episodeService.findOne(id);
+  async findOne(@Args("id") id: string, @UserMe() user?: User | null) {
+    const includeUnpublished = await this.canViewUnpublished(user?.id);
+
+    return this.episodeService.findOne(id, { includeUnpublished });
   }
 
   @BypassAuth()
   @Query(() => PaginatedEpisodes, { name: "episodesBySeries" })
-  findBySeriesId(
+  async findBySeriesId(
     @Args("seriesId") seriesId: string,
-    @Args() paginationArgs: PaginationArgs
+    @Args() paginationArgs: PaginationArgs,
+    @Args("includeUnpublished", {
+      nullable: true,
+      type: () => Boolean,
+      defaultValue: false
+    })
+    includeUnpublished?: boolean,
+    @UserMe() user?: User | null
   ) {
-    return this.episodeService.findBySeriesId(seriesId, paginationArgs);
+    const canIncludeUnpublished = await this.canIncludeUnpublished(
+      user?.id,
+      includeUnpublished ?? false
+    );
+
+    return this.episodeService.findBySeriesId(seriesId, paginationArgs, {
+      includeUnpublished: canIncludeUnpublished
+    });
   }
 
   @RequiredPermission(Permission.EpisodeUpdate)
@@ -82,5 +125,28 @@ export class EpisodeResolver {
   @Mutation(() => Boolean)
   removeEpisode(@Args("id") id: string) {
     return this.episodeService.remove(id);
+  }
+
+  private async canViewUnpublished(userId?: string): Promise<boolean> {
+    if (!userId) {
+      return false;
+    }
+
+    const permissions = await this.rbacService.getPermissionsForUser(userId);
+
+    return this.rbacService.hasEveryPermission(permissions, [
+      Permission.EpisodeRead
+    ]);
+  }
+
+  private async canIncludeUnpublished(
+    userId: string | undefined,
+    requested: boolean
+  ): Promise<boolean> {
+    if (!requested) {
+      return false;
+    }
+
+    return this.canViewUnpublished(userId);
   }
 }

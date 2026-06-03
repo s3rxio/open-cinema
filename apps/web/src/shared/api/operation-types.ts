@@ -74,7 +74,7 @@ export type GetRecentContentQueryVariables = {
 
 export type ContentSearchResult = {
   total: number;
-  hasMore: number;
+  hasMore: boolean;
   items: ContentItem[];
 };
 
@@ -227,6 +227,7 @@ export type MovieByIdQuery = {
     posterUrl?: string | null;
     bannerUrl?: string | null;
     streamId?: string | null;
+    isPublished: boolean;
   };
 };
 
@@ -239,6 +240,7 @@ export type SeriesEpisode = {
   rating: number;
   releaseDate: string;
   streamId?: string | null;
+  isPublished: boolean;
 };
 
 export type SeriesByIdQueryVariables = {
@@ -258,6 +260,7 @@ export type SeriesByIdQuery = {
     reviewCount?: number | null;
     posterUrl?: string | null;
     bannerUrl?: string | null;
+    isPublished: boolean;
     episodes: SeriesEpisode[] | null;
   };
 };
@@ -389,10 +392,12 @@ export type DashboardMoviesQueryVariables = {
   first: number;
   cursor?: string | null;
   search?: string | null;
+  includeUnpublished?: boolean | null;
 };
 
 export type DashboardMovieItem = PaginatedListItem & {
   streamId?: string | null;
+  isPublished: boolean;
 };
 
 export type DashboardMoviesQuery = {
@@ -401,8 +406,12 @@ export type DashboardMoviesQuery = {
 
 export type DashboardSeriesListQueryVariables = DashboardMoviesQueryVariables;
 
+export type DashboardSeriesItem = PaginatedListItem & {
+  isPublished: boolean;
+};
+
 export type DashboardSeriesListQuery = {
-  seriesList: PaginatedResponse<PaginatedListItem>;
+  seriesList: PaginatedResponse<DashboardSeriesItem>;
 };
 
 export type DashboardUsersQueryVariables = DashboardMoviesQueryVariables;
@@ -474,6 +483,7 @@ export type UpdateMovieMutationVariables = {
     genres?: Genre[];
     releaseDate?: string;
     rating?: number;
+    isPublished?: boolean;
   };
 };
 
@@ -607,13 +617,14 @@ export type RemoveEpisodeMutation = { removeEpisode: boolean };
 export type UpdateEpisodeMutationVariables = {
   updateEpisodeInput: {
     id: string;
-    seriesId: string;
-    title: string;
-    description: string;
-    releaseDate: string;
-    rating: number;
-    season: number;
-    episode: number;
+    seriesId?: string;
+    title?: string;
+    description?: string;
+    releaseDate?: string;
+    rating?: number;
+    season?: number;
+    episode?: number;
+    isPublished?: boolean;
   };
 };
 

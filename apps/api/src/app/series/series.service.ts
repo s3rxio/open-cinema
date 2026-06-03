@@ -12,6 +12,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { Series } from "./entities/series.entity";
 import { buildContentListSearchFilter } from "../common/list-search-filters";
 import { ContentMediaUrlService } from "../content/content-media-url.service";
+import { withPublishedFilter } from "../common/content-publish.filter";
+import { SeriesUpdateInput } from "../../../prisma/generated/models";
 
 @Injectable()
 export class SeriesService {
@@ -22,6 +24,15 @@ export class SeriesService {
     private readonly contentMediaUrl: ContentMediaUrlService
   ) {}
 
+  private episodesInclude(includeUnpublished: boolean) {
+    return {
+      episodes: {
+        where: includeUnpublished ? {} : { isPublished: true },
+        orderBy: [{ season: "asc" as const }, { episode: "asc" as const }]
+      }
+    };
+  }
+
   async create(createSeriesInput: CreateSeriesInput): Promise<Series> {
     try {
       const series = await this.prisma.series.create({
@@ -31,13 +42,10 @@ export class SeriesService {
           releaseDate: createSeriesInput.releaseDate,
           genres: createSeriesInput.genres,
           director: createSeriesInput.director,
-          rating: createSeriesInput.rating
+          rating: createSeriesInput.rating,
+          isPublished: false
         },
-        include: {
-          episodes: {
-            orderBy: [{ season: "asc" }, { episode: "asc" }]
-          }
-        }
+        include: this.episodesInclude(true)
       });
       return this.contentMediaUrl.withPublicUrls(series as Series);
     } catch (error) {
@@ -46,19 +54,22 @@ export class SeriesService {
     }
   }
 
-  async findAll(paginationArgs: PaginationArgs): Promise<PaginatedSeries> {
+  async findAll(
+    paginationArgs: PaginationArgs,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<PaginatedSeries> {
     const { first, cursor, search } = paginationArgs;
-    const where = buildContentListSearchFilter(search);
+    const includeUnpublished = options?.includeUnpublished ?? false;
+    const where = withPublishedFilter(
+      buildContentListSearchFilter(search),
+      includeUnpublished
+    );
     const series = await this.prisma.series.findMany({
       where,
       orderBy: { createdAt: "asc" },
       take: first,
       cursor: cursor ? { id: cursor } : undefined,
-      include: {
-        episodes: {
-          orderBy: [{ season: "asc" }, { episode: "asc" }]
-        }
-      }
+      include: this.episodesInclude(includeUnpublished)
     });
 
     const nextCursor = series.length > 0 ? series[series.length - 1].id : null;
@@ -73,60 +84,59 @@ export class SeriesService {
     };
   }
 
-  async findOne(id: string): Promise<Series> {
+  async findOne(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Series> {
+    const includeUnpublished = options?.includeUnpublished ?? false;
     const series = await this.prisma.series.findUnique({
       where: { id: id },
-      include: {
-        episodes: {
-          orderBy: [{ season: "asc" }, { episode: "asc" }]
-        }
-      }
+      include: this.episodesInclude(includeUnpublished)
     });
 
     if (!series) {
       throw new NotFoundException(`Series with id ${id} not found`);
     }
 
+    if (!series.isPublished && !includeUnpublished) {
+      throw new NotFoundException(`Series with id ${id} not found`);
+    }
+
     return this.contentMediaUrl.withPublicUrls(series as Series);
   }
 
-  async findById(id: string): Promise<Series | null> {
+  async findById(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Series | null> {
+    const includeUnpublished = options?.includeUnpublished ?? false;
     const series = await this.prisma.series.findUnique({
       where: { id: id },
-      include: {
-        episodes: {
-          orderBy: [{ season: "asc" }, { episode: "asc" }]
-        }
-      }
+      include: this.episodesInclude(includeUnpublished)
     });
 
-    return series
-      ? this.contentMediaUrl.withPublicUrls(series as Series)
-      : null;
+    if (!series) {
+      return null;
+    }
+
+    if (!series.isPublished && !includeUnpublished) {
+      return null;
+    }
+
+    return this.contentMediaUrl.withPublicUrls(series as Series);
   }
 
   async update(
     id: string,
     updateSeriesInput: UpdateSeriesInput
   ): Promise<Series> {
-    await this.findOne(id);
+    await this.findOne(id, { includeUnpublished: true });
 
     try {
       const series = await this.prisma.series.update({
         where: { id: id },
-        data: {
-          title: updateSeriesInput.title,
-          description: updateSeriesInput.description,
-          releaseDate: updateSeriesInput.releaseDate,
-          genres: updateSeriesInput.genres,
-          director: updateSeriesInput.director,
-          rating: updateSeriesInput.rating
-        },
-        include: {
-          episodes: {
-            orderBy: [{ season: "asc" }, { episode: "asc" }]
-          }
-        }
+        data: this.buildUpdateData(updateSeriesInput),
+        include: this.episodesInclude(true)
       });
       return this.contentMediaUrl.withPublicUrls(series as Series);
     } catch (error) {
@@ -136,7 +146,7 @@ export class SeriesService {
   }
 
   async remove(id: string): Promise<boolean> {
-    await this.findOne(id);
+    await this.findOne(id, { includeUnpublished: true });
 
     await this.prisma.$transaction(async tx => {
       const episodes = await tx.episode.findMany({
@@ -156,5 +166,33 @@ export class SeriesService {
     });
 
     return true;
+  }
+
+  private buildUpdateData(updateSeriesInput: UpdateSeriesInput): SeriesUpdateInput {
+    const data: SeriesUpdateInput = {};
+
+    if (updateSeriesInput.title !== undefined) {
+      data.title = updateSeriesInput.title;
+    }
+    if (updateSeriesInput.description !== undefined) {
+      data.description = updateSeriesInput.description;
+    }
+    if (updateSeriesInput.releaseDate !== undefined) {
+      data.releaseDate = updateSeriesInput.releaseDate;
+    }
+    if (updateSeriesInput.genres !== undefined) {
+      data.genres = updateSeriesInput.genres;
+    }
+    if (updateSeriesInput.director !== undefined) {
+      data.director = updateSeriesInput.director;
+    }
+    if (updateSeriesInput.rating !== undefined) {
+      data.rating = updateSeriesInput.rating;
+    }
+    if (updateSeriesInput.isPublished !== undefined) {
+      data.isPublished = updateSeriesInput.isPublished;
+    }
+
+    return data;
   }
 }

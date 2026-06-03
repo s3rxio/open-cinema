@@ -91,10 +91,14 @@ export class StreamService {
   async getStreamForContent(contentId: string): Promise<Stream> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: contentId },
-      select: { id: true, streamId: true }
+      select: { id: true, streamId: true, isPublished: true }
     });
 
     if (movie) {
+      if (!movie.isPublished) {
+        throw new NotFoundException(`Content ${contentId} not found`);
+      }
+
       if (!movie.streamId) {
         throw new NotFoundException(`Movie ${contentId} has no stream`);
       }
@@ -104,10 +108,19 @@ export class StreamService {
 
     const episode = await this.prisma.episode.findUnique({
       where: { id: contentId },
-      select: { id: true, streamId: true }
+      select: {
+        id: true,
+        streamId: true,
+        isPublished: true,
+        series: { select: { isPublished: true } }
+      }
     });
 
     if (episode) {
+      if (!episode.isPublished || !episode.series.isPublished) {
+        throw new NotFoundException(`Content ${contentId} not found`);
+      }
+
       if (!episode.streamId) {
         throw new NotFoundException(`Episode ${contentId} has no stream`);
       }

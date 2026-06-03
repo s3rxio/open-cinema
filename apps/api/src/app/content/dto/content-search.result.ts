@@ -9,6 +9,6 @@ export class ContentSearchResult {
   @Field(() => Int)
   total: number;
 
-  @Field(() => Int)
+  @Field()
   hasMore: boolean;
 }
