@@ -16,6 +16,7 @@ import {
 } from "@open-cinema/ui";
 import { REGISTER_MUTATION } from "@/shared/api/operations/auth";
 import { useAuthStore } from "@/shared/state/useAuthStore";
+import { routes } from "@/shared/lib/routes";
 import { registerSchema, type RegisterFormValues } from "../lib/schemas";
 
 export function RegisterForm() {
@@ -33,7 +34,8 @@ export function RegisterForm() {
       email: "",
       username: "",
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
+      acceptPersonalData: false
     }
   });
 
@@ -159,6 +161,37 @@ export function RegisterForm() {
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-destructive">
                 {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <div className="flex items-start gap-3">
+              <input
+                id="acceptPersonalData"
+                type="checkbox"
+                disabled={loading}
+                className="mt-1 h-4 w-4 shrink-0 rounded border border-input accent-primary"
+                aria-invalid={errors.acceptPersonalData ? true : undefined}
+                {...register("acceptPersonalData")}
+              />
+              <label
+                htmlFor="acceptPersonalData"
+                className="text-sm text-muted-foreground leading-snug"
+              >
+                Я даю{" "}
+                <Link
+                  href={routes.legalPrivacy}
+                  className="text-primary font-medium hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  согласие на обработку персональных данных
+                </Link>
+              </label>
+            </div>
+            {errors.acceptPersonalData && (
+              <p className="mt-1 text-sm text-destructive">
+                {errors.acceptPersonalData.message}
               </p>
             )}
           </div>

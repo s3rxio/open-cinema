@@ -12,7 +12,10 @@ export const registerSchema = z
     email: z.email("Введите корректный email"),
     username: z.string().trim().min(1, "Введите логин"),
     password: z.string().min(6, "Пароль должен быть не менее 6 символов"),
-    confirmPassword: z.string().min(1, "Подтвердите пароль")
+    confirmPassword: z.string().min(1, "Подтвердите пароль"),
+    acceptPersonalData: z.boolean().refine(value => value === true, {
+      message: "Необходимо согласие на обработку персональных данных"
+    })
   })
   .refine(data => data.password === data.confirmPassword, {
     message: "Пароли не совпадают",

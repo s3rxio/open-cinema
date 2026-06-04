@@ -1,5 +1,7 @@
 export const routes = {
   home: "/",
+  legalPrivacy: "/legal/privacy",
+  legalCookies: "/legal/cookies",
   catalog: "/catalog",
   dashboard: "/dashboard",
   dashboardMovies: "/dashboard/movies",

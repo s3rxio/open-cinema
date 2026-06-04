@@ -6,6 +6,7 @@ import { AuthProvider } from "@/shared/auth/AuthContext";
 import { ThemeProvider } from "@/shared/ui/ThemeProvider";
 import { ApolloProvider } from "@/shared/api/ApolloProvider";
 import { AppShell } from "@/shared/ui/AppShell";
+import { CookieConsent } from "@/shared/ui/CookieConsent";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -24,6 +25,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <ThemeProvider>
           <AppLayout>{children}</AppLayout>
+          <CookieConsent />
         </ThemeProvider>
       </AuthProvider>
     </ApolloProvider>
