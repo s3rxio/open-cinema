@@ -4,6 +4,11 @@ import { promisify } from "util";
 import { join } from "path";
 import { VideoQuality } from "../types";
 import { BITRATE_MAP } from "../constants/bitrate-map";
+import {
+  buildHlsAudioEncodeArgs,
+  buildHlsOutputArgs,
+  buildHlsVideoEncodeArgs
+} from "../constants/ffmpeg-encoding";
 import { HLS_SEGMENT_PATTERN } from "../constants/segment-pattern";
 
 const execAsync = promisify(exec);
@@ -25,12 +30,8 @@ export class FfmpegService {
     const command = [
       "ffmpeg -y",
       `-i "${inputPath}"`,
-      "-an -c:v libx264 -preset fast -g 48 -keyint_min 48 -sc_threshold 0",
-      `-b:v ${config.bitrate} -maxrate ${config.maxrate} -bufsize ${config.bufsize}`,
-      `-vf scale=${config.width}:${config.height}`,
-      "-f hls -hls_time 6 -hls_list_size 0 -hls_segment_type mpegts",
-      `-hls_segment_filename "${segmentPattern}"`,
-      `"${playlistPath}"`
+      buildHlsVideoEncodeArgs(quality),
+      buildHlsOutputArgs(segmentPattern, playlistPath)
     ].join(" ");
 
     try {
@@ -51,11 +52,10 @@ export class FfmpegService {
     const segmentPattern = join(outputDir, HLS_SEGMENT_PATTERN);
 
     const command = [
-      `ffmpeg -y -i "${inputPath}"`,
-      "-vn -c:a aac -b:a 128k -ac 2 -ar 48000",
-      "-f hls -hls_time 6 -hls_list_size 0 -hls_segment_type mpegts",
-      `-hls_segment_filename "${segmentPattern}"`,
-      `"${playlistPath}"`
+      "ffmpeg -y",
+      `-i "${inputPath}"`,
+      buildHlsAudioEncodeArgs(),
+      buildHlsOutputArgs(segmentPattern, playlistPath)
     ].join(" ");
 
     try {
