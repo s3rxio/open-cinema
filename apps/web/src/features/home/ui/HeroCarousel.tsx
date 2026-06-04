@@ -40,7 +40,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
 
   return (
     <div className="relative mb-0 overflow-hidden rounded-[28px] border border-[var(--glass-border)] bg-[var(--home-content)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.25)] [transform:translateZ(0)]">
-      <div className="relative h-[500px] max-md:h-auto max-md:min-h-[540px]">
+      <div className="relative h-[500px] max-md:h-auto max-md:min-h-[420px]">
         {slides.map((slide, index) => {
           const isActive = index === activeIndex;
           const watchHref =
@@ -53,7 +53,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
             <div
               key={slide.id}
               className={cn(
-                "hero-slide-pattern absolute inset-0 flex items-center justify-between overflow-hidden px-[10%] z-0 opacity-0 pointer-events-none transition-[opacity,transform] duration-700 ease-out-expo scale-[1.015] motion-reduce:transition-none motion-reduce:transform-none max-md:flex-col max-md:justify-center max-md:text-center max-md:min-h-[540px] max-md:px-6 max-md:pt-[60px] max-md:pb-20",
+                "hero-slide-pattern absolute inset-0 flex items-center justify-between overflow-hidden px-[10%] z-0 opacity-0 pointer-events-none transition-[opacity,transform] duration-700 ease-out-expo scale-[1.015] motion-reduce:transition-none motion-reduce:transform-none max-md:flex-col max-md:justify-center max-md:text-center max-md:min-h-[420px] max-md:px-6 max-md:pt-[60px] max-md:pb-20",
                 patternClass,
                 isActive && "opacity-100 z-[1] pointer-events-auto scale-100"
               )}
@@ -69,7 +69,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                 <img
                   src={slide.bannerUrl}
                   alt=""
-                  className="absolute inset-0 z-0 h-full w-full object-cover opacity-35"
+                  className="absolute inset-0 z-0 h-full w-full object-cover opacity-35 max-md:opacity-55"
                   loading={index === 0 ? "eager" : "lazy"}
                 />
               ) : null}
@@ -111,7 +111,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                 <img
                   src={slide.posterUrl}
                   alt=""
-                  className="absolute right-[8%] top-1/2 z-[2] aspect-[2/3] w-[220px] -translate-y-1/2 rounded-2xl object-cover shadow-[0_24px_48px_rgba(0,0,0,0.35)] max-md:relative max-md:right-auto max-md:top-auto max-md:mt-6 max-md:w-40 max-md:translate-none"
+                  className="absolute right-[8%] top-1/2 z-[2] aspect-[2/3] w-[220px] -translate-y-1/2 rounded-2xl object-cover shadow-[0_24px_48px_rgba(0,0,0,0.35)] max-md:hidden"
                   loading={index === 0 ? "eager" : "lazy"}
                 />
               ) : null}
