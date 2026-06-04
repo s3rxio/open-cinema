@@ -7,7 +7,7 @@ import { graphqlSingleFileUpload } from "@/shared/api/graphqlUpload";
 import {
   UPLOAD_CONTENT_BANNER_MUTATION,
   UPLOAD_CONTENT_POSTER_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 
 type ContentImageUploadProps = {
   contentId: string;

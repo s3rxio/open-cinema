@@ -1,6 +1,6 @@
-import { useAuthStore } from "@/shared/state/useAuthStore";
-import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
-import { useWatchHistoryStore } from "@/shared/state/useWatchHistoryStore";
+import { useAuthStore } from "@/shared/state";
+import { useFavoritesStore } from "@/shared/state";
+import { useWatchHistoryStore } from "@/shared/state";
 import { clearAuthTokens } from "./authTokens";
 
 type LogoutListener = () => void;

@@ -13,7 +13,7 @@ import {
 } from "@open-cinema/ui";
 import type { SeriesEpisode } from "@/shared/api/operation-types";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
-import { UPDATE_EPISODE_MUTATION } from "@/shared/api/operations/dashboard";
+import { UPDATE_EPISODE_MUTATION } from "@/features/dashboard/api/dashboard";
 import {
   episodeToFormValues,
   toReleaseDateIso,

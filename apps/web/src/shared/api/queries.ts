@@ -1,24 +1,6 @@
 import { gql } from "@apollo/client";
 
-export { LOGIN_MUTATION, REGISTER_MUTATION } from "./operations/auth";
-
-export {
-  GET_RECENT_CONTENT_QUERY,
-  GET_TRENDING_CONTENT_QUERY
-} from "./operations/catalog";
-
-export {
-  ME_QUERY,
-  CREATE_FAVORITE_MUTATION,
-  REMOVE_FAVORITE_MUTATION
-} from "./operations/favorites";
-
-export { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY } from "./operations/content";
-
-export { GET_STREAM_INFO_QUERY } from "./operations/stream";
-
-export { SEARCH_CONTENT_QUERY } from "./operations/search";
-
+/** @deprecated Prefer typed operations from `entities/*` and codegen. */
 export const QUERIES = {
   login: gql`
     mutation Login($loginInput: LoginInput!) {

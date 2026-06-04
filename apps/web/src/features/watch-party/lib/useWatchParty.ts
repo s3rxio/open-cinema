@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { getWatchPartySocketBaseUrl } from "./socketUrl";

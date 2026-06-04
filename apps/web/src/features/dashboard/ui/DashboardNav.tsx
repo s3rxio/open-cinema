@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@open-cinema/ui";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 import { Clapperboard, Tv, Users, type LucideIcon } from "lucide-react";
 
 type DashboardTab = {
@@ -38,7 +38,8 @@ export function DashboardNav() {
       {visibleTabs.map(tab => {
         const Icon = tab.icon;
         const isActive =
-          pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+          pathname === tab.href ||
+          Boolean(pathname?.startsWith(`${tab.href}/`));
 
         return (
           <Link

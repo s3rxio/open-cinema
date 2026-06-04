@@ -9,11 +9,12 @@ import {
   TabsTrigger,
   Loader
 } from "@open-cinema/ui";
-import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/entities/content";
+import { useContentCardBookmark } from "@/entities/favorite";
 import {
   GET_RECENT_CONTENT_QUERY,
   GET_TRENDING_CONTENT_QUERY
-} from "@/shared/api/operations/catalog";
+} from "@/entities/catalog";
 import { useState } from "react";
 import type { ContentItem } from "@/shared/api/operation-types";
 
@@ -80,10 +81,16 @@ function CatalogGrid({ items }: { items: ContentItem[] }) {
   return (
     <div className={CONTENT_CARD_GRID_CLASS}>
       {items.map(item => (
-        <ContentCard key={item.id} {...item} fluid />
+        <CatalogContentCard key={item.id} item={item} />
       ))}
     </div>
   );
+}
+
+function CatalogContentCard({ item }: { item: ContentItem }) {
+  const bookmark = useContentCardBookmark(item.id, item.type);
+
+  return <ContentCard {...item} {...bookmark} fluid />;
 }
 
 function CatalogLoader() {

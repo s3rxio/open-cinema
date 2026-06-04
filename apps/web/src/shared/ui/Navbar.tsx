@@ -10,7 +10,7 @@ import {
   SelectItem,
   SelectTrigger
 } from "@open-cinema/ui";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 import { cn } from "@open-cinema/ui";
 import {
   LayoutDashboard,
@@ -21,7 +21,7 @@ import {
   User,
   X
 } from "lucide-react";
-import { NavbarSearch } from "./NavbarSearch";
+import { NavbarSearch } from "@/features/search";
 import { Container } from "./Container";
 import { MobileNavMenu } from "./MobileNavMenu";
 
@@ -37,7 +37,9 @@ function NavLink({
   exact?: boolean;
 }) {
   const pathname = usePathname();
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
+  const isActive = exact
+    ? pathname === href
+    : Boolean(pathname?.startsWith(href));
 
   return (
     <Link

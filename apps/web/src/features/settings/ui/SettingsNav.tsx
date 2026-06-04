@@ -27,7 +27,8 @@ export function SettingsNav() {
         const Icon = tab.icon;
         const isActive = tab.exact
           ? pathname === tab.href
-          : pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+          : pathname === tab.href ||
+            Boolean(pathname?.startsWith(`${tab.href}/`));
 
         return (
           <Link

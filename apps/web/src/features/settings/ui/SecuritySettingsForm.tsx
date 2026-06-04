@@ -4,7 +4,7 @@ import { useMutation } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button, Input, Label } from "@open-cinema/ui";
-import { CHANGE_PASSWORD_MUTATION } from "@/shared/api/operations/settings";
+import { CHANGE_PASSWORD_MUTATION } from "@/entities/user";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   changePasswordSchema,

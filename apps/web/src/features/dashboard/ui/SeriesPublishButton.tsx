@@ -5,11 +5,11 @@ import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   DASHBOARD_SERIES_LIST_QUERY,
   UPDATE_SERIES_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import {
   SERIES_BY_ID_QUERY,
   seriesByIdQueryVariables
-} from "@/shared/api/operations/content";
+} from "@/entities/content";
 import { PublishToggleButton } from "./PublishToggleButton";
 
 type SeriesPublishButtonProps = {

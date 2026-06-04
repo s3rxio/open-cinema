@@ -21,7 +21,7 @@ import {
   UPLOAD_AUDIO_MUTATION,
   UPLOAD_SUBTITLE_MUTATION,
   UPLOAD_VIDEO_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import type { StreamInfo } from "@/shared/api/operation-types";
 import {
   STREAM_POLL_INTERVAL_MS,

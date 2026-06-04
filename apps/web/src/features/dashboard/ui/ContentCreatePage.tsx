@@ -10,7 +10,7 @@ import {
   CREATE_SERIES_MUTATION,
   DASHBOARD_MOVIES_QUERY,
   DASHBOARD_SERIES_LIST_QUERY
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import {
   contentFormToInput,
   defaultContentFormValues

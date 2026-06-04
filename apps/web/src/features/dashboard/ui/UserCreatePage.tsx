@@ -8,7 +8,7 @@ import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   CREATE_USER_MUTATION,
   DASHBOARD_USERS_QUERY
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import { UserEditForm, type UserFormValues } from "./UserEditForm";
 
 const emptyUserForm: UserFormValues = {

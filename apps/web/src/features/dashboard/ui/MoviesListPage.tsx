@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Pagination } from "@open-cinema/ui";
-import { DASHBOARD_MOVIES_QUERY } from "@/shared/api/operations/dashboard";
+import { DASHBOARD_MOVIES_QUERY } from "@/features/dashboard/api/dashboard";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   DASHBOARD_PAGE_SIZE,

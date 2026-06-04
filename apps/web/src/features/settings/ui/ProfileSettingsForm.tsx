@@ -8,10 +8,10 @@ import { Button, Input, Label, Loader } from "@open-cinema/ui";
 import {
   SETTINGS_ME_QUERY,
   UPDATE_PROFILE_MUTATION
-} from "@/shared/api/operations/settings";
-import { ME_QUERY } from "@/shared/api/operations/favorites";
+} from "@/entities/user";
+import { ME_QUERY } from "@/entities/favorite";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
-import { useAuthStore } from "@/shared/state/useAuthStore";
+import { useAuthStore } from "@/shared/state";
 import { profileSchema, type ProfileFormValues } from "../lib/schemas";
 
 export function ProfileSettingsForm() {

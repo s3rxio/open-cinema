@@ -7,7 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/entities/content";
+import { useContentCardBookmark } from "@/entities/favorite";
 import { CatalogFiltersPanel } from "./CatalogFilters";
 import {
   catalogFiltersToQueryString,
@@ -16,7 +17,8 @@ import {
   parseCatalogFilters,
   type CatalogFilters
 } from "../lib/catalog-filters";
-import { SEARCH_CONTENT_QUERY } from "@/shared/api/operations/search";
+import { SEARCH_CONTENT_QUERY } from "@/entities/catalog";
+import type { ContentItem } from "@/shared/api/operation-types";
 import { routes } from "@/shared/lib/routes";
 
 const catalogSearchSchema = z.object({
@@ -31,7 +33,7 @@ export function CatalogPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filters = useMemo(
-    () => parseCatalogFilters(searchParams),
+    () => parseCatalogFilters(searchParams ?? new URLSearchParams()),
     [searchParams]
   );
   const {
@@ -151,7 +153,7 @@ export function CatalogPageContent() {
             )}
             <div className={CONTENT_CARD_GRID_CLASS}>
               {items.map(item => (
-                <ContentCard key={item.id} {...item} fluid />
+                <CatalogSearchContentCard key={item.id} item={item} />
               ))}
             </div>
           </>
@@ -172,4 +174,10 @@ export function CatalogPageContent() {
       </div>
     </div>
   );
+}
+
+function CatalogSearchContentCard({ item }: { item: ContentItem }) {
+  const bookmark = useContentCardBookmark(item.id, item.type);
+
+  return <ContentCard {...item} {...bookmark} fluid />;
 }

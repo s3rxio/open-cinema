@@ -22,7 +22,7 @@ import {
   REMOVE_EPISODE_MUTATION,
   REMOVE_EPISODES_BULK_MUTATION,
   UNPUBLISH_EPISODES_BULK_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import { toReleaseDateIso, type EpisodeFormValues } from "../lib/episodeForm";
 import { EpisodeEditDialog } from "./EpisodeEditDialog";
 import { EpisodeFormFields } from "./EpisodeFormFields";

@@ -2,10 +2,11 @@
 
 import { useQuery } from "@apollo/client/react";
 import { Card, CardContent, Loader } from "@open-cinema/ui";
-import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
-import { ME_QUERY } from "@/shared/api/operations/favorites";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/entities/content";
+import { useContentCardBookmark } from "@/entities/favorite";
+import { ME_QUERY } from "@/entities/favorite";
 import type { ContentItem, ContentType } from "@/shared/api/operation-types";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 import Link from "next/link";
 
 function favoriteToContentItem(fav: {
@@ -104,8 +105,14 @@ export function FavoritesList() {
   return (
     <div className={CONTENT_CARD_GRID_CLASS}>
       {items.map(item => (
-        <ContentCard key={item.id} {...item} fluid />
+        <FavoriteContentCard key={item.id} item={item} />
       ))}
     </div>
   );
+}
+
+function FavoriteContentCard({ item }: { item: ContentItem }) {
+  const bookmark = useContentCardBookmark(item.id, item.type);
+
+  return <ContentCard {...item} {...bookmark} fluid />;
 }

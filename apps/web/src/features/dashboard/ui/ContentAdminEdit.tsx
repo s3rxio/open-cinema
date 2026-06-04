@@ -18,14 +18,14 @@ import {
   REMOVE_SERIES_MUTATION,
   UPDATE_MOVIE_MUTATION,
   UPDATE_SERIES_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import { AdminDeleteButton } from "./AdminDeleteButton";
 import { SeriesEpisodesPanel } from "./SeriesEpisodesPanel";
 import {
   MOVIE_BY_ID_QUERY,
   SERIES_BY_ID_QUERY,
   seriesByIdQueryVariables
-} from "@/shared/api/operations/content";
+} from "@/entities/content";
 import { ContentEditForm, type ContentFormValues } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
 import { ContentImageUpload } from "./ContentImageUpload";

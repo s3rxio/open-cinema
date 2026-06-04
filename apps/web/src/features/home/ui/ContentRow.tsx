@@ -6,7 +6,8 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ContentItem } from "@/shared/api/operation-types";
 import { routes } from "@/shared/lib/routes";
 import { cn } from "@open-cinema/ui";
-import { ContentCard } from "@/shared/ui/ContentCard";
+import { ContentCard } from "@/entities/content";
+import { useContentCardBookmark } from "@/entities/favorite";
 
 type ContentRowProps = {
   title: string;
@@ -113,7 +114,7 @@ export function ContentRow({
                 key={item.id}
                 className="mr-6 shrink-0 basis-[260px] max-md:mr-3 max-md:basis-[185px]"
               >
-                <ContentCard {...item} />
+                <HomeContentCard item={item} />
               </div>
             ))}
             {showCatalogLink ? (
@@ -170,4 +171,10 @@ function ArrowUpRight({ className }: { className?: string }) {
       <path d="M7 17 17 7" />
     </svg>
   );
+}
+
+function HomeContentCard({ item }: { item: ContentItem }) {
+  const bookmark = useContentCardBookmark(item.id, item.type);
+
+  return <ContentCard {...item} {...bookmark} />;
 }

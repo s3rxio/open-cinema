@@ -8,8 +8,8 @@ import { Button, cn, Loader } from "@open-cinema/ui";
 import {
   GET_STREAM_FOR_CONTENT_QUERY,
   GET_STREAM_INFO_QUERY
-} from "@/shared/api/operations/stream";
-import { usePlayerStore } from "@/shared/state/usePlayerStore";
+} from "@/entities/stream";
+import { usePlayerStore } from "@/shared/state";
 import { resolvePlaybackUrl } from "../lib/resolvePlaybackUrl";
 import { getNextEpisode } from "../lib/getNextEpisodeId";
 import { usePlayerKeyboard } from "../lib/usePlayerKeyboard";
@@ -27,14 +27,14 @@ import {
 import Link from "next/link";
 import { PlayerActionFlash, type PlayerFlashAction } from "./PlayerActionFlash";
 import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
-import { formatTime, PlayerProgressBar } from "./PlayerProgressBar";
+import { formatTime, PlayerProgressBar } from "@/shared/ui/PlayerProgressBar";
 import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
 import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
 import {
   PlayerControlTooltip,
   PlayerControlTooltipWrap
 } from "./PlayerControlTooltip";
-import { useWatchProgress } from "@/features/watch-history/lib/useWatchProgress";
+import { useWatchProgress } from "@/entities/watch-history";
 
 const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), {
   ssr: false
@@ -50,7 +50,7 @@ import {
   tryPlayVideo,
   WATCH_PARTY_GUEST_DRIFT_CHECK_MS,
   WATCH_PARTY_SYNC_THRESHOLD_SEC
-} from "@/features/watch-party/lib/playbackSync";
+} from "@/shared/lib/playback/sync";
 
 type WatchPartyPlayback = {
   currentTime: number;

@@ -29,8 +29,11 @@
     "types": ["jest", "node"]
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "pages/**/*.md",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "**/*.js",
     "**/*.jsx",
     "../../apps/web/.next/types/**/*.ts",
@@ -38,6 +41,7 @@
     "next-env.d.ts"
   ],
   "exclude": [
+    ".next",
     "node_modules",
     "jest.config.ts",
     "jest.config.cts",

@@ -9,9 +9,9 @@ import {
   DASHBOARD_USER_QUERY,
   REMOVE_USER_MUTATION,
   UPDATE_USER_MUTATION
-} from "@/shared/api/operations/dashboard";
+} from "@/features/dashboard/api/dashboard";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 import { AdminDeleteButton } from "./AdminDeleteButton";
 import { UserEditForm, type UserFormValues } from "./UserEditForm";
 

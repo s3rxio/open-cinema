@@ -2,11 +2,11 @@
 
 import { useMutation } from "@apollo/client/react";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
-import { UPDATE_EPISODE_MUTATION } from "@/shared/api/operations/dashboard";
+import { UPDATE_EPISODE_MUTATION } from "@/features/dashboard/api/dashboard";
 import {
   SERIES_BY_ID_QUERY,
   seriesByIdQueryVariables
-} from "@/shared/api/operations/content";
+} from "@/entities/content";
 import { PublishToggleButton } from "./PublishToggleButton";
 
 type EpisodePublishButtonProps = {

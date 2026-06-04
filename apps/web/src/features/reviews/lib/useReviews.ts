@@ -10,12 +10,12 @@ import {
   REMOVE_REVIEW_MUTATION,
   SERIES_REVIEWS_QUERY,
   UPDATE_REVIEW_MUTATION
-} from "@/shared/api/operations/reviews";
+} from "@/entities/review";
 import {
   MOVIE_BY_ID_QUERY,
   SERIES_BY_ID_QUERY
-} from "@/shared/api/operations/content";
-import { useAuth } from "@/shared/auth/AuthContext";
+} from "@/entities/content";
+import { useAuth } from "@/entities/user";
 
 type UseReviewsOptions = {
   contentId: string;

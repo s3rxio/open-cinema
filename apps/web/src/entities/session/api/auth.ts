@@ -1,0 +1,37 @@
+import { gql } from "@apollo/client";
+import type {
+  LoginMutation,
+  LoginMutationVariables,
+  RefreshTokenMutation,
+  RefreshTokenMutationVariables,
+  RegisterMutation,
+  RegisterMutationVariables,
+  TypedDocumentNode
+} from "@/shared/api/operation-types";
+
+export const LOGIN_MUTATION = gql`
+  mutation Login($loginInput: LoginInput!) {
+    login(loginInput: $loginInput) {
+      accessToken
+      refreshToken
+    }
+  }
+` as TypedDocumentNode<LoginMutation, LoginMutationVariables>;
+
+export const REGISTER_MUTATION = gql`
+  mutation Register($registerInput: RegisterInput!) {
+    register(registerInput: $registerInput) {
+      accessToken
+      refreshToken
+    }
+  }
+` as TypedDocumentNode<RegisterMutation, RegisterMutationVariables>;
+
+export const REFRESH_TOKEN_MUTATION = gql`
+  mutation RefreshToken($refreshTokenInput: RefreshTokenInput!) {
+    refreshToken(refreshTokenInput: $refreshTokenInput) {
+      accessToken
+      refreshToken
+    }
+  }
+` as TypedDocumentNode<RefreshTokenMutation, RefreshTokenMutationVariables>;

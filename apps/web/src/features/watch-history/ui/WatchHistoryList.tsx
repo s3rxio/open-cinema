@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { Card, CardContent, Loader } from "@open-cinema/ui";
-import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/shared/ui/ContentCard";
-import { formatTime } from "@/features/player/ui/PlayerProgressBar";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { ContentCard, CONTENT_CARD_GRID_CLASS } from "@/entities/content";
+import { formatTime } from "@/shared/ui/PlayerProgressBar";
+import { useAuth } from "@/entities/user";
 import { routes } from "@/shared/lib/routes";
 import type { ContentType } from "@/shared/api/operation-types";
 import {
   useWatchHistoryStore,
   type WatchHistoryEntry
-} from "@/shared/state/useWatchHistoryStore";
+} from "@/shared/state";
 
 function getProgressPercent(entry: WatchHistoryEntry) {
   if (entry.completed) return 100;

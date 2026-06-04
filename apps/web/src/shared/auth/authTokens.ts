@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/shared/state/useAuthStore";
+import { useAuthStore } from "@/shared/state";
 
 export function getAccessToken(): string | null {
   return useAuthStore.getState().accessToken;

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button, cn } from "@open-cinema/ui";
 import { LayoutDashboard, LogOut, Settings, User, X } from "lucide-react";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 
 const navLinkClass =
   "block rounded-md px-3 py-2.5 text-base font-medium transition-colors hover:bg-muted";
@@ -28,7 +28,9 @@ function MobileNavLink({
   onNavigate: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
+  const isActive = exact
+    ? pathname === href
+    : Boolean(pathname?.startsWith(href));
 
   return (
     <Link

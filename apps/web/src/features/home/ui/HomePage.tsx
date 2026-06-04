@@ -6,8 +6,8 @@ import { Loader } from "@open-cinema/ui";
 import {
   GET_RECENT_CONTENT_QUERY,
   GET_TRENDING_CONTENT_QUERY
-} from "@/shared/api/operations/catalog";
-import { GET_CONTENT_BY_GENRE_QUERY } from "@/shared/api/operations/genres";
+} from "@/entities/catalog";
+import { GET_CONTENT_BY_GENRE_QUERY } from "@/entities/genre";
 import { GENRE_LABELS, type Genre } from "@/shared/lib/genres";
 import { routes } from "@/shared/lib/routes";
 import { cn } from "@open-cinema/ui";

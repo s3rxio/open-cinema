@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader } from "@open-cinema/ui";
-import { useAuth } from "@/shared/auth/AuthContext";
+import { useAuth } from "@/entities/user";
 
 export function SettingsAuthGate({ children }: { children: React.ReactNode }) {
   const { isReady, isAuthenticated, isUserLoaded } = useAuth();

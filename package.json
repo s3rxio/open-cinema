@@ -3,8 +3,10 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "codegen": "graphql-codegen",
-    "codegen:watch": "graphql-codegen --watch"
+    "codegen": "nx run web:codegen",
+    "codegen:watch": "nx run web:codegen:watch",
+    "steiger": "nx run web:steiger",
+    "steiger:watch": "nx run web:steiger -- --watch"
   },
   "private": true,
   "dependencies": {
@@ -72,7 +74,9 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-react": "^7.14.5",
     "@eslint/js": "^9.8.0",
+    "@feature-sliced/steiger-plugin": "^0.5.8",
     "@graphql-codegen/cli": "^7.1.2",
+    "@graphql-codegen/typescript": "^6.0.2",
     "@graphql-codegen/typescript-operations": "^6.0.3",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
@@ -132,6 +136,7 @@
     "postcss": "^8.4.35",
     "prettier": "~3.6.2",
     "prisma": "^7.8.0",
+    "steiger": "^0.5.12",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.4.0",

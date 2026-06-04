@@ -5,8 +5,8 @@ import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   DASHBOARD_MOVIES_QUERY,
   UPDATE_MOVIE_MUTATION
-} from "@/shared/api/operations/dashboard";
-import { MOVIE_BY_ID_QUERY } from "@/shared/api/operations/content";
+} from "@/features/dashboard/api/dashboard";
+import { MOVIE_BY_ID_QUERY } from "@/entities/content";
 import { PublishToggleButton } from "./PublishToggleButton";
 
 type MoviePublishButtonProps = {
