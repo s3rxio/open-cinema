@@ -43,8 +43,6 @@ export function RegisterForm() {
       onCompleted: data => {
         const { accessToken, refreshToken } = data.register;
         setAuth(accessToken, refreshToken);
-        localStorage.setItem("authToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
         router.push("/");
       },
       onError: err => {

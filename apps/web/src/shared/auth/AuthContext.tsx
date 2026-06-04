@@ -17,6 +17,11 @@ import {
   canAccessDashboard,
   canManageUsers
 } from "@/shared/auth/dashboardAccess";
+import { getAccessToken, getRefreshToken } from "./authTokens";
+import { isAccessTokenExpired } from "./isAccessTokenExpired";
+import { isAuthError } from "./isAuthError";
+import { refreshAccessToken } from "./refreshAccessToken";
+import { sessionLogout } from "./sessionLogout";
 
 export type { AuthUser };
 
@@ -45,36 +50,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const accessToken = useAuthStore(state => state.accessToken);
   const user = useAuthStore(state => state.user);
   const setUser = useAuthStore(state => state.setUser);
-  const clear = useAuthStore(state => state.clear);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("authToken");
-    const storedRefresh = localStorage.getItem("refreshToken");
+    const storedAccess = getAccessToken();
+    const storedRefresh = getRefreshToken();
 
-    if (stored) {
+    if (storedAccess || storedRefresh) {
       useAuthStore.setState({
-        accessToken: stored,
+        accessToken: storedAccess,
         refreshToken: storedRefresh
       });
     }
 
-    setIsReady(true);
+    void (async () => {
+      const needsRefresh =
+        !!storedRefresh &&
+        (!storedAccess ||
+          (storedAccess ? isAccessTokenExpired(storedAccess) : true));
+
+      if (needsRefresh) {
+        const newAccess = await refreshAccessToken();
+        if (!newAccess) {
+          sessionLogout();
+        }
+      }
+
+      setIsReady(true);
+    })();
   }, []);
 
   const meQuery = useQuery(ME_QUERY, {
-    skip: !accessToken,
+    skip: !accessToken || !isReady,
     fetchPolicy: "cache-and-network"
   });
 
   const setFavoritesFromServer = useFavoritesStore(
     state => state.setFromServer
   );
-  const clearFavorites = useFavoritesStore(state => state.clear);
   const setWatchHistoryFromServer = useWatchHistoryStore(
     state => state.setFromServer
   );
-  const clearWatchHistory = useWatchHistoryStore(state => state.clear);
 
   useEffect(() => {
     const me = meQuery.data?.me;
@@ -94,13 +110,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [meQuery.data, setUser, setFavoritesFromServer, setWatchHistoryFromServer]);
 
+  useEffect(() => {
+    if (!meQuery.error || !isAuthError(meQuery.error)) {
+      return;
+    }
+
+    void (async () => {
+      const newAccess = await refreshAccessToken();
+      if (newAccess) {
+        await meQuery.refetch();
+        return;
+      }
+
+      sessionLogout();
+    })();
+  }, [meQuery.error, meQuery.refetch]);
+
   const logout = useCallback(() => {
-    clear();
-    clearFavorites();
-    clearWatchHistory();
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("refreshToken");
-  }, [clear, clearFavorites, clearWatchHistory]);
+    sessionLogout();
+  }, []);
 
   const isUserLoaded =
     !accessToken ||

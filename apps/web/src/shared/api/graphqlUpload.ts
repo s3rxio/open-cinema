@@ -1,6 +1,10 @@
 "use client";
 
 import { print, type DocumentNode } from "graphql";
+import { getAccessToken } from "@/shared/auth/authTokens";
+import { isAuthError } from "@/shared/auth/isAuthError";
+import { refreshAccessToken } from "@/shared/auth/refreshAccessToken";
+import { sessionLogout } from "@/shared/auth/sessionLogout";
 import { APOLLO_PREFLIGHT_HEADERS } from "./apolloHeaders";
 
 type UploadFileMap = Record<string, File>;
@@ -65,26 +69,20 @@ export async function graphqlSingleFileUpload<TResult>(options: {
   });
 }
 
-export async function graphqlUploadRequest<TResult>(options: {
-  document: DocumentNode;
-  variables: Record<string, unknown>;
-  files: UploadFileMap;
+async function executeUploadRequest<TResult>(options: {
+  uri: string;
+  query: string;
+  formData: FormData;
 }): Promise<TResult> {
-  const uri =
-    process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:3333/graphql";
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+  const token = getAccessToken();
 
-  const query = print(options.document);
-  const formData = buildFormData(query, options.variables, options.files);
-
-  const response = await fetch(uri, {
+  const response = await fetch(options.uri, {
     method: "POST",
     headers: {
       ...APOLLO_PREFLIGHT_HEADERS,
       ...(token ? { authorization: `Bearer ${token}` } : {})
     },
-    body: formData,
+    body: options.formData,
     credentials: "include"
   });
 
@@ -93,8 +91,16 @@ export async function graphqlUploadRequest<TResult>(options: {
     errors?: Array<{ message: string }>;
   };
 
+  if (response.status === 401) {
+    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+  }
+
   if (json.errors?.length) {
-    throw new Error(json.errors.map(error => error.message).join(", "));
+    const message = json.errors.map(error => error.message).join(", ");
+    if (/unauthorized/i.test(message)) {
+      throw Object.assign(new Error(message), { statusCode: 401 });
+    }
+    throw new Error(message);
   }
 
   if (!json.data) {
@@ -102,4 +108,32 @@ export async function graphqlUploadRequest<TResult>(options: {
   }
 
   return json.data;
+}
+
+export async function graphqlUploadRequest<TResult>(options: {
+  document: DocumentNode;
+  variables: Record<string, unknown>;
+  files: UploadFileMap;
+}): Promise<TResult> {
+  const uri =
+    process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:5000/graphql";
+
+  const query = print(options.document);
+  const formData = buildFormData(query, options.variables, options.files);
+
+  try {
+    return await executeUploadRequest<TResult>({ uri, query, formData });
+  } catch (error) {
+    if (!isAuthError(error)) {
+      throw error;
+    }
+
+    const accessToken = await refreshAccessToken();
+    if (!accessToken) {
+      sessionLogout();
+      throw error;
+    }
+
+    return executeUploadRequest<TResult>({ uri, query, formData });
+  }
 }

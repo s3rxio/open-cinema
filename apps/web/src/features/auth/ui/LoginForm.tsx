@@ -43,8 +43,6 @@ export function LoginForm() {
     onCompleted: data => {
       const { accessToken, refreshToken } = data.login;
       setAuth(accessToken, refreshToken);
-      localStorage.setItem("authToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
       router.push("/");
     }
   });

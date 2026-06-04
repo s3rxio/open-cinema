@@ -67,6 +67,19 @@ export type RegisterMutation = {
   };
 };
 
+export type RefreshTokenMutationVariables = {
+  refreshTokenInput: {
+    refreshToken: string;
+  };
+};
+
+export type RefreshTokenMutation = {
+  refreshToken: {
+    accessToken: string;
+    refreshToken: string;
+  };
+};
+
 export type GetRecentContentQueryVariables = {
   skip: number;
   take: number;

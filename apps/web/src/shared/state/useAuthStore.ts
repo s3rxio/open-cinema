@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persistAuthTokens } from "@/shared/auth/authTokens";
 
 export type AuthUser = {
   id: string;
@@ -20,7 +21,10 @@ export const useAuthStore = create<AuthState>(set => ({
   accessToken: null,
   refreshToken: null,
   user: null,
-  setAuth: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
+  setAuth: (accessToken, refreshToken) => {
+    persistAuthTokens(accessToken, refreshToken);
+    set({ accessToken, refreshToken });
+  },
   setUser: user => set({ user }),
   clear: () => set({ accessToken: null, refreshToken: null, user: null })
 }));
