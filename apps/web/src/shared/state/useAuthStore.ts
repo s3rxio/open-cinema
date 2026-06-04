@@ -28,6 +28,21 @@ const AUTH_STORAGE_KEY = "open-cinema-auth";
 const LEGACY_ACCESS_KEY = "authToken";
 const LEGACY_REFRESH_KEY = "refreshToken";
 
+const noopStorage: Storage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+  clear: () => {},
+  key: () => null,
+  length: 0
+};
+
+function createAuthStorage() {
+  return createJSONStorage(() =>
+    typeof window === "undefined" ? noopStorage : localStorage
+  );
+}
+
 function readLegacyTokens(): Pick<AuthState, "accessToken" | "refreshToken"> {
   if (typeof window === "undefined") {
     return { accessToken: null, refreshToken: null };
@@ -63,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: AUTH_STORAGE_KEY,
-      storage: createJSONStorage(() => localStorage),
+      storage: createAuthStorage(),
       partialize: state => ({
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
@@ -83,8 +98,7 @@ export const useAuthStore = create<AuthState>()(
             (persisted as AuthState | undefined)?.refreshToken ??
             legacy.refreshToken ??
             current.refreshToken,
-          user:
-            (persisted as AuthState | undefined)?.user ?? current.user
+          user: (persisted as AuthState | undefined)?.user ?? current.user
         };
       }
     }
@@ -92,17 +106,27 @@ export const useAuthStore = create<AuthState>()(
 );
 
 export function useAuthStoreHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(() =>
-    useAuthStore.persist.hasHydrated()
-  );
+  const [hydrated, setHydrated] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return useAuthStore.persist?.hasHydrated() ?? false;
+  });
 
   useEffect(() => {
-    if (useAuthStore.persist.hasHydrated()) {
+    const persistApi = useAuthStore.persist;
+    if (!persistApi) {
       setHydrated(true);
       return;
     }
 
-    return useAuthStore.persist.onFinishHydration(() => {
+    if (persistApi.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+
+    return persistApi.onFinishHydration(() => {
       setHydrated(true);
     });
   }, []);
