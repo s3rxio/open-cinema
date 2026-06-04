@@ -6,7 +6,10 @@ import {
   DASHBOARD_SERIES_LIST_QUERY,
   UPDATE_SERIES_MUTATION
 } from "@/shared/api/operations/dashboard";
-import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
+import {
+  SERIES_BY_ID_QUERY,
+  seriesByIdQueryVariables
+} from "@/shared/api/operations/content";
 import { PublishToggleButton } from "./PublishToggleButton";
 
 type SeriesPublishButtonProps = {
@@ -32,7 +35,15 @@ export function SeriesPublishButton({
             variables: {
               updateSeriesInput: { id: seriesId, isPublished: !isPublished }
             },
-            refetchQueries: [SERIES_BY_ID_QUERY, DASHBOARD_SERIES_LIST_QUERY]
+            refetchQueries: [
+              {
+                query: SERIES_BY_ID_QUERY,
+                variables: seriesByIdQueryVariables(seriesId, {
+                  includeUnpublished: true
+                })
+              },
+              DASHBOARD_SERIES_LIST_QUERY
+            ]
           });
           onChanged?.();
         } catch (error) {

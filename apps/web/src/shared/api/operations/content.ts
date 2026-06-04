@@ -27,9 +27,19 @@ export const MOVIE_BY_ID_QUERY = gql`
   }
 ` as TypedDocumentNode<MovieByIdQuery, MovieByIdQueryVariables>;
 
+export function seriesByIdQueryVariables(
+  id: string,
+  options?: { includeUnpublished?: boolean }
+) {
+  return {
+    id,
+    includeUnpublished: options?.includeUnpublished ? true : undefined
+  };
+}
+
 export const SERIES_BY_ID_QUERY = gql`
-  query SeriesById($id: String!) {
-    series(id: $id) {
+  query SeriesById($id: String!, $includeUnpublished: Boolean) {
+    series(id: $id, includeUnpublished: $includeUnpublished) {
       id
       title
       description

@@ -258,6 +258,7 @@ export type SeriesEpisode = {
 
 export type SeriesByIdQueryVariables = {
   id: string;
+  includeUnpublished?: boolean | null;
 };
 
 export type SeriesByIdQuery = {
@@ -626,6 +627,24 @@ export type CreateEpisodesBulkMutation = {
 
 export type RemoveEpisodeMutationVariables = { id: string };
 export type RemoveEpisodeMutation = { removeEpisode: boolean };
+
+export type EpisodesBulkIdsInput = { ids: string[] };
+
+export type UnpublishEpisodesBulkMutationVariables = {
+  episodesBulkIdsInput: EpisodesBulkIdsInput;
+};
+
+export type UnpublishEpisodesBulkMutation = {
+  unpublishEpisodesBulk: number;
+};
+
+export type RemoveEpisodesBulkMutationVariables = {
+  episodesBulkIdsInput: EpisodesBulkIdsInput;
+};
+
+export type RemoveEpisodesBulkMutation = {
+  removeEpisodesBulk: boolean;
+};
 
 export type UpdateEpisodeMutationVariables = {
   updateEpisodeInput: {

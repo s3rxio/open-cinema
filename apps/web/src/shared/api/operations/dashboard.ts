@@ -45,6 +45,10 @@ import type {
   RemoveUserMutationVariables,
   RemoveEpisodeMutation,
   RemoveEpisodeMutationVariables,
+  RemoveEpisodesBulkMutation,
+  RemoveEpisodesBulkMutationVariables,
+  UnpublishEpisodesBulkMutation,
+  UnpublishEpisodesBulkMutationVariables,
   CreateEpisodeMutation,
   CreateEpisodeMutationVariables,
   CreateEpisodesBulkMutation,
@@ -320,6 +324,24 @@ export const REMOVE_EPISODE_MUTATION = gql`
     removeEpisode(id: $id)
   }
 ` as TypedDocumentNode<RemoveEpisodeMutation, RemoveEpisodeMutationVariables>;
+
+export const UNPUBLISH_EPISODES_BULK_MUTATION = gql`
+  mutation UnpublishEpisodesBulk($episodesBulkIdsInput: EpisodesBulkIdsInput!) {
+    unpublishEpisodesBulk(episodesBulkIdsInput: $episodesBulkIdsInput)
+  }
+` as TypedDocumentNode<
+  UnpublishEpisodesBulkMutation,
+  UnpublishEpisodesBulkMutationVariables
+>;
+
+export const REMOVE_EPISODES_BULK_MUTATION = gql`
+  mutation RemoveEpisodesBulk($episodesBulkIdsInput: EpisodesBulkIdsInput!) {
+    removeEpisodesBulk(episodesBulkIdsInput: $episodesBulkIdsInput)
+  }
+` as TypedDocumentNode<
+  RemoveEpisodesBulkMutation,
+  RemoveEpisodesBulkMutationVariables
+>;
 
 export const UPDATE_EPISODE_MUTATION = gql`
   mutation UpdateEpisode($updateEpisodeInput: UpdateEpisodeInput!) {

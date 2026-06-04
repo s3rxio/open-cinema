@@ -1,6 +1,7 @@
 "use client";
 
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
+import { visibleEpisodes } from "@/features/player/lib/visibleEpisodes";
 import { WatchPartyShell } from "@/features/watch-party/ui/WatchPartyShell";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
@@ -24,13 +25,13 @@ function WatchPartySeriesContent() {
 
   const series = seriesQuery.data?.series;
   const seasons = useMemo(
-    () => groupEpisodesBySeason(series?.episodes ?? []),
+    () => groupEpisodesBySeason(visibleEpisodes(series?.episodes ?? [])),
     [series?.episodes]
   );
 
   const defaultEpisode = seasons[0]?.episodes[0];
   const selectedEpisode = useMemo(() => {
-    const episodes = series?.episodes ?? [];
+    const episodes = visibleEpisodes(series?.episodes ?? []);
     if (episodeIdFromUrl) {
       return episodes.find(ep => ep.id === episodeIdFromUrl) ?? defaultEpisode;
     }

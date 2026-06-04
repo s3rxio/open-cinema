@@ -75,10 +75,24 @@ export class SeriesResolver {
 
   @BypassAuth()
   @Query(() => Series, { name: "series" })
-  async findOne(@Args("id") id: string, @UserMe() user?: User | null) {
-    const includeUnpublished = await this.canViewUnpublished(user?.id);
+  async findOne(
+    @Args("id") id: string,
+    @Args("includeUnpublished", {
+      nullable: true,
+      type: () => Boolean,
+      defaultValue: false
+    })
+    includeUnpublished?: boolean,
+    @UserMe() user?: User | null
+  ) {
+    const canIncludeUnpublished = await this.canIncludeUnpublished(
+      user?.id,
+      includeUnpublished ?? false
+    );
 
-    return this.seriesService.findOne(id, { includeUnpublished });
+    return this.seriesService.findOne(id, {
+      includeUnpublished: canIncludeUnpublished
+    });
   }
 
   @RequiredPermission(Permission.SeriesUpdate)

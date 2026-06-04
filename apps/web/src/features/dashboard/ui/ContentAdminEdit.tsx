@@ -23,7 +23,8 @@ import { AdminDeleteButton } from "./AdminDeleteButton";
 import { SeriesEpisodesPanel } from "./SeriesEpisodesPanel";
 import {
   MOVIE_BY_ID_QUERY,
-  SERIES_BY_ID_QUERY
+  SERIES_BY_ID_QUERY,
+  seriesByIdQueryVariables
 } from "@/shared/api/operations/content";
 import { ContentEditForm, type ContentFormValues } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
@@ -144,7 +145,9 @@ function MovieAdminEdit({ id, backHref }: { id: string; backHref: string }) {
 }
 
 function SeriesAdminEdit({ id, backHref }: { id: string; backHref: string }) {
-  const detailQuery = useQuery(SERIES_BY_ID_QUERY, { variables: { id } });
+  const detailQuery = useQuery(SERIES_BY_ID_QUERY, {
+    variables: seriesByIdQueryVariables(id, { includeUnpublished: true })
+  });
   const [updateSeries, updateSeriesState] = useMutation(UPDATE_SERIES_MUTATION);
   const [removeSeries] = useMutation(REMOVE_SERIES_MUTATION);
   const [status, setStatus] = useState<string | null>(null);

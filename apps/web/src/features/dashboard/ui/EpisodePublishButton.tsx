@@ -3,16 +3,21 @@
 import { useMutation } from "@apollo/client/react";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import { UPDATE_EPISODE_MUTATION } from "@/shared/api/operations/dashboard";
-import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
+import {
+  SERIES_BY_ID_QUERY,
+  seriesByIdQueryVariables
+} from "@/shared/api/operations/content";
 import { PublishToggleButton } from "./PublishToggleButton";
 
 type EpisodePublishButtonProps = {
+  seriesId: string;
   episodeId: string;
   isPublished: boolean;
   onChanged?: () => void;
 };
 
 export function EpisodePublishButton({
+  seriesId,
   episodeId,
   isPublished,
   onChanged
@@ -29,7 +34,14 @@ export function EpisodePublishButton({
             variables: {
               updateEpisodeInput: { id: episodeId, isPublished: !isPublished }
             },
-            refetchQueries: [SERIES_BY_ID_QUERY]
+            refetchQueries: [
+              {
+                query: SERIES_BY_ID_QUERY,
+                variables: seriesByIdQueryVariables(seriesId, {
+                  includeUnpublished: true
+                })
+              }
+            ]
           });
           onChanged?.();
         } catch (error) {

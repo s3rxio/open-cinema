@@ -230,15 +230,58 @@ export class EpisodeService {
   async remove(id: string): Promise<boolean> {
     const episode = await this.findOne(id, { includeUnpublished: true });
 
-    await this.prisma.$transaction(async tx => {
-      if (episode.streamId) {
-        await tx.stream.delete({ where: { id: episode.streamId } });
-      }
-
-      await tx.episode.delete({ where: { id } });
-    });
+    await this.removeManyWithStreams([episode]);
 
     return true;
+  }
+
+  async unpublishBulk(ids: string[]): Promise<number> {
+    await this.assertEpisodesExist(ids);
+
+    const result = await this.prisma.episode.updateMany({
+      where: { id: { in: ids } },
+      data: { isPublished: false }
+    });
+
+    return result.count;
+  }
+
+  async removeBulk(ids: string[]): Promise<boolean> {
+    const episodes = await this.assertEpisodesExist(ids);
+    await this.removeManyWithStreams(episodes);
+
+    return true;
+  }
+
+  private async assertEpisodesExist(ids: string[]): Promise<Episode[]> {
+    const uniqueIds = [...new Set(ids)];
+    const episodes = await this.prisma.episode.findMany({
+      where: { id: { in: uniqueIds } }
+    });
+
+    if (episodes.length !== uniqueIds.length) {
+      throw new NotFoundException("Один или несколько эпизодов не найдены");
+    }
+
+    return episodes;
+  }
+
+  private async removeManyWithStreams(
+    episodes: Pick<Episode, "id" | "streamId">[]
+  ): Promise<void> {
+    const streamIds = episodes
+      .map(episode => episode.streamId)
+      .filter((streamId): streamId is string => Boolean(streamId));
+
+    await this.prisma.$transaction(async tx => {
+      if (streamIds.length > 0) {
+        await tx.stream.deleteMany({ where: { id: { in: streamIds } } });
+      }
+
+      await tx.episode.deleteMany({
+        where: { id: { in: episodes.map(episode => episode.id) } }
+      });
+    });
   }
 
   private isEpisodeVisible(

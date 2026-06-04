@@ -13,6 +13,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { S3StorageService } from "../storage/s3-storage.service";
 import { CreateEpisodeInput } from "./dto/create-episode.input";
 import { CreateEpisodesBulkInput } from "./dto/create-episodes-bulk.input";
+import { EpisodesBulkIdsInput } from "./dto/episodes-bulk-ids.input";
 import { UpdateEpisodeInput } from "./dto/update-episode.input";
 import { PaginatedEpisodes } from "./dto/paginated-episode.response";
 import { PaginationArgs } from "@open-cinema/core";
@@ -126,6 +127,22 @@ export class EpisodeResolver {
   @Mutation(() => Boolean)
   removeEpisode(@Args("id") id: string) {
     return this.episodeService.remove(id);
+  }
+
+  @RequiredPermission(Permission.EpisodeUpdate)
+  @Mutation(() => Int)
+  unpublishEpisodesBulk(
+    @Args("episodesBulkIdsInput") episodesBulkIdsInput: EpisodesBulkIdsInput
+  ) {
+    return this.episodeService.unpublishBulk(episodesBulkIdsInput.ids);
+  }
+
+  @RequiredPermission(Permission.EpisodeDelete)
+  @Mutation(() => Boolean)
+  removeEpisodesBulk(
+    @Args("episodesBulkIdsInput") episodesBulkIdsInput: EpisodesBulkIdsInput
+  ) {
+    return this.episodeService.removeBulk(episodesBulkIdsInput.ids);
   }
 
   private async canViewUnpublished(userId?: string): Promise<boolean> {

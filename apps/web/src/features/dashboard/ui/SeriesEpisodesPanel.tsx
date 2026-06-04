@@ -2,19 +2,33 @@
 
 import { useMutation } from "@apollo/client/react";
 import { useMemo, useState } from "react";
-import { Button, cn, Input, Label } from "@open-cinema/ui";
+import {
+  Button,
+  cn,
+  Input,
+  Label,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@open-cinema/ui";
 import { ChevronDown } from "lucide-react";
 import type { SeriesEpisode } from "@/shared/api/operation-types";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   CREATE_EPISODE_MUTATION,
   CREATE_EPISODES_BULK_MUTATION,
-  REMOVE_EPISODE_MUTATION
+  REMOVE_EPISODE_MUTATION,
+  REMOVE_EPISODES_BULK_MUTATION,
+  UNPUBLISH_EPISODES_BULK_MUTATION
 } from "@/shared/api/operations/dashboard";
 import { toReleaseDateIso, type EpisodeFormValues } from "../lib/episodeForm";
 import { EpisodeEditDialog } from "./EpisodeEditDialog";
 import { EpisodeFormFields } from "./EpisodeFormFields";
 import { EpisodePublishButton } from "./EpisodePublishButton";
+
+type BulkEpisodeAction = "unpublish" | "delete";
 
 type SeriesEpisodesPanelProps = {
   seriesId: string;
@@ -62,6 +76,12 @@ export function SeriesEpisodesPanel({
     CREATE_EPISODES_BULK_MUTATION
   );
   const [removeEpisode, removeState] = useMutation(REMOVE_EPISODE_MUTATION);
+  const [unpublishEpisodesBulk, unpublishBulkState] = useMutation(
+    UNPUBLISH_EPISODES_BULK_MUTATION
+  );
+  const [removeEpisodesBulk, removeBulkState] = useMutation(
+    REMOVE_EPISODES_BULK_MUTATION
+  );
   const [form, setForm] = useState<EpisodeFormValues>(() =>
     buildDefaultFormValues(episodes)
   );
@@ -77,6 +97,8 @@ export function SeriesEpisodesPanel({
   const [collapsedSeasons, setCollapsedSeasons] = useState<Set<number>>(
     () => new Set()
   );
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [bulkAction, setBulkAction] = useState<BulkEpisodeAction | "">("");
 
   const toggleSeason = (season: number) => {
     setCollapsedSeasons(prev => {
@@ -190,6 +212,77 @@ export function SeriesEpisodesPanel({
     }
   };
 
+  const selectedCount = selectedIds.size;
+
+  const toggleEpisodeSelection = (episodeId: string, checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(episodeId);
+      } else {
+        next.delete(episodeId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSeasonSelection = (items: SeriesEpisode[], checked: boolean) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      for (const item of items) {
+        if (checked) {
+          next.add(item.id);
+        } else {
+          next.delete(item.id);
+        }
+      }
+      return next;
+    });
+  };
+
+  const isSeasonFullySelected = (items: SeriesEpisode[]) =>
+    items.length > 0 && items.every(item => selectedIds.has(item.id));
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedCount === 0) {
+      setStatus("Выберите эпизоды и действие");
+      return;
+    }
+
+    const ids = Array.from(selectedIds);
+    const label =
+      bulkAction === "delete"
+        ? `Удалить ${selectedCount} эпизод(ов)?`
+        : `Снять с публикации ${selectedCount} эпизод(ов)?`;
+
+    if (!window.confirm(label)) {
+      return;
+    }
+
+    setStatus(null);
+    try {
+      if (bulkAction === "delete") {
+        await removeEpisodesBulk({
+          variables: { episodesBulkIdsInput: { ids } }
+        });
+        setStatus(`Удалено эпизодов: ${selectedCount}`);
+      } else {
+        const count = (
+          await unpublishEpisodesBulk({
+            variables: { episodesBulkIdsInput: { ids } }
+          })
+        ).data?.unpublishEpisodesBulk;
+        setStatus(`Снято с публикации: ${count ?? selectedCount}`);
+      }
+
+      setSelectedIds(new Set());
+      setBulkAction("");
+      await onChanged();
+    } catch (error) {
+      setStatus(getApolloErrorMessage(error));
+    }
+  };
+
   const handleDeleteEpisode = async (episode: SeriesEpisode) => {
     if (
       !window.confirm(
@@ -213,7 +306,11 @@ export function SeriesEpisodesPanel({
   };
 
   const busy =
-    createState.loading || bulkCreateState.loading || removeState.loading;
+    createState.loading ||
+    bulkCreateState.loading ||
+    removeState.loading ||
+    unpublishBulkState.loading ||
+    removeBulkState.loading;
 
   return (
     <div className="space-y-8">
@@ -299,16 +396,63 @@ export function SeriesEpisodesPanel({
       </section>
 
       <section className="space-y-4">
-        <h3 className="font-medium">Эпизоды по сезонам</h3>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h3 className="font-medium">Эпизоды по сезонам</h3>
+          {seasons.length > 0 ? (
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="space-y-1">
+                <Label htmlFor="bulk-action">Действие</Label>
+                <Select
+                  value={bulkAction || undefined}
+                  onValueChange={value =>
+                    setBulkAction(value as BulkEpisodeAction)
+                  }
+                >
+                  <SelectTrigger id="bulk-action" className="w-52">
+                    <SelectValue placeholder="Выберите действие" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unpublish">
+                      Снять с публикации
+                    </SelectItem>
+                    <SelectItem value="delete">Удалить</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy || selectedCount === 0 || !bulkAction}
+                onClick={handleBulkAction}
+              >
+                {unpublishBulkState.loading || removeBulkState.loading
+                  ? "Выполнение…"
+                  : `Применить (${selectedCount})`}
+              </Button>
+            </div>
+          ) : null}
+        </div>
         {seasons.length === 0 ? (
           <p className="text-sm text-muted-foreground">Эпизодов пока нет</p>
         ) : (
           seasons.map(({ season, items }) => {
             const collapsed = collapsedSeasons.has(season);
+            const seasonFullySelected = isSeasonFullySelected(items);
 
             return (
               <div key={season} className="rounded-lg border">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-2">
+                  <label className="flex shrink-0 items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-input"
+                      checked={seasonFullySelected}
+                      onChange={event =>
+                        toggleSeasonSelection(items, event.target.checked)
+                      }
+                      aria-label={`Выбрать все эпизоды сезона ${season}`}
+                    />
+                  </label>
                   <button
                     type="button"
                     className="flex min-w-0 flex-1 items-center gap-2 text-left"
@@ -345,7 +489,21 @@ export function SeriesEpisodesPanel({
                         key={item.id}
                         className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                       >
-                        <div>
+                        <label className="flex shrink-0 items-center">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-input"
+                            checked={selectedIds.has(item.id)}
+                            onChange={event =>
+                              toggleEpisodeSelection(
+                                item.id,
+                                event.target.checked
+                              )
+                            }
+                            aria-label={`Выбрать S${item.season}E${item.episode}`}
+                          />
+                        </label>
+                        <div className="min-w-0 flex-1">
                           <p className="font-medium">
                             E{item.episode} — {item.title}
                           </p>
@@ -357,6 +515,7 @@ export function SeriesEpisodesPanel({
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <EpisodePublishButton
+                            seriesId={seriesId}
                             episodeId={item.id}
                             isPublished={item.isPublished}
                             onChanged={onChanged}

@@ -4,6 +4,7 @@ import { Suspense, useCallback, useMemo } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Loader } from "@open-cinema/ui";
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
+import { visibleEpisodes } from "@/features/player/lib/visibleEpisodes";
 import { FullscreenPlayer } from "@/features/player/ui/FullscreenPlayer";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
@@ -22,7 +23,7 @@ function WatchSeriesContent() {
 
   const series = seriesQuery.data?.series;
   const seasons = useMemo(
-    () => groupEpisodesBySeason(series?.episodes ?? []),
+    () => groupEpisodesBySeason(visibleEpisodes(series?.episodes ?? [])),
     [series?.episodes]
   );
 
@@ -30,7 +31,7 @@ function WatchSeriesContent() {
   const episodeIdFromUrl = searchParams.get("episode");
 
   const selectedEpisode = useMemo(() => {
-    const episodes = series?.episodes ?? [];
+    const episodes = visibleEpisodes(series?.episodes ?? []);
     if (episodeIdFromUrl) {
       return episodes.find(ep => ep.id === episodeIdFromUrl) ?? defaultEpisode;
     }

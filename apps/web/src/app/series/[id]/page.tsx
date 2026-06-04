@@ -7,6 +7,7 @@ import { ReviewsSection } from "@/features/reviews/ui/ReviewsSection";
 import { EpisodeList } from "@/features/content/ui/EpisodeList";
 import { Container } from "@/shared/ui/Container";
 import { groupEpisodesBySeason } from "@/features/player/lib/groupEpisodesBySeason";
+import { visibleEpisodes } from "@/features/player/lib/visibleEpisodes";
 import { SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import { routes } from "@/shared/lib/routes";
 import { formatGenres } from "@/shared/lib/genres";
@@ -24,7 +25,7 @@ export default function SeriesPage() {
 
   const series = seriesQuery.data?.series;
   const seasons = useMemo(
-    () => groupEpisodesBySeason(series?.episodes ?? []),
+    () => groupEpisodesBySeason(visibleEpisodes(series?.episodes ?? [])),
     [series?.episodes]
   );
   const firstEpisode = seasons[0]?.episodes[0];
