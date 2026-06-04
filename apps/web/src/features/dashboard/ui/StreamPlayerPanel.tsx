@@ -4,7 +4,10 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { useCallback, useEffect, useState } from "react";
 import { Button, Input, Label, Loader } from "@open-cinema/ui";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
-import { graphqlSingleFileUpload } from "@/shared/api/graphqlUpload";
+import {
+  graphqlSingleFileUpload,
+  type UploadProgress
+} from "@/shared/api/graphqlUpload";
 import {
   CREATE_STREAM_MUTATION,
   GENERATE_MASTER_MUTATION,
@@ -250,6 +253,9 @@ function StreamSingleFileUpload({
   const [kind, setKind] = useState<UploadTrackKind>("video");
   const [file, setFile] = useState<File | null>(null);
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
+    null
+  );
   const [draft, setDraft] = useState<TrackDraft>(() =>
     defaultUploadDraft("video")
   );
@@ -271,13 +277,19 @@ function StreamSingleFileUpload({
     }
 
     onUploadingChange(true);
+    setUploadProgress({ loaded: 0, total: file.size, percent: 0 });
+    const onUploadProgress = (progress: UploadProgress) => {
+      setUploadProgress(progress);
+    };
+
     try {
       if (kind === "video") {
         await graphqlSingleFileUpload({
           document: UPLOAD_VIDEO_MUTATION,
           variables: { uploadVideoInput: { streamId, file: null } },
           fileVariablePath: "uploadVideoInput.file",
-          file
+          file,
+          onUploadProgress
         });
       } else if (kind === "audio") {
         await graphqlSingleFileUpload({
@@ -293,7 +305,8 @@ function StreamSingleFileUpload({
             }
           },
           fileVariablePath: "uploadAudioInput.file",
-          file
+          file,
+          onUploadProgress
         });
       } else {
         await graphqlSingleFileUpload({
@@ -308,7 +321,8 @@ function StreamSingleFileUpload({
             }
           },
           fileVariablePath: "uploadSubtitleInput.file",
-          file
+          file,
+          onUploadProgress
         });
       }
 
@@ -318,6 +332,7 @@ function StreamSingleFileUpload({
       onError(error);
     } finally {
       onUploadingChange(false);
+      setUploadProgress(null);
     }
   };
 
@@ -409,11 +424,72 @@ function StreamSingleFileUpload({
           ) : null}
         </div>
 
+        {uploading ? (
+          <FileUploadProgressBar
+            label={config.label}
+            progress={uploadProgress}
+          />
+        ) : null}
+
         <Button type="submit" disabled={uploading || !file}>
           {uploading ? "Загрузка…" : "Загрузить"}
         </Button>
       </form>
     </section>
+  );
+}
+
+function formatUploadBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function FileUploadProgressBar({
+  label,
+  progress
+}: {
+  label: string;
+  progress: UploadProgress | null;
+}) {
+  const percent = progress?.percent;
+  const hasDeterminateProgress = percent != null;
+  const loaded = progress?.loaded ?? 0;
+  const total = progress?.total;
+
+  return (
+    <div className="space-y-2" role="status" aria-live="polite">
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>
+          Загрузка {label.toLowerCase()}
+          {hasDeterminateProgress ? ` — ${percent}%` : "…"}
+        </span>
+        {total != null ? (
+          <span>
+            {formatUploadBytes(loaded)} / {formatUploadBytes(total)}
+          </span>
+        ) : loaded > 0 ? (
+          <span>{formatUploadBytes(loaded)}</span>
+        ) : null}
+      </div>
+      <div
+        className="h-2 overflow-hidden rounded-full bg-muted"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={hasDeterminateProgress ? percent : undefined}
+        aria-label={`Прогресс загрузки ${label.toLowerCase()}`}
+        role="progressbar"
+      >
+        <div
+          className={`h-full rounded-full bg-primary transition-[width] duration-150 ease-out ${
+            hasDeterminateProgress ? "" : "w-1/3 animate-pulse"
+          }`}
+          style={
+            hasDeterminateProgress ? { width: `${percent}%` } : undefined
+          }
+        />
+      </div>
+    </div>
   );
 }
 
