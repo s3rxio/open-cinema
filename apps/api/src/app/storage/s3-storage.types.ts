@@ -1,9 +1,12 @@
+import { ObjectCannedACL } from "@aws-sdk/client-s3";
+
 export interface S3UploadOptions {
   bucket: string;
   key: string;
   filePath: string;
   contentType?: string;
   retries?: number;
+  acl?: ObjectCannedACL;
 }
 
 export interface S3UploadFolderOptions {

@@ -76,7 +76,7 @@ export class StreamService {
         signMetaUrls(stream.videoMetas),
         signMetaUrls(stream.audioMetas),
         signMetaUrls(stream.subtitleMetas),
-        signKey(`${streamId}/master.m3u8`)
+        signKey(`streams/${streamId}/master.m3u8`)
       ]);
 
     return {
@@ -186,7 +186,7 @@ export class StreamService {
 
     await this.s3Storage.uploadFile({
       bucket,
-      key: `${streamId}/master.m3u8`,
+      key: `streams/${streamId}/master.m3u8`,
       filePath: masterPlaylistPath
     });
 
@@ -197,7 +197,7 @@ export class StreamService {
 
     return await this.s3Storage.getSignedUrl({
       bucket,
-      key: `${streamId}/master.m3u8`
+      key: `streams/${streamId}/master.m3u8`
     });
   }
 
@@ -680,7 +680,9 @@ export class StreamService {
 
   private normalizeS3Key(url: string): string {
     const urlParts = url.split("/");
-    urlParts.shift();
+
+    urlParts.shift(); // streams
+    urlParts.shift(); // streamId
 
     return urlParts.join("/");
   }

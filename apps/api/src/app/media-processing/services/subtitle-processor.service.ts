@@ -41,7 +41,7 @@ export class SubtitleProcessorService {
           id: metaId
         },
         data: {
-          url: `${subtitleMeta.streamId}/subtitles/${subtitleMeta.slug}/index.m3u8`,
+          url: `streams/${subtitleMeta.streamId}/subtitles/${subtitleMeta.slug}/index.m3u8`,
           isProcessed: true
         }
       });

@@ -78,7 +78,7 @@ export class VideoProcessorService {
       data: {
         displayName: config.displayName,
         slug: quality,
-        url: `${streamId}/videos/${quality}/index.m3u8`,
+        url: `streams/${streamId}/videos/${quality}/index.m3u8`,
         width: config.width,
         height: config.height,
         bitrate: Number(config.bitrate.slice(0, -1)) * 1000,

@@ -19,7 +19,14 @@ export class S3StorageService {
   ) {}
 
   async uploadFile(options: S3UploadOptions): Promise<string> {
-    const { bucket, key, filePath, contentType, retries = 3 } = options;
+    const {
+      bucket,
+      key,
+      filePath,
+      contentType,
+      retries = 3,
+      acl = "public-read"
+    } = options;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
@@ -29,7 +36,8 @@ export class S3StorageService {
           Bucket: bucket,
           Key: key,
           Body: fileContent,
-          ContentType: contentType
+          ContentType: contentType,
+          ACL: acl
         });
 
         return key;

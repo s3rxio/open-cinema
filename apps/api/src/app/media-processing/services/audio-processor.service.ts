@@ -39,7 +39,7 @@ export class AudioProcessorService {
           id: metaId
         },
         data: {
-          url: `${audioMeta.streamId}/audios/${audioMeta.slug}/index.m3u8`,
+          url: `streams/${audioMeta.streamId}/audios/${audioMeta.slug}/index.m3u8`,
           bitrate: 128000,
           isProcessed: true
         }
