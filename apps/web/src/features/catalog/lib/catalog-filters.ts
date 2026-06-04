@@ -38,9 +38,7 @@ function parseNumber(value: string | null, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-export function parseCatalogFilters(
-  params: URLSearchParams
-): CatalogFilters {
+export function parseCatalogFilters(params: URLSearchParams): CatalogFilters {
   const genreParam = params.get("genre") ?? "";
   const genre = GENRE_VALUES.includes(genreParam as Genre)
     ? (genreParam as Genre)

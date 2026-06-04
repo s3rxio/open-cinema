@@ -30,7 +30,10 @@ function SeekFlashIcon({ forward }: { forward: boolean }) {
   );
 }
 
-export function PlayerActionFlash({ action, animationKey }: PlayerActionFlashProps) {
+export function PlayerActionFlash({
+  action,
+  animationKey
+}: PlayerActionFlashProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
       <div
@@ -38,10 +41,16 @@ export function PlayerActionFlash({ action, animationKey }: PlayerActionFlashPro
         className="flex h-24 w-24 items-center justify-center rounded-full bg-black/45 player-action-flash"
       >
         {action === "play" && (
-          <Play className="ml-1 h-14 w-14 fill-white text-white" strokeWidth={1.5} />
+          <Play
+            className="ml-1 h-14 w-14 fill-white text-white"
+            strokeWidth={1.5}
+          />
         )}
         {action === "pause" && (
-          <Pause className="h-14 w-14 fill-white text-white" strokeWidth={1.5} />
+          <Pause
+            className="h-14 w-14 fill-white text-white"
+            strokeWidth={1.5}
+          />
         )}
         {action === "seek-back" && <SeekFlashIcon forward={false} />}
         {action === "seek-forward" && <SeekFlashIcon forward />}

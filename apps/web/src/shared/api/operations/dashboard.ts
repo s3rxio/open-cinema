@@ -99,10 +99,7 @@ export const DASHBOARD_MOVIES_QUERY = gql`
       prevCursor
     }
   }
-` as TypedDocumentNode<
-  DashboardMoviesQuery,
-  DashboardMoviesQueryVariables
->;
+` as TypedDocumentNode<DashboardMoviesQuery, DashboardMoviesQueryVariables>;
 
 export const DASHBOARD_SERIES_LIST_QUERY = gql`
   query DashboardSeriesList(
@@ -155,10 +152,7 @@ export const DASHBOARD_USERS_QUERY = gql`
       prevCursor
     }
   }
-` as TypedDocumentNode<
-  DashboardUsersQuery,
-  DashboardUsersQueryVariables
->;
+` as TypedDocumentNode<DashboardUsersQuery, DashboardUsersQueryVariables>;
 
 export const DASHBOARD_USER_QUERY = gql`
   query DashboardUser($id: String!) {
@@ -220,10 +214,7 @@ export const UPDATE_MOVIE_MUTATION = gql`
       isPublished
     }
   }
-` as TypedDocumentNode<
-  UpdateMovieMutation,
-  UpdateMovieMutationVariables
->;
+` as TypedDocumentNode<UpdateMovieMutation, UpdateMovieMutationVariables>;
 
 export const UPDATE_SERIES_MUTATION = gql`
   mutation UpdateSeries($updateSeriesInput: UpdateSeriesInput!) {
@@ -240,10 +231,7 @@ export const UPDATE_SERIES_MUTATION = gql`
       isPublished
     }
   }
-` as TypedDocumentNode<
-  UpdateSeriesMutation,
-  UpdateSeriesMutationVariables
->;
+` as TypedDocumentNode<UpdateSeriesMutation, UpdateSeriesMutationVariables>;
 
 export const UPLOAD_CONTENT_POSTER_MUTATION = gql`
   mutation UploadContentPoster($input: UploadContentPosterInput!) {
@@ -305,10 +293,7 @@ export const CREATE_EPISODE_MUTATION = gql`
       seriesId
     }
   }
-` as TypedDocumentNode<
-  CreateEpisodeMutation,
-  CreateEpisodeMutationVariables
->;
+` as TypedDocumentNode<CreateEpisodeMutation, CreateEpisodeMutationVariables>;
 
 export const CREATE_EPISODES_BULK_MUTATION = gql`
   mutation CreateEpisodesBulk(
@@ -334,10 +319,7 @@ export const REMOVE_EPISODE_MUTATION = gql`
   mutation RemoveEpisode($id: String!) {
     removeEpisode(id: $id)
   }
-` as TypedDocumentNode<
-  RemoveEpisodeMutation,
-  RemoveEpisodeMutationVariables
->;
+` as TypedDocumentNode<RemoveEpisodeMutation, RemoveEpisodeMutationVariables>;
 
 export const UPDATE_EPISODE_MUTATION = gql`
   mutation UpdateEpisode($updateEpisodeInput: UpdateEpisodeInput!) {
@@ -354,10 +336,7 @@ export const UPDATE_EPISODE_MUTATION = gql`
       isPublished
     }
   }
-` as TypedDocumentNode<
-  UpdateEpisodeMutation,
-  UpdateEpisodeMutationVariables
->;
+` as TypedDocumentNode<UpdateEpisodeMutation, UpdateEpisodeMutationVariables>;
 
 export const UPDATE_USER_MUTATION = gql`
   mutation UpdateUser($updateUserInput: UpdateUserInput!) {
@@ -376,19 +355,13 @@ export const CREATE_STREAM_MUTATION = gql`
       id
     }
   }
-` as TypedDocumentNode<
-  CreateStreamMutation,
-  CreateStreamMutationVariables
->;
+` as TypedDocumentNode<CreateStreamMutation, CreateStreamMutationVariables>;
 
 export const GENERATE_MASTER_MUTATION = gql`
   mutation GenerateMaster($streamId: String!) {
     generateMaster(streamId: $streamId)
   }
-` as TypedDocumentNode<
-  GenerateMasterMutation,
-  GenerateMasterMutationVariables
->;
+` as TypedDocumentNode<GenerateMasterMutation, GenerateMasterMutationVariables>;
 
 export const UPDATE_VIDEO_META_MUTATION = gql`
   mutation UpdateVideoMeta($updateVideoMetaInput: UpdateVideoMetaInput!) {
@@ -488,7 +461,4 @@ export const UPLOAD_SUBTITLE_MUTATION = gql`
       orderNumer
     }
   }
-` as TypedDocumentNode<
-  UploadSubtitleMutation,
-  UploadSubtitleMutationVariables
->;
+` as TypedDocumentNode<UploadSubtitleMutation, UploadSubtitleMutationVariables>;

@@ -82,7 +82,10 @@ export class ContentMediaService {
     const tempFilePath = join(tempDir, upload.filename);
 
     try {
-      await pipeline(upload.createReadStream(), createWriteStream(tempFilePath));
+      await pipeline(
+        upload.createReadStream(),
+        createWriteStream(tempFilePath)
+      );
 
       const bucket = this.configService.getOrThrow("s3.bucket");
       const key = `content/${contentId}/${kind}.${extension}`;
@@ -93,8 +96,7 @@ export class ContentMediaService {
         contentType: upload.mimetype
       });
 
-      const data =
-        kind === "poster" ? { posterUrl: key } : { bannerUrl: key };
+      const data = kind === "poster" ? { posterUrl: key } : { bannerUrl: key };
 
       if (contentType === ContentType.MOVIE) {
         await this.prisma.movie.update({
@@ -118,7 +120,9 @@ export class ContentMediaService {
       this.logger.error(error);
       throw error;
     } finally {
-      await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+      await rm(tempDir, { recursive: true, force: true }).catch(
+        () => undefined
+      );
     }
   }
 

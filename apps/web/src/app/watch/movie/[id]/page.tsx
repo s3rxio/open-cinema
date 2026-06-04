@@ -35,7 +35,9 @@ export default function WatchMoviePage() {
       contentId={id}
       movieId={id}
       watchPartyHref={routes.watchPartyMovie(id)}
-      notFoundMessage={!movieQuery.loading && !movie ? "Фильм не найден" : undefined}
+      notFoundMessage={
+        !movieQuery.loading && !movie ? "Фильм не найден" : undefined
+      }
     />
   );
 }

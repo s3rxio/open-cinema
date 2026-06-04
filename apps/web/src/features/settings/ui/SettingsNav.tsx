@@ -7,7 +7,12 @@ import { Shield, User } from "lucide-react";
 
 const tabs = [
   { href: "/settings", label: "Профиль", icon: User, exact: true },
-  { href: "/settings/security", label: "Безопасность", icon: Shield, exact: false }
+  {
+    href: "/settings/security",
+    label: "Безопасность",
+    icon: Shield,
+    exact: false
+  }
 ] as const;
 
 export function SettingsNav() {

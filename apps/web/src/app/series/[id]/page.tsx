@@ -61,37 +61,37 @@ export default function SeriesPage() {
 
   return (
     <>
-    <ContentDetail
-      title={series.title}
-      description={series.description}
-      posterUrl={series.posterUrl}
-      releaseDate={releaseDate}
-      watchHref={
-        firstEpisode
-          ? routes.watchSeries(id, firstEpisode.id)
-          : routes.watchSeries(id)
-      }
-      watchDisabled={!firstEpisode}
-      meta={[
-        { label: "Режиссёр", value: series.director },
-        { label: "Жанры", value: formatGenres(series.genres) },
-        { label: "Официальный рейтинг", value: `⭐ ${series.rating}` },
-        { label: "Рейтинг пользователей", value: userRatingLabel }
-      ]}
-    >
-      {seasons.length > 0 ? (
-        <EpisodeList seriesId={id} seasons={seasons} />
-      ) : (
-        <p className="text-center text-muted-foreground">
-          Эпизоды пока не добавлены
-        </p>
-      )}
-    </ContentDetail>
-    <section className="pb-8">
-      <Container>
-        <ReviewsSection contentId={id} type="SERIES" />
-      </Container>
-    </section>
+      <ContentDetail
+        title={series.title}
+        description={series.description}
+        posterUrl={series.posterUrl}
+        releaseDate={releaseDate}
+        watchHref={
+          firstEpisode
+            ? routes.watchSeries(id, firstEpisode.id)
+            : routes.watchSeries(id)
+        }
+        watchDisabled={!firstEpisode}
+        meta={[
+          { label: "Режиссёр", value: series.director },
+          { label: "Жанры", value: formatGenres(series.genres) },
+          { label: "Официальный рейтинг", value: `⭐ ${series.rating}` },
+          { label: "Рейтинг пользователей", value: userRatingLabel }
+        ]}
+      >
+        {seasons.length > 0 ? (
+          <EpisodeList seriesId={id} seasons={seasons} />
+        ) : (
+          <p className="text-center text-muted-foreground">
+            Эпизоды пока не добавлены
+          </p>
+        )}
+      </ContentDetail>
+      <section className="pb-8">
+        <Container>
+          <ReviewsSection contentId={id} type="SERIES" />
+        </Container>
+      </section>
     </>
   );
 }

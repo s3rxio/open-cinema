@@ -45,7 +45,9 @@ export function StarRating({
               key={starValue}
               size={iconSize}
               fill={filled ? "currentColor" : "none"}
-              className={cn(filled ? "text-yellow-400" : "text-muted-foreground/30")}
+              className={cn(
+                filled ? "text-yellow-400" : "text-muted-foreground/30"
+              )}
               aria-hidden
             />
           );
@@ -58,7 +60,9 @@ export function StarRating({
             onClick={() => onChange?.(starsToRating(starValue))}
             className={cn(
               "rounded-sm transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              filled ? "text-yellow-400" : "text-muted-foreground/40 hover:text-yellow-300"
+              filled
+                ? "text-yellow-400"
+                : "text-muted-foreground/40 hover:text-yellow-300"
             )}
             aria-label={`${starValue} из ${MAX_STARS}`}
             aria-checked={filled}

@@ -23,13 +23,7 @@ export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
     if (isUserLoaded && !canAccessDashboard) {
       router.replace("/");
     }
-  }, [
-    isReady,
-    isAuthenticated,
-    isUserLoaded,
-    canAccessDashboard,
-    router
-  ]);
+  }, [isReady, isAuthenticated, isUserLoaded, canAccessDashboard, router]);
 
   if (!isReady || !isAuthenticated || !isUserLoaded || !canAccessDashboard) {
     return (

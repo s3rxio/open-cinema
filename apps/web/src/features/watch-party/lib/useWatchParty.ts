@@ -37,7 +37,9 @@ export function useWatchParty(options: {
   const [room, setRoom] = useState<WatchPartyRoom | null>(null);
   const [members, setMembers] = useState<WatchPartyMember[]>([]);
   const [chat, setChat] = useState<WatchPartyChatMessage[]>([]);
-  const [playback, setPlayback] = useState<WatchPartyPlaybackState | null>(null);
+  const [playback, setPlayback] = useState<WatchPartyPlaybackState | null>(
+    null
+  );
   const [isHost, setIsHost] = useState(false);
   const [hostUserId, setHostUserId] = useState<string | null>(null);
 
@@ -47,10 +49,13 @@ export function useWatchParty(options: {
     setStatus("connecting");
     setError(null);
 
-    const socket = io(`${getWatchPartySocketBaseUrl()}${WATCH_PARTY_NAMESPACE}`, {
-      auth: { token },
-      transports: ["websocket", "polling"]
-    });
+    const socket = io(
+      `${getWatchPartySocketBaseUrl()}${WATCH_PARTY_NAMESPACE}`,
+      {
+        auth: { token },
+        transports: ["websocket", "polling"]
+      }
+    );
 
     socketRef.current = socket;
 
@@ -151,13 +156,7 @@ export function useWatchParty(options: {
         socketRef.current = null;
       }
     };
-  }, [
-    connect,
-    options.enabled,
-    isReady,
-    isAuthenticated,
-    token
-  ]);
+  }, [connect, options.enabled, isReady, isAuthenticated, token]);
 
   const sendChat = useCallback((text: string) => {
     socketRef.current?.emit("chat:send", { text });

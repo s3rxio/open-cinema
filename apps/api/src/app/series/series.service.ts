@@ -168,7 +168,9 @@ export class SeriesService {
     return true;
   }
 
-  private buildUpdateData(updateSeriesInput: UpdateSeriesInput): SeriesUpdateInput {
+  private buildUpdateData(
+    updateSeriesInput: UpdateSeriesInput
+  ): SeriesUpdateInput {
     const data: SeriesUpdateInput = {};
 
     if (updateSeriesInput.title !== undefined) {

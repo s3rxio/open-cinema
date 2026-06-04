@@ -21,10 +21,9 @@ export async function seedRbac(prisma: PrismaClient) {
     });
   }
 
-  for (const [roleSlug, permissionSlugs] of Object.entries(ROLE_PERMISSION_MAP) as [
-    RoleSlugType,
-    readonly string[]
-  ][]) {
+  for (const [roleSlug, permissionSlugs] of Object.entries(
+    ROLE_PERMISSION_MAP
+  ) as [RoleSlugType, readonly string[]][]) {
     const role = await prisma.role.upsert({
       where: { slug: roleSlug },
       create: {

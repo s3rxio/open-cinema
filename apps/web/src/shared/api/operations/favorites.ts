@@ -79,16 +79,10 @@ export const CREATE_FAVORITE_MUTATION = gql`
       }
     }
   }
-` as TypedDocumentNode<
-  CreateFavoriteMutation,
-  CreateFavoriteMutationVariables
->;
+` as TypedDocumentNode<CreateFavoriteMutation, CreateFavoriteMutationVariables>;
 
 export const REMOVE_FAVORITE_MUTATION = gql`
   mutation RemoveFavorite($id: String!) {
     removeFavorite(id: $id)
   }
-` as TypedDocumentNode<
-  RemoveFavoriteMutation,
-  RemoveFavoriteMutationVariables
->;
+` as TypedDocumentNode<RemoveFavoriteMutation, RemoveFavoriteMutationVariables>;

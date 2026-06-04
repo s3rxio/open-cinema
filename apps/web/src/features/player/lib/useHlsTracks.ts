@@ -1,6 +1,10 @@
 import type Hls from "hls.js";
 import { useCallback } from "react";
-import type { AudioMeta, SubtitleMeta, VideoMeta } from "@/shared/api/operation-types";
+import type {
+  AudioMeta,
+  SubtitleMeta,
+  VideoMeta
+} from "@/shared/api/operation-types";
 
 export const AUTO_QUALITY = "auto";
 

@@ -30,7 +30,9 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     return this.resolveCanActivate(context);
   }
 
-  private async resolveCanActivate(context: ExecutionContext): Promise<boolean> {
+  private async resolveCanActivate(
+    context: ExecutionContext
+  ): Promise<boolean> {
     const result = super.canActivate(context);
 
     if (typeof result === "boolean") {

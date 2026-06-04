@@ -53,12 +53,7 @@ export class ContentService {
   }
 
   private buildWhere(input: SearchContentInput): ContentWhereInput {
-    const {
-      query,
-      minRating = 0,
-      maxRating = 10,
-      genre
-    } = input;
+    const { query, minRating = 0, maxRating = 10, genre } = input;
 
     const where: ContentWhereInput = {
       rating: {
@@ -120,9 +115,7 @@ export class ContentService {
     }
 
     if (sortBy === "releaseDate") {
-      return (
-        (a.releaseDate.getTime() - b.releaseDate.getTime()) * direction
-      );
+      return (a.releaseDate.getTime() - b.releaseDate.getTime()) * direction;
     }
 
     return a.title.localeCompare(b.title, "ru") * direction;

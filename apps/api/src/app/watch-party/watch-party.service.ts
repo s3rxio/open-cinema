@@ -92,14 +92,23 @@ export class WatchPartyService {
 
   async getMembers(roomId: string): Promise<WatchPartyMember[]> {
     const raw = await this.redis.client.hgetall(redisKeys.members(roomId));
-    return Object.values(raw).map(value => JSON.parse(value) as WatchPartyMember);
+    return Object.values(raw).map(
+      value => JSON.parse(value) as WatchPartyMember
+    );
   }
 
-  async setHost(roomId: string, hostUserId: string): Promise<WatchPartyRoom | null> {
+  async setHost(
+    roomId: string,
+    hostUserId: string
+  ): Promise<WatchPartyRoom | null> {
     const room = await this.getRoom(roomId);
     if (!room) return null;
 
-    await this.redis.client.hset(redisKeys.room(roomId), "hostUserId", hostUserId);
+    await this.redis.client.hset(
+      redisKeys.room(roomId),
+      "hostUserId",
+      hostUserId
+    );
     return { ...room, hostUserId };
   }
 
@@ -107,11 +116,18 @@ export class WatchPartyService {
     roomId: string,
     contentId: string,
     hostUserId: string
-  ): Promise<{ room: WatchPartyRoom; playback: WatchPartyPlaybackState } | null> {
+  ): Promise<{
+    room: WatchPartyRoom;
+    playback: WatchPartyPlaybackState;
+  } | null> {
     const room = await this.getRoom(roomId);
     if (!room) return null;
 
-    await this.redis.client.hset(redisKeys.room(roomId), "contentId", contentId);
+    await this.redis.client.hset(
+      redisKeys.room(roomId),
+      "contentId",
+      contentId
+    );
 
     const playback = await this.savePlaybackState(roomId, {
       currentTime: 0,
@@ -122,7 +138,9 @@ export class WatchPartyService {
     return { room: { ...room, contentId }, playback };
   }
 
-  async getPlaybackState(roomId: string): Promise<WatchPartyPlaybackState | null> {
+  async getPlaybackState(
+    roomId: string
+  ): Promise<WatchPartyPlaybackState | null> {
     const data = await this.redis.client.hgetall(redisKeys.state(roomId));
     if (!data.updatedAt) return null;
 
@@ -161,7 +179,10 @@ export class WatchPartyService {
     roomId: string,
     message: WatchPartyChatMessage
   ): Promise<WatchPartyChatMessage> {
-    await this.redis.client.rpush(redisKeys.chat(roomId), JSON.stringify(message));
+    await this.redis.client.rpush(
+      redisKeys.chat(roomId),
+      JSON.stringify(message)
+    );
     await this.redis.client.ltrim(
       redisKeys.chat(roomId),
       -CHAT_MAX_MESSAGES,
@@ -196,7 +217,12 @@ export class WatchPartyService {
       if (!exists) return code;
     }
 
-    this.logger.warn("Failed to generate unique room code, using UUID fragment");
-    return randomUUID().replace(/-/g, "").slice(0, ROOM_CODE_LENGTH).toUpperCase();
+    this.logger.warn(
+      "Failed to generate unique room code, using UUID fragment"
+    );
+    return randomUUID()
+      .replace(/-/g, "")
+      .slice(0, ROOM_CODE_LENGTH)
+      .toUpperCase();
   }
 }

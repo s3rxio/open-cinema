@@ -5,7 +5,12 @@ import {
   OnModuleInit
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { Permission, PermissionSlug, RoleSlug, RoleSlugType } from "./permissions";
+import {
+  Permission,
+  PermissionSlug,
+  RoleSlug,
+  RoleSlugType
+} from "./permissions";
 import { seedRbac } from "./rbac.seed";
 
 @Injectable()

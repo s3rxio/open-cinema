@@ -68,11 +68,7 @@ const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
-  <td
-    ref={ref}
-    className={cn("p-4 align-middle", className)}
-    {...props}
-  />
+  <td ref={ref} className={cn("p-4 align-middle", className)} {...props} />
 ));
 TableCell.displayName = "TableCell";
 
@@ -82,7 +78,10 @@ const TableScrollArea = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <ScrollArea.Root
     ref={ref}
-    className={cn("relative w-full overflow-hidden rounded-md border", className)}
+    className={cn(
+      "relative w-full overflow-hidden rounded-md border",
+      className
+    )}
     {...props}
   >
     <ScrollArea.Viewport className="h-full w-full">

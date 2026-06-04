@@ -41,9 +41,12 @@ function WatchPartySeriesContent() {
 
   const handleEpisodeChange = useCallback(
     (nextEpisodeId: string) => {
-      router.replace(routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined), {
-        scroll: false
-      });
+      router.replace(
+        routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined),
+        {
+          scroll: false
+        }
+      );
     },
     [id, router, roomCode]
   );
@@ -51,9 +54,12 @@ function WatchPartySeriesContent() {
   const handleContentChanged = useCallback(
     (nextEpisodeId: string) => {
       if (nextEpisodeId === activeEpisodeId) return;
-      router.replace(routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined), {
-        scroll: false
-      });
+      router.replace(
+        routes.watchPartySeries(id, nextEpisodeId, roomCode ?? undefined),
+        {
+          scroll: false
+        }
+      );
     },
     [id, router, roomCode, activeEpisodeId]
   );

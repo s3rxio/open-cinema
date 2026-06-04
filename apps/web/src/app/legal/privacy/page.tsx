@@ -28,12 +28,16 @@ export default function PrivacyPolicyPage() {
             <li>адрес электронной почты;</li>
             <li>имя пользователя (логин);</li>
             <li>пароль в зашифрованном виде;</li>
-            <li>данные об использовании сервиса (история просмотров, избранное).</li>
+            <li>
+              данные об использовании сервиса (история просмотров, избранное).
+            </li>
           </ul>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-medium text-foreground">Цели обработки</h2>
+          <h2 className="text-lg font-medium text-foreground">
+            Цели обработки
+          </h2>
           <ul className="list-disc space-y-1 pl-5">
             <li>создание и ведение учётной записи;</li>
             <li>предоставление доступа к каталогу и просмотру контента;</li>

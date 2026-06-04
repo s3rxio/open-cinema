@@ -11,10 +11,6 @@ export default function DashboardSeriesEditPage({
   const { id } = use(params);
 
   return (
-    <ContentAdminEdit
-      kind="series"
-      id={id}
-      backHref="/dashboard/series"
-    />
+    <ContentAdminEdit kind="series" id={id} backHref="/dashboard/series" />
   );
 }

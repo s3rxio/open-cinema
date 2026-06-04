@@ -4,7 +4,11 @@ import { useEffect, useRef } from "react";
 import { Check, Settings } from "lucide-react";
 import { Button, cn } from "@open-cinema/ui";
 import { PlayerControlTooltip } from "./PlayerControlTooltip";
-import type { AudioMeta, SubtitleMeta, VideoMeta } from "@/shared/api/operation-types";
+import type {
+  AudioMeta,
+  SubtitleMeta,
+  VideoMeta
+} from "@/shared/api/operation-types";
 import { AUTO_QUALITY } from "../lib/useHlsTracks";
 
 type PlayerSettingsMenuProps = {
@@ -87,7 +91,9 @@ export function PlayerSettingsMenu({
     const onPointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
       if (panelRef.current?.contains(target)) return;
-      const trigger = (e.target as HTMLElement).closest("[data-settings-trigger]");
+      const trigger = (e.target as HTMLElement).closest(
+        "[data-settings-trigger]"
+      );
       if (trigger) return;
       onOpenChange(false);
     };

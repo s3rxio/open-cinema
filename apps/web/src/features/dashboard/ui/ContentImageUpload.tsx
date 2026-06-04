@@ -108,7 +108,9 @@ export function ContentImageUpload({
         />
       </div>
 
-      {status ? <p className="text-sm text-muted-foreground">{status}</p> : null}
+      {status ? (
+        <p className="text-sm text-muted-foreground">{status}</p>
+      ) : null}
     </section>
   );
 }
@@ -144,7 +146,9 @@ function ImageUploadField({
           className="max-h-40 rounded-md border object-cover"
         />
       ) : (
-        <p className="text-sm text-muted-foreground">Изображение не загружено</p>
+        <p className="text-sm text-muted-foreground">
+          Изображение не загружено
+        </p>
       )}
 
       <input

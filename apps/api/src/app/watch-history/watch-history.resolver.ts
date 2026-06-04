@@ -12,7 +12,8 @@ export class WatchHistoryResolver {
   @RequiredPermission(Permission.WatchHistoryCreate)
   @Mutation(() => WatchHistory)
   recordWatchHistory(
-    @Args("recordWatchHistoryInput") recordWatchHistoryInput: RecordWatchHistoryInput
+    @Args("recordWatchHistoryInput")
+    recordWatchHistoryInput: RecordWatchHistoryInput
   ) {
     return this.watchHistoryService.record(recordWatchHistoryInput);
   }
@@ -32,7 +33,8 @@ export class WatchHistoryResolver {
   @RequiredPermission(Permission.WatchHistoryUpdate)
   @Mutation(() => WatchHistory)
   updateWatchHistory(
-    @Args("updateWatchHistoryInput") updateWatchHistoryInput: UpdateWatchHistoryInput
+    @Args("updateWatchHistoryInput")
+    updateWatchHistoryInput: UpdateWatchHistoryInput
   ) {
     return this.watchHistoryService.update(
       updateWatchHistoryInput.id,

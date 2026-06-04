@@ -189,9 +189,7 @@ export function StreamPlayerPanel({
         onError={error => setMessage(getApolloErrorMessage(error))}
       />
 
-      {stream ? (
-        <TrackLists stream={stream} onUpdated={refreshStream} />
-      ) : null}
+      {stream ? <TrackLists stream={stream} onUpdated={refreshStream} /> : null}
 
       {message ? (
         <p className="text-sm text-muted-foreground" role="status">
@@ -484,9 +482,7 @@ function FileUploadProgressBar({
           className={`h-full rounded-full bg-primary transition-[width] duration-150 ease-out ${
             hasDeterminateProgress ? "" : "w-1/3 animate-pulse"
           }`}
-          style={
-            hasDeterminateProgress ? { width: `${percent}%` } : undefined
-          }
+          style={hasDeterminateProgress ? { width: `${percent}%` } : undefined}
         />
       </div>
     </div>
@@ -553,11 +549,12 @@ function TrackLists({
     }
   };
 
-  const deleteMeta = async (kind: "video" | "audio" | "subtitle", id: string) => {
+  const deleteMeta = async (
+    kind: "video" | "audio" | "subtitle",
+    id: string
+  ) => {
     if (
-      !window.confirm(
-        "Удалить дорожку? Файлы в хранилище также будут удалены."
-      )
+      !window.confirm("Удалить дорожку? Файлы в хранилище также будут удалены.")
     ) {
       return;
     }
@@ -722,7 +719,10 @@ function TrackRow({
     <li className="grid gap-3 rounded-md border p-3 sm:grid-cols-[1fr_1fr_auto]">
       <div className="space-y-1">
         <Label className="text-xs">Название</Label>
-        <Input value={displayName} onChange={e => setDisplayName(e.target.value)} />
+        <Input
+          value={displayName}
+          onChange={e => setDisplayName(e.target.value)}
+        />
       </div>
       <div className="space-y-1">
         <Label className="text-xs">Slug</Label>

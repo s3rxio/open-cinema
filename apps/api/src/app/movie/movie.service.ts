@@ -72,7 +72,10 @@ export class MovieService {
     };
   }
 
-  async findOne(id: string, options?: { includeUnpublished?: boolean }): Promise<Movie> {
+  async findOne(
+    id: string,
+    options?: { includeUnpublished?: boolean }
+  ): Promise<Movie> {
     const movie = await this.prisma.movie.findUnique({
       where: { id: id }
     });
@@ -138,7 +141,9 @@ export class MovieService {
     return true;
   }
 
-  private buildUpdateData(updateMovieInput: UpdateMovieInput): MovieUpdateInput {
+  private buildUpdateData(
+    updateMovieInput: UpdateMovieInput
+  ): MovieUpdateInput {
     const data: MovieUpdateInput = {};
 
     if (updateMovieInput.title !== undefined) {

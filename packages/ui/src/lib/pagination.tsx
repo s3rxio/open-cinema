@@ -30,9 +30,7 @@ export function Pagination({
       )}
     >
       <p className="text-sm text-muted-foreground">
-        {total === 0
-          ? "Нет записей"
-          : `Показано ${from}–${to} из ${total}`}
+        {total === 0 ? "Нет записей" : `Показано ${from}–${to} из ${total}`}
       </p>
       <div className="flex items-center gap-2">
         <Button

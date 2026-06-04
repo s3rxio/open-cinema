@@ -65,7 +65,11 @@ export function MobileNavMenu({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
+    <div
+      className="fixed inset-0 z-50 lg:hidden"
+      role="dialog"
+      aria-modal="true"
+    >
       <button
         type="button"
         className="absolute inset-0 bg-black/60"
@@ -86,7 +90,10 @@ export function MobileNavMenu({
           </Button>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Основная навигация">
+        <nav
+          className="flex flex-1 flex-col gap-1 overflow-y-auto p-3"
+          aria-label="Основная навигация"
+        >
           <MobileNavLink href="/" exact onNavigate={onClose}>
             Главная
           </MobileNavLink>
@@ -104,7 +111,10 @@ export function MobileNavMenu({
           {isAuthenticated ? (
             <div className="space-y-1">
               <p className="flex items-center gap-2 px-3 pb-2 text-sm font-medium text-foreground">
-                <User className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                <User
+                  className="h-4 w-4 shrink-0 text-muted-foreground"
+                  aria-hidden
+                />
                 <span className="truncate">{displayName}</span>
               </p>
               {canAccessDashboard ? (

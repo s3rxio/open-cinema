@@ -102,7 +102,10 @@ export function RegisterForm() {
             )}
           </div>
           <div>
-            <label htmlFor="username" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium mb-2"
+            >
               Логин (имя пользователя)
             </label>
             <Input
@@ -121,7 +124,10 @@ export function RegisterForm() {
             )}
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-2"
+            >
               Пароль
             </label>
             <Input

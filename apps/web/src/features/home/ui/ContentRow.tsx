@@ -69,7 +69,9 @@ export function ContentRow({
       <div className="mb-6 flex items-center justify-between px-1 max-md:mb-4">
         <h2 className="m-0 flex items-center gap-2.5 text-[22px] font-semibold tracking-[-0.3px] text-foreground">
           {titleIcon ? (
-            <span className="inline-flex shrink-0 text-[#ff9f0a]">{titleIcon}</span>
+            <span className="inline-flex shrink-0 text-[#ff9f0a]">
+              {titleIcon}
+            </span>
           ) : null}
           {title}
         </h2>

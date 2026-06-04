@@ -31,7 +31,10 @@ export function CookieConsent() {
       className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6 pointer-events-none"
     >
       <div className="pointer-events-auto mx-auto max-w-3xl rounded-lg border border-border bg-card p-4 shadow-lg sm:p-5">
-        <p id="cookie-consent-title" className="text-sm font-medium text-foreground">
+        <p
+          id="cookie-consent-title"
+          className="text-sm font-medium text-foreground"
+        >
           Мы используем файлы cookie
         </p>
         <p
@@ -39,8 +42,8 @@ export function CookieConsent() {
           className="mt-2 text-sm text-muted-foreground leading-relaxed"
         >
           Сайт использует cookie для входа в аккаунт, сохранения настроек и
-          аналитики работы сервиса. Продолжая пользоваться сайтом, вы соглашаетесь
-          с их использованием. Подробнее — в{" "}
+          аналитики работы сервиса. Продолжая пользоваться сайтом, вы
+          соглашаетесь с их использованием. Подробнее — в{" "}
           <Link
             href={routes.legalCookies}
             className="text-primary font-medium hover:underline"

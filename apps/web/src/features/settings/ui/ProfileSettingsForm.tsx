@@ -18,7 +18,9 @@ export function ProfileSettingsForm() {
   const setUser = useAuthStore(state => state.setUser);
   const user = useAuthStore(state => state.user);
   const meQuery = useQuery(SETTINGS_ME_QUERY);
-  const [updateProfile, updateProfileState] = useMutation(UPDATE_PROFILE_MUTATION);
+  const [updateProfile, updateProfileState] = useMutation(
+    UPDATE_PROFILE_MUTATION
+  );
 
   const {
     register,

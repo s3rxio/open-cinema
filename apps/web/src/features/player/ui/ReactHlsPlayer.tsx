@@ -3,12 +3,13 @@
 import Hls, { type HlsConfig } from "hls.js";
 import { useCallback, useLayoutEffect, useRef, type RefObject } from "react";
 
-export type ReactHlsPlayerProps = React.VideoHTMLAttributes<HTMLVideoElement> & {
-  hlsConfig?: HlsConfig;
-  playerRef: RefObject<HTMLVideoElement | null>;
-  src: string;
-  onHlsReady?: (hls: Hls) => void;
-};
+export type ReactHlsPlayerProps =
+  React.VideoHTMLAttributes<HTMLVideoElement> & {
+    hlsConfig?: HlsConfig;
+    playerRef: RefObject<HTMLVideoElement | null>;
+    src: string;
+    onHlsReady?: (hls: Hls) => void;
+  };
 
 /**
  * HLS video element (react-hls-player pattern + onHlsReady for track controls).

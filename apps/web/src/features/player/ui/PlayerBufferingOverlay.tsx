@@ -6,7 +6,9 @@ type PlayerBufferingOverlayProps = {
   visible: boolean;
 };
 
-export function PlayerBufferingOverlay({ visible }: PlayerBufferingOverlayProps) {
+export function PlayerBufferingOverlay({
+  visible
+}: PlayerBufferingOverlayProps) {
   if (!visible) return null;
 
   return (

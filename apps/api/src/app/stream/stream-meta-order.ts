@@ -15,11 +15,14 @@ export const streamMetasInclude = {
   subtitleMetas: {
     orderBy: { orderNumer: "asc" }
   }
-} satisfies Pick<Prisma.StreamInclude, "videoMetas" | "audioMetas" | "subtitleMetas">;
+} satisfies Pick<
+  Prisma.StreamInclude,
+  "videoMetas" | "audioMetas" | "subtitleMetas"
+>;
 
-export function sortVideoMetas<T extends { height: number; width: number; bitrate: number }>(
-  metas: T[]
-): T[] {
+export function sortVideoMetas<
+  T extends { height: number; width: number; bitrate: number }
+>(metas: T[]): T[] {
   return [...metas].sort((a, b) => {
     if (b.height !== a.height) {
       return b.height - a.height;
@@ -33,6 +36,8 @@ export function sortVideoMetas<T extends { height: number; width: number; bitrat
   });
 }
 
-export function sortByOrderNumer<T extends { orderNumer: number }>(metas: T[]): T[] {
+export function sortByOrderNumer<T extends { orderNumer: number }>(
+  metas: T[]
+): T[] {
   return [...metas].sort((a, b) => a.orderNumer - b.orderNumer);
 }

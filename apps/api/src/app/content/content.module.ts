@@ -9,7 +9,12 @@ import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [PrismaModule, StorageModule, ConfigModule],
-  providers: [ContentResolver, ContentService, ContentMediaService, ContentMediaUrlService],
+  providers: [
+    ContentResolver,
+    ContentService,
+    ContentMediaService,
+    ContentMediaUrlService
+  ],
   exports: [ContentService, ContentMediaUrlService]
 })
 export class ContentModule {}

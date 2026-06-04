@@ -163,9 +163,7 @@ export class ReviewService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new BadRequestException(
-          "You have already reviewed this title"
-        );
+        throw new BadRequestException("You have already reviewed this title");
       }
 
       this.logger.error(error);
@@ -203,7 +201,10 @@ export class ReviewService {
     const review = await this.findOne(id);
 
     if (review.userId !== userId) {
-      const isAdmin = await this.rbacService.userHasRole(userId, RoleSlug.Admin);
+      const isAdmin = await this.rbacService.userHasRole(
+        userId,
+        RoleSlug.Admin
+      );
       if (!isAdmin) {
         throw new BadRequestException("You can only delete your own review");
       }

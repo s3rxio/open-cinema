@@ -52,7 +52,8 @@ export class EpisodeResolver {
   @RequiredPermission(Permission.EpisodeCreate)
   @Mutation(() => [Episode])
   createEpisodesBulk(
-    @Args("createEpisodesBulkInput") createEpisodesBulkInput: CreateEpisodesBulkInput
+    @Args("createEpisodesBulkInput")
+    createEpisodesBulkInput: CreateEpisodesBulkInput
   ) {
     return this.episodeService.createBulk(createEpisodesBulkInput);
   }

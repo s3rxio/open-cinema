@@ -12,13 +12,20 @@ import {
 } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
 import { cn } from "@open-cinema/ui";
-import { LayoutDashboard, LogOut, Menu, Search, Settings, User, X } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Search,
+  Settings,
+  User,
+  X
+} from "lucide-react";
 import { NavbarSearch } from "./NavbarSearch";
 import { Container } from "./Container";
 import { MobileNavMenu } from "./MobileNavMenu";
 
-const navLinkClass =
-  "text-sm font-medium transition-colors hover:text-primary";
+const navLinkClass = "text-sm font-medium transition-colors hover:text-primary";
 
 function NavLink({
   href,

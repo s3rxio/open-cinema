@@ -6,7 +6,9 @@ import type {
 } from "../operation-types";
 
 export const RECORD_WATCH_HISTORY_MUTATION = gql`
-  mutation RecordWatchHistory($recordWatchHistoryInput: RecordWatchHistoryInput!) {
+  mutation RecordWatchHistory(
+    $recordWatchHistoryInput: RecordWatchHistoryInput!
+  ) {
     recordWatchHistory(recordWatchHistoryInput: $recordWatchHistoryInput) {
       id
       progress

@@ -80,7 +80,9 @@ export function FullscreenPlayer({
             watchPartyHref={watchPartyHref}
             seasons={showEpisodePicker ? seasons : undefined}
             selectedSeason={showEpisodePicker ? selectedSeason : undefined}
-            selectedEpisodeId={showEpisodePicker ? selectedEpisodeId : undefined}
+            selectedEpisodeId={
+              showEpisodePicker ? selectedEpisodeId : undefined
+            }
             onEpisodeChange={showEpisodePicker ? onEpisodeChange : undefined}
           />
         ) : loading ? (

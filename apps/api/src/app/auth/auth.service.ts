@@ -104,7 +104,9 @@ export class AuthService {
     const { currPass, newPass, confirmNewPass } = changePasswordInput;
 
     if (newPass !== confirmNewPass) {
-      throw new BadRequestException("Новый пароль и подтверждение не совпадают");
+      throw new BadRequestException(
+        "Новый пароль и подтверждение не совпадают"
+      );
     }
 
     const user = await this.prismaService.user.findUnique({

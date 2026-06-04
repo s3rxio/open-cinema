@@ -114,7 +114,10 @@ export class EpisodeService {
     options?: { includeUnpublished?: boolean }
   ): Promise<PaginatedEpisodes> {
     const { first, cursor } = paginationArgs;
-    const where = withPublishedFilter(undefined, options?.includeUnpublished ?? false);
+    const where = withPublishedFilter(
+      undefined,
+      options?.includeUnpublished ?? false
+    );
     const episodes = await this.prisma.episode.findMany({
       where,
       orderBy: [{ season: "asc" }, { episode: "asc" }],

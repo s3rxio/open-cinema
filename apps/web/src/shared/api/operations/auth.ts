@@ -34,7 +34,4 @@ export const REFRESH_TOKEN_MUTATION = gql`
       refreshToken
     }
   }
-` as TypedDocumentNode<
-  RefreshTokenMutation,
-  RefreshTokenMutationVariables
->;
+` as TypedDocumentNode<RefreshTokenMutation, RefreshTokenMutationVariables>;

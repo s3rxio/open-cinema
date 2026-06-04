@@ -11,7 +11,10 @@ import {
   SERIES_REVIEWS_QUERY,
   UPDATE_REVIEW_MUTATION
 } from "@/shared/api/operations/reviews";
-import { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
+import {
+  MOVIE_BY_ID_QUERY,
+  SERIES_BY_ID_QUERY
+} from "@/shared/api/operations/content";
 import { useAuth } from "@/shared/auth/AuthContext";
 
 type UseReviewsOptions = {
@@ -34,7 +37,8 @@ export function useReviews({ contentId, type }: UseReviewsOptions) {
     skip: !contentId || type !== "SERIES"
   });
 
-  const reviewsQuery = type === "MOVIE" ? movieReviewsQuery : seriesReviewsQuery;
+  const reviewsQuery =
+    type === "MOVIE" ? movieReviewsQuery : seriesReviewsQuery;
 
   const refetchQueries =
     type === "MOVIE"

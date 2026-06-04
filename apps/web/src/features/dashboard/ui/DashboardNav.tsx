@@ -16,7 +16,12 @@ type DashboardTab = {
 const tabs: DashboardTab[] = [
   { href: "/dashboard/movies", label: "Фильмы", icon: Clapperboard },
   { href: "/dashboard/series", label: "Сериалы", icon: Tv },
-  { href: "/dashboard/users", label: "Пользователи", icon: Users, adminOnly: true }
+  {
+    href: "/dashboard/users",
+    label: "Пользователи",
+    icon: Users,
+    adminOnly: true
+  }
 ];
 
 export function DashboardNav() {

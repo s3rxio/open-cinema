@@ -212,7 +212,8 @@ export function SeriesEpisodesPanel({
     }
   };
 
-  const busy = createState.loading || bulkCreateState.loading || removeState.loading;
+  const busy =
+    createState.loading || bulkCreateState.loading || removeState.loading;
 
   return (
     <div className="space-y-8">
@@ -306,82 +307,84 @@ export function SeriesEpisodesPanel({
             const collapsed = collapsedSeasons.has(season);
 
             return (
-            <div key={season} className="rounded-lg border">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-2">
-                <button
-                  type="button"
-                  className="flex min-w-0 flex-1 items-center gap-2 text-left"
-                  onClick={() => toggleSeason(season)}
-                  aria-expanded={!collapsed}
-                >
-                  <ChevronDown
-                    className={cn(
-                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
-                      collapsed && "-rotate-90"
-                    )}
-                  />
-                  <span className="font-medium">Сезон {season}</span>
-                  <span className="text-xs text-muted-foreground">
-                    ({items.length})
-                  </span>
-                </button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={busy}
-                  onClick={() => setForm(buildDefaultFormValues(episodes, season))}
-                >
-                  + Эпизод в сезон {season}
-                </Button>
-              </div>
-              {!collapsed ? (
-              <ul className="divide-y">
-                {items.map(item => (
-                  <li
-                    key={item.id}
-                    className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+              <div key={season} className="rounded-lg border">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-2">
+                  <button
+                    type="button"
+                    className="flex min-w-0 flex-1 items-center gap-2 text-left"
+                    onClick={() => toggleSeason(season)}
+                    aria-expanded={!collapsed}
                   >
-                    <div>
-                      <p className="font-medium">
-                        E{item.episode} — {item.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Рейтинг {item.rating.toFixed(1)}
-                        {item.streamId ? " · есть стрим" : ""}
-                        {item.isPublished ? "" : " · черновик"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <EpisodePublishButton
-                        episodeId={item.id}
-                        isPublished={item.isPublished}
-                        onChanged={onChanged}
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={busy}
-                        onClick={() => setEditingEpisode(item)}
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                        collapsed && "-rotate-90"
+                      )}
+                    />
+                    <span className="font-medium">Сезон {season}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({items.length})
+                    </span>
+                  </button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={busy}
+                    onClick={() =>
+                      setForm(buildDefaultFormValues(episodes, season))
+                    }
+                  >
+                    + Эпизод в сезон {season}
+                  </Button>
+                </div>
+                {!collapsed ? (
+                  <ul className="divide-y">
+                    {items.map(item => (
+                      <li
+                        key={item.id}
+                        className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                       >
-                        Изменить
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={deletingId === item.id}
-                        onClick={() => handleDeleteEpisode(item)}
-                      >
-                        {deletingId === item.id ? "…" : "Удалить"}
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              ) : null}
-            </div>
+                        <div>
+                          <p className="font-medium">
+                            E{item.episode} — {item.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Рейтинг {item.rating.toFixed(1)}
+                            {item.streamId ? " · есть стрим" : ""}
+                            {item.isPublished ? "" : " · черновик"}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <EpisodePublishButton
+                            episodeId={item.id}
+                            isPublished={item.isPublished}
+                            onChanged={onChanged}
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={busy}
+                            onClick={() => setEditingEpisode(item)}
+                          >
+                            Изменить
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            disabled={deletingId === item.id}
+                            onClick={() => handleDeleteEpisode(item)}
+                          >
+                            {deletingId === item.id ? "…" : "Удалить"}
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             );
           })
         )}

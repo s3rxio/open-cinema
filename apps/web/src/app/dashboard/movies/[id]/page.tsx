@@ -10,11 +10,5 @@ export default function DashboardMovieEditPage({
 }) {
   const { id } = use(params);
 
-  return (
-    <ContentAdminEdit
-      kind="movie"
-      id={id}
-      backHref="/dashboard/movies"
-    />
-  );
+  return <ContentAdminEdit kind="movie" id={id} backHref="/dashboard/movies" />;
 }

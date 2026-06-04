@@ -41,7 +41,10 @@ export function ContentDetail({
     <main className="space-y-8 py-8 max-md:space-y-6 max-md:py-4">
       <section>
         <Container>
-          <Link href={routes.home} className="text-primary hover:underline inline-block">
+          <Link
+            href={routes.home}
+            className="text-primary hover:underline inline-block"
+          >
             ← Назад в каталог
           </Link>
 
@@ -86,7 +89,10 @@ export function ContentDetail({
 
                 {watchDisabled ? (
                   <span
-                    className={cn(watchButtonClass, "opacity-50 cursor-not-allowed")}
+                    className={cn(
+                      watchButtonClass,
+                      "opacity-50 cursor-not-allowed"
+                    )}
                     aria-disabled
                   >
                     <Play className="h-4 w-4 fill-current" aria-hidden />

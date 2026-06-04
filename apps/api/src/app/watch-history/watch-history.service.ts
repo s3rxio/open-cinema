@@ -188,7 +188,9 @@ export class WatchHistoryService {
     });
 
     if (!entry) {
-      throw new NotFoundException(`Watch history entry with id ${id} not found`);
+      throw new NotFoundException(
+        `Watch history entry with id ${id} not found`
+      );
     }
 
     return this.mapEntry(entry as WatchHistory);

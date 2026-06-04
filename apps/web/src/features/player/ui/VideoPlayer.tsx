@@ -25,10 +25,7 @@ import {
   VolumeX
 } from "lucide-react";
 import Link from "next/link";
-import {
-  PlayerActionFlash,
-  type PlayerFlashAction
-} from "./PlayerActionFlash";
+import { PlayerActionFlash, type PlayerFlashAction } from "./PlayerActionFlash";
 import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
 import { formatTime, PlayerProgressBar } from "./PlayerProgressBar";
 import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
@@ -39,7 +36,9 @@ import {
 } from "./PlayerControlTooltip";
 import { useWatchProgress } from "@/features/watch-history/lib/useWatchProgress";
 
-const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), { ssr: false });
+const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), {
+  ssr: false
+});
 
 const CONTROLS_HIDE_MS = 3000;
 const FLASH_DURATION_MS = 1000;
@@ -160,9 +159,9 @@ export function VideoPlayer({
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flashClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressPlayPauseFlashRef = useRef(false);
-  const suppressPlayPauseFlashTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const suppressPlayPauseFlashTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const skipPlayPauseFlashRef = useRef(autoPlay || isCinema);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const applyingRemoteRef = useRef(false);
@@ -220,12 +219,26 @@ export function VideoPlayer({
 
   const scheduleHideControls = useCallback(() => {
     clearHideTimeout();
-    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || autoNextSeconds !== null || isHovering) return;
+    if (
+      !playerState.isPlaying ||
+      settingsOpen ||
+      episodeMenuOpen ||
+      autoNextSeconds !== null ||
+      isHovering
+    )
+      return;
 
     hideTimeoutRef.current = setTimeout(() => {
       setShowControls(false);
     }, CONTROLS_HIDE_MS);
-  }, [clearHideTimeout, playerState.isPlaying, settingsOpen, episodeMenuOpen, autoNextSeconds, isHovering]);
+  }, [
+    clearHideTimeout,
+    playerState.isPlaying,
+    settingsOpen,
+    episodeMenuOpen,
+    autoNextSeconds,
+    isHovering
+  ]);
 
   const revealControls = useCallback(() => {
     setShowControls(true);
@@ -268,7 +281,15 @@ export function VideoPlayer({
       triggerFlash(delta > 0 ? "seek-forward" : "seek-back");
       revealControls();
     },
-    [duration, playerState, revealControls, triggerFlash, emitPartyPlayback, partyGuest, autoNextSeconds]
+    [
+      duration,
+      playerState,
+      revealControls,
+      triggerFlash,
+      emitPartyPlayback,
+      partyGuest,
+      autoNextSeconds
+    ]
   );
 
   const toggleFullscreen = useCallback(() => {
@@ -422,10 +443,7 @@ export function VideoPlayer({
   remotePlaybackRef.current = watchParty?.remotePlayback ?? null;
 
   const applyRemotePlayback = useCallback(
-    async (
-      remote: WatchPartyPlayback,
-      options?: { userGesture?: boolean }
-    ) => {
+    async (remote: WatchPartyPlayback, options?: { userGesture?: boolean }) => {
       const video = videoRef.current;
       if (!video) return;
 
@@ -523,7 +541,10 @@ export function VideoPlayer({
       void applyRemotePlayback(remote);
     };
 
-    const intervalId = setInterval(checkDrift, WATCH_PARTY_GUEST_DRIFT_CHECK_MS);
+    const intervalId = setInterval(
+      checkDrift,
+      WATCH_PARTY_GUEST_DRIFT_CHECK_MS
+    );
     return () => clearInterval(intervalId);
   }, [partyGuest, applyRemotePlayback]);
 
@@ -587,7 +608,8 @@ export function VideoPlayer({
       setIsFullscreen(document.fullscreenElement === containerRef.current);
     };
     document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", onFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
   }, []);
 
   useEffect(() => {
@@ -613,7 +635,12 @@ export function VideoPlayer({
   }, [autoNextSeconds, nextEpisode, onEpisodeChange, partyGuest]);
 
   useEffect(() => {
-    if (!playerState.isPlaying || settingsOpen || episodeMenuOpen || autoNextSeconds !== null) {
+    if (
+      !playerState.isPlaying ||
+      settingsOpen ||
+      episodeMenuOpen ||
+      autoNextSeconds !== null
+    ) {
       setShowControls(true);
       clearHideTimeout();
       return;
@@ -670,7 +697,11 @@ export function VideoPlayer({
   if (!playbackReady && !showEpisodeMenu) {
     if (activeQuery.loading) {
       return (
-        <div className={isCinema ? stateShellClass : `${stateShellClass} rounded-lg`}>
+        <div
+          className={
+            isCinema ? stateShellClass : `${stateShellClass} rounded-lg`
+          }
+        >
           <Loader size="lg" />
         </div>
       );
@@ -680,9 +711,7 @@ export function VideoPlayer({
       <div className={stateShellClass}>
         <div className="text-center px-4">
           <p className="mb-2">Ошибка загрузки видео</p>
-          <p className="text-sm text-gray-400">
-            {streamErrorMessage}
-          </p>
+          <p className="text-sm text-gray-400">{streamErrorMessage}</p>
         </div>
       </div>
     );
@@ -697,7 +726,8 @@ export function VideoPlayer({
     ? AUTO_QUALITY
     : videoMetas[videoMetas.length - 1]?.id;
 
-  const qualityValue = playerState.currentQuality ?? defaultQuality ?? AUTO_QUALITY;
+  const qualityValue =
+    playerState.currentQuality ?? defaultQuality ?? AUTO_QUALITY;
   const audioValue = playerState.currentAudio ?? defaultAudio?.id ?? "";
   const subtitleValue = playerState.currentSubtitle ?? "off";
 
@@ -730,7 +760,9 @@ export function VideoPlayer({
             controlsVisible ? "opacity-100" : "opacity-0"
           }`}
         >
-          <h1 className="text-lg font-semibold text-white line-clamp-2">{title}</h1>
+          <h1 className="text-lg font-semibold text-white line-clamp-2">
+            {title}
+          </h1>
         </div>
       )}
 
@@ -831,7 +863,8 @@ export function VideoPlayer({
                   Следующая серия через {autoNextSeconds} сек
                 </p>
                 <p className="mt-1 text-sm text-white/70">
-                  S{nextEpisode.season}E{nextEpisode.episode} · {nextEpisode.title}
+                  S{nextEpisode.season}E{nextEpisode.episode} ·{" "}
+                  {nextEpisode.title}
                 </p>
               </div>
             </div>

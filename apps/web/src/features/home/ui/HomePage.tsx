@@ -126,7 +126,9 @@ export function HomePage() {
         <section>
           <Container>
             <div className={STATUS_BLOCK_CLASS}>
-              <p className="text-muted-foreground">Пока нет контента для отображения</p>
+              <p className="text-muted-foreground">
+                Пока нет контента для отображения
+              </p>
             </div>
           </Container>
         </section>

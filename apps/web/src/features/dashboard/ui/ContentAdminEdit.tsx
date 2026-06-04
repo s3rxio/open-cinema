@@ -3,7 +3,13 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import Link from "next/link";
 import { useState } from "react";
-import { Loader, Tabs, TabsContent, TabsList, TabsTrigger } from "@open-cinema/ui";
+import {
+  Loader,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@open-cinema/ui";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   DASHBOARD_MOVIES_QUERY,
@@ -15,11 +21,11 @@ import {
 } from "@/shared/api/operations/dashboard";
 import { AdminDeleteButton } from "./AdminDeleteButton";
 import { SeriesEpisodesPanel } from "./SeriesEpisodesPanel";
-import { MOVIE_BY_ID_QUERY, SERIES_BY_ID_QUERY } from "@/shared/api/operations/content";
 import {
-  ContentEditForm,
-  type ContentFormValues
-} from "./ContentEditForm";
+  MOVIE_BY_ID_QUERY,
+  SERIES_BY_ID_QUERY
+} from "@/shared/api/operations/content";
+import { ContentEditForm, type ContentFormValues } from "./ContentEditForm";
 import { StreamPlayerPanel } from "./StreamPlayerPanel";
 import { ContentImageUpload } from "./ContentImageUpload";
 import { MoviePublishButton } from "./MoviePublishButton";
@@ -30,7 +36,11 @@ type ContentAdminEditProps = {
   backHref: string;
 };
 
-export function ContentAdminEdit({ kind, id, backHref }: ContentAdminEditProps) {
+export function ContentAdminEdit({
+  kind,
+  id,
+  backHref
+}: ContentAdminEditProps) {
   if (kind === "movie") {
     return <MovieAdminEdit id={id} backHref={backHref} />;
   }
@@ -302,7 +312,9 @@ function ContentAdminShell({
           <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
         </div>
         {headerActions ? (
-          <div className="flex flex-wrap items-center gap-2">{headerActions}</div>
+          <div className="flex flex-wrap items-center gap-2">
+            {headerActions}
+          </div>
         ) : null}
       </div>
 
@@ -319,13 +331,7 @@ function LoadingState() {
   );
 }
 
-function ErrorState({
-  error,
-  fallback
-}: {
-  error: unknown;
-  fallback: string;
-}) {
+function ErrorState({ error, fallback }: { error: unknown; fallback: string }) {
   return (
     <p className="text-destructive">
       {error ? getApolloErrorMessage(error) : fallback}

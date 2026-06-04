@@ -67,7 +67,9 @@ export function CatalogFiltersPanel({
             onValueChange={value =>
               onChange({
                 contentType:
-                  value === "all" ? "" : (value as CatalogFilters["contentType"])
+                  value === "all"
+                    ? ""
+                    : (value as CatalogFilters["contentType"])
               })
             }
           >

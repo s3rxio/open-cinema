@@ -23,7 +23,4 @@ export const GET_CONTENT_BY_GENRE_QUERY = gql`
       }
     }
   }
-` as TypedDocumentNode<
-  GetContentByGenreQuery,
-  GetContentByGenreQueryVariables
->;
+` as TypedDocumentNode<GetContentByGenreQuery, GetContentByGenreQueryVariables>;

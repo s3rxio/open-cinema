@@ -40,10 +40,7 @@ export class ReviewResolver {
 
   @RequiredPermission(Permission.ReviewsDelete)
   @Mutation(() => Boolean)
-  removeReview(
-    @Args("id") id: string,
-    @Args("userId") userId: string
-  ) {
+  removeReview(@Args("id") id: string, @Args("userId") userId: string) {
     return this.reviewService.remove(id, userId);
   }
 }

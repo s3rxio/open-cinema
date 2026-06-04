@@ -28,16 +28,10 @@ export const UPDATE_PROFILE_MUTATION = gql`
       birthdate
     }
   }
-` as TypedDocumentNode<
-  UpdateProfileMutation,
-  UpdateProfileMutationVariables
->;
+` as TypedDocumentNode<UpdateProfileMutation, UpdateProfileMutationVariables>;
 
 export const CHANGE_PASSWORD_MUTATION = gql`
   mutation ChangePassword($changePasswordInput: ChangePasswordInput!) {
     changePassword(changePasswordInput: $changePasswordInput)
   }
-` as TypedDocumentNode<
-  ChangePasswordMutation,
-  ChangePasswordMutationVariables
->;
+` as TypedDocumentNode<ChangePasswordMutation, ChangePasswordMutationVariables>;

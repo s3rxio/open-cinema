@@ -54,7 +54,7 @@ export function useWatchProgress({
 
       const normalizedProgress = Math.max(0, Math.floor(progress));
       const normalizedDuration =
-        duration > 0 ? Math.floor(duration) : savedEntry?.duration ?? null;
+        duration > 0 ? Math.floor(duration) : (savedEntry?.duration ?? null);
       const isCompleted =
         completed ||
         (normalizedDuration !== null &&

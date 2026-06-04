@@ -30,7 +30,9 @@ export function PlayerEpisodeMenu({
   onEpisodeChange
 }: PlayerEpisodeMenuProps) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const [expandedSeason, setExpandedSeason] = useState<number | null>(selectedSeason);
+  const [expandedSeason, setExpandedSeason] = useState<number | null>(
+    selectedSeason
+  );
 
   useEffect(() => {
     if (open) {
@@ -44,7 +46,9 @@ export function PlayerEpisodeMenu({
     const onPointerDown = (e: MouseEvent) => {
       const target = e.target as Node;
       if (panelRef.current?.contains(target)) return;
-      const trigger = (e.target as HTMLElement).closest("[data-episode-trigger]");
+      const trigger = (e.target as HTMLElement).closest(
+        "[data-episode-trigger]"
+      );
       if (trigger) return;
       onOpenChange(false);
     };
@@ -103,7 +107,9 @@ export function PlayerEpisodeMenu({
                     )}
                   />
                   <span className="flex-1">Сезон {season}</span>
-                  <span className="text-xs text-white/40">{episodes.length}</span>
+                  <span className="text-xs text-white/40">
+                    {episodes.length}
+                  </span>
                 </button>
 
                 {isExpanded && (

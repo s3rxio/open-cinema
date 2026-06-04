@@ -108,7 +108,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setWatchHistoryFromServer(me.watchHistory);
       }
     }
-  }, [meQuery.data, setUser, setFavoritesFromServer, setWatchHistoryFromServer]);
+  }, [
+    meQuery.data,
+    setUser,
+    setFavoritesFromServer,
+    setWatchHistoryFromServer
+  ]);
 
   useEffect(() => {
     if (!meQuery.error || !isAuthError(meQuery.error)) {

@@ -79,7 +79,9 @@ export function ContentCard({
             type="button"
             onClick={handleBookmarkClick}
             disabled={pending}
-            aria-label={bookmarked ? "Убрать из закладок" : "Добавить в закладки"}
+            aria-label={
+              bookmarked ? "Убрать из закладок" : "Добавить в закладки"
+            }
             className={cn(
               "absolute right-2.5 top-3 z-10 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[var(--glass-border)] bg-black/35 text-foreground backdrop-blur-md transition-[transform,background] duration-200 ease-in-out hover:scale-[1.08] hover:bg-black/50",
               bookmarked &&

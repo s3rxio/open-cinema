@@ -55,14 +55,20 @@ type NavbarSearchProps = {
   inputClassName?: string;
 };
 
-export function NavbarSearch({ className, inputClassName }: NavbarSearchProps = {}) {
+export function NavbarSearch({
+  className,
+  inputClassName
+}: NavbarSearchProps = {}) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(query.trim()), DEBOUNCE_MS);
+    const timer = setTimeout(
+      () => setDebouncedQuery(query.trim()),
+      DEBOUNCE_MS
+    );
     return () => clearTimeout(timer);
   }, [query]);
 

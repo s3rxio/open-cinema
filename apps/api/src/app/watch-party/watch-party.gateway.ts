@@ -49,9 +49,7 @@ interface RoomJoinedPayload {
     credentials: true
   }
 })
-export class WatchPartyGateway
-  implements OnGatewayInit, OnGatewayDisconnect
-{
+export class WatchPartyGateway implements OnGatewayInit, OnGatewayDisconnect {
   private readonly logger = new Logger(WatchPartyGateway.name);
 
   @WebSocketServer()
@@ -122,17 +120,16 @@ export class WatchPartyGateway
       (body.roomId
         ? await this.watchPartyService.getRoom(body.roomId)
         : null) ??
-      (body.code ? await this.watchPartyService.getRoomByCode(body.code) : null);
+      (body.code
+        ? await this.watchPartyService.getRoomByCode(body.code)
+        : null);
 
     if (!room) {
       return this.emitError(client, "Комната не найдена");
     }
 
     if (body.contentId && body.contentId !== room.contentId) {
-      return this.emitError(
-        client,
-        "Эта комната создана для другого видео"
-      );
+      return this.emitError(client, "Эта комната создана для другого видео");
     }
 
     if (client.data.roomId && client.data.roomId !== room.id) {
@@ -211,7 +208,10 @@ export class WatchPartyGateway
     }
 
     if (room.contentType !== "episode") {
-      return this.emitError(client, "Смена эпизода доступна только для сериалов");
+      return this.emitError(
+        client,
+        "Смена эпизода доступна только для сериалов"
+      );
     }
 
     if (contentId === room.contentId) {
@@ -255,7 +255,10 @@ export class WatchPartyGateway
     }
 
     if (room.hostUserId !== user.id) {
-      return this.emitError(client, "Только ведущий может управлять воспроизведением");
+      return this.emitError(
+        client,
+        "Только ведущий может управлять воспроизведением"
+      );
     }
 
     const currentTime =
@@ -327,7 +330,10 @@ export class WatchPartyGateway
 
     if (room && room.hostUserId === userId && members.length > 0) {
       const nextHost = members[0];
-      const updated = await this.watchPartyService.setHost(roomId, nextHost.userId);
+      const updated = await this.watchPartyService.setHost(
+        roomId,
+        nextHost.userId
+      );
       if (updated) {
         room.hostUserId = updated.hostUserId;
         this.server.to(roomId).emit("room:host-changed", {

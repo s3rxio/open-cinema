@@ -55,9 +55,7 @@ export async function refreshAccessToken(): Promise<string | null> {
       return null;
     }
 
-    useAuthStore
-      .getState()
-      .setAuth(tokens.accessToken, tokens.refreshToken);
+    useAuthStore.getState().setAuth(tokens.accessToken, tokens.refreshToken);
 
     return tokens.accessToken;
   })();

@@ -164,7 +164,11 @@ function ReviewItem({
               type="button"
               variant="destructiveOutline"
               size="icon"
-              aria-label={showAdminDelete ? "Удалить рецензию (админ)" : "Удалить рецензию"}
+              aria-label={
+                showAdminDelete
+                  ? "Удалить рецензию (админ)"
+                  : "Удалить рецензию"
+              }
               disabled={removing}
               onClick={onDelete}
             >
@@ -210,7 +214,10 @@ export function ReviewsSection({ contentId, type }: ReviewsSectionProps) {
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (editingReviewId && !reviews.some(review => review.id === editingReviewId)) {
+    if (
+      editingReviewId &&
+      !reviews.some(review => review.id === editingReviewId)
+    ) {
       setEditingReviewId(null);
     }
   }, [editingReviewId, reviews]);
@@ -220,7 +227,11 @@ export function ReviewsSection({ contentId, type }: ReviewsSectionProps) {
     return saved;
   };
 
-  const handleUpdate = async (reviewId: string, content: string, rating: number) => {
+  const handleUpdate = async (
+    reviewId: string,
+    content: string,
+    rating: number
+  ) => {
     const saved = await submitReview(content, rating, reviewId);
     if (saved) {
       setEditingReviewId(null);
@@ -258,14 +269,10 @@ export function ReviewsSection({ contentId, type }: ReviewsSectionProps) {
           </p>
         ) : null}
 
-        {formError && (
-          <p className="text-sm text-destructive">{formError}</p>
-        )}
+        {formError && <p className="text-sm text-destructive">{formError}</p>}
 
         <div className="space-y-4 border-t border-border pt-6">
-          <h3 className="font-semibold">
-            Все рецензии ({reviews.length})
-          </h3>
+          <h3 className="font-semibold">Все рецензии ({reviews.length})</h3>
           {loading ? (
             <div className="flex justify-center py-8">
               <Loader />

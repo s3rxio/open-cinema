@@ -1,12 +1,16 @@
 import { CombinedGraphQLErrors } from "@apollo/client";
 
-function formatGraphQlErrorMessage(message: string, extensions?: unknown): string {
+function formatGraphQlErrorMessage(
+  message: string,
+  extensions?: unknown
+): string {
   if (message !== "Bad Request Exception" && message !== "Bad Request") {
     return message;
   }
 
-  const response = (extensions as { response?: { message?: string | string[] } })
-    ?.response?.message;
+  const response = (
+    extensions as { response?: { message?: string | string[] } }
+  )?.response?.message;
 
   if (Array.isArray(response)) {
     return response.join("; ");
