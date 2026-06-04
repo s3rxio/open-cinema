@@ -42,7 +42,7 @@ export function LoginForm() {
   const [executeLogin, loginMutationResult] = useMutation(LOGIN_MUTATION, {
     onCompleted: data => {
       const { accessToken, refreshToken } = data.login;
-      setAuth(accessToken, refreshToken);
+      setAuth(accessToken, refreshToken, { resetUser: true });
       router.push("/");
     }
   });

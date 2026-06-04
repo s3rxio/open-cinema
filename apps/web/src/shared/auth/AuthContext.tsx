@@ -10,14 +10,17 @@ import React, {
 } from "react";
 import { useQuery } from "@apollo/client/react";
 import { ME_QUERY } from "@/shared/api/operations/favorites";
-import { useAuthStore, type AuthUser } from "@/shared/state/useAuthStore";
+import {
+  useAuthStore,
+  useAuthStoreHydrated,
+  type AuthUser
+} from "@/shared/state/useAuthStore";
 import { useFavoritesStore } from "@/shared/state/useFavoritesStore";
 import { useWatchHistoryStore } from "@/shared/state/useWatchHistoryStore";
 import {
   canAccessDashboard,
   canManageUsers
 } from "@/shared/auth/dashboardAccess";
-import { getAccessToken, getRefreshToken } from "./authTokens";
 import { isAccessTokenExpired } from "./isAccessTokenExpired";
 import { isAuthError } from "./isAuthError";
 import { refreshAccessToken } from "./refreshAccessToken";
@@ -29,11 +32,13 @@ export type AuthContextValue = {
   user: AuthUser | null;
   token: string | null;
   logout: () => void;
-  /** false until tokens are restored from localStorage on the client */
+  /** false until zustand rehydration and optional token refresh finished */
   isReady: boolean;
   isAuthenticated: boolean;
-  /** false until `me` has been fetched for the current session */
+  /** false while profile/roles are still being resolved */
   isUserLoaded: boolean;
+  /** true while `me` is loading and dashboard access is not yet confirmed */
+  isProfileLoading: boolean;
   canAccessDashboard: boolean;
   canManageUsers: boolean;
 };
@@ -46,28 +51,37 @@ export function useAuth() {
   return ctx;
 }
 
+function resolveRoleSlugs(
+  user: AuthUser | null,
+  me: { id: string; roles?: Array<{ slug: string }> | null } | undefined
+): string[] {
+  const meSlugs = me?.roles?.map(role => role.slug) ?? [];
+
+  if (meSlugs.length > 0) {
+    return meSlugs;
+  }
+
+  return user?.roleSlugs ?? [];
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const hasHydrated = useAuthStoreHydrated();
   const accessToken = useAuthStore(state => state.accessToken);
+  const refreshToken = useAuthStore(state => state.refreshToken);
   const user = useAuthStore(state => state.user);
   const setUser = useAuthStore(state => state.setUser);
-  const [isReady, setIsReady] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
-    const storedAccess = getAccessToken();
-    const storedRefresh = getRefreshToken();
-
-    if (storedAccess || storedRefresh) {
-      useAuthStore.setState({
-        accessToken: storedAccess,
-        refreshToken: storedRefresh
-      });
+    if (!hasHydrated) {
+      return;
     }
 
     void (async () => {
       const needsRefresh =
-        !!storedRefresh &&
-        (!storedAccess ||
-          (storedAccess ? isAccessTokenExpired(storedAccess) : true));
+        !!refreshToken &&
+        (!accessToken ||
+          (accessToken ? isAccessTokenExpired(accessToken) : true));
 
       if (needsRefresh) {
         const newAccess = await refreshAccessToken();
@@ -76,9 +90,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      setIsReady(true);
+      setSessionReady(true);
     })();
-  }, []);
+  }, [hasHydrated, accessToken, refreshToken]);
+
+  const isReady = hasHydrated && sessionReady;
 
   const meQuery = useQuery(ME_QUERY, {
     skip: !accessToken || !isReady,
@@ -135,10 +151,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionLogout();
   }, []);
 
+  const me = meQuery.data?.me;
+  const roleSlugs = resolveRoleSlugs(user, me);
+
+  const isProfileLoading = !!accessToken && isReady && meQuery.loading;
+
   const isUserLoaded =
     !accessToken ||
-    (!meQuery.loading &&
-      (meQuery.dataState !== "empty" || meQuery.error !== undefined));
+    !!user?.id ||
+    meQuery.error !== undefined ||
+    (!meQuery.loading && me !== undefined);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -147,11 +169,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isReady,
       isAuthenticated: isReady && !!accessToken,
       isUserLoaded,
-      canAccessDashboard: canAccessDashboard(user?.roleSlugs ?? []),
-      canManageUsers: canManageUsers(user?.roleSlugs ?? []),
+      isProfileLoading,
+      canAccessDashboard: canAccessDashboard(roleSlugs),
+      canManageUsers: canManageUsers(roleSlugs),
       logout
     }),
-    [accessToken, user, logout, isReady, isUserLoaded]
+    [
+      accessToken,
+      user,
+      logout,
+      isReady,
+      isUserLoaded,
+      isProfileLoading,
+      roleSlugs
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

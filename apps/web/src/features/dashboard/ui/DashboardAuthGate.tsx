@@ -6,9 +6,21 @@ import { Loader } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
 
 export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
-  const { isReady, isAuthenticated, isUserLoaded, canAccessDashboard } =
-    useAuth();
+  const {
+    isReady,
+    isAuthenticated,
+    isUserLoaded,
+    isProfileLoading,
+    canAccessDashboard
+  } = useAuth();
   const router = useRouter();
+
+  const canEnter =
+    isReady &&
+    isAuthenticated &&
+    isUserLoaded &&
+    !isProfileLoading &&
+    canAccessDashboard;
 
   useEffect(() => {
     if (!isReady) {
@@ -20,12 +32,23 @@ export function DashboardAuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isUserLoaded && !canAccessDashboard) {
+    if (isProfileLoading || !isUserLoaded) {
+      return;
+    }
+
+    if (!canAccessDashboard) {
       router.replace("/");
     }
-  }, [isReady, isAuthenticated, isUserLoaded, canAccessDashboard, router]);
+  }, [
+    isReady,
+    isAuthenticated,
+    isUserLoaded,
+    isProfileLoading,
+    canAccessDashboard,
+    router
+  ]);
 
-  if (!isReady || !isAuthenticated || !isUserLoaded || !canAccessDashboard) {
+  if (!canEnter) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
         <Loader />

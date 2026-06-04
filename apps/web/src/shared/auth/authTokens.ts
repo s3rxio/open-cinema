@@ -1,27 +1,25 @@
-const AUTH_TOKEN_KEY = "authToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
+import { useAuthStore } from "@/shared/state/useAuthStore";
 
 export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  return useAuthStore.getState().accessToken;
 }
 
 export function getRefreshToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return useAuthStore.getState().refreshToken;
 }
 
+/** @deprecated tokens are persisted in zustand */
 export function persistAuthTokens(
-  accessToken: string,
-  refreshToken: string
-): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-}
+  _accessToken: string,
+  _refreshToken: string
+): void {}
 
+/** @deprecated use sessionLogout / useAuthStore.clear */
 export function clearAuthTokens(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("refreshToken");
 }

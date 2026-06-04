@@ -12,8 +12,8 @@ export function onSessionLogout(listener: LogoutListener): () => void {
 }
 
 export function sessionLogout(): void {
-  clearAuthTokens();
   useAuthStore.getState().clear();
+  clearAuthTokens();
   useFavoritesStore.getState().clear();
   useWatchHistoryStore.getState().clear();
   logoutListeners.forEach(listener => listener());

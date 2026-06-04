@@ -44,7 +44,7 @@ export function RegisterForm() {
     {
       onCompleted: data => {
         const { accessToken, refreshToken } = data.register;
-        setAuth(accessToken, refreshToken);
+        setAuth(accessToken, refreshToken, { resetUser: true });
         router.push("/");
       },
       onError: err => {
