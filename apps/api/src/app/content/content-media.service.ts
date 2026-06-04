@@ -6,16 +6,16 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { createWriteStream } from "fs";
-import { mkdir, rm } from "fs/promises";
+import { rm } from "fs/promises";
 import { extname } from "path";
 import { join } from "path";
-import { tmpdir } from "os";
 import { pipeline } from "stream/promises";
 import { FileUpload } from "graphql-upload-ts";
 import { PrismaService } from "../prisma/prisma.service";
 import { S3StorageService } from "../storage/s3-storage.service";
 import { Content } from "./content.entity";
 import { ContentService } from "./content.service";
+import { TempDirectoryService } from "../media-processing/services/temp-directory.service";
 import { ContentType } from "./content.types";
 
 const ALLOWED_IMAGE_MIMES = new Set([
@@ -42,7 +42,8 @@ export class ContentMediaService {
     private readonly prisma: PrismaService,
     private readonly contentService: ContentService,
     private readonly s3Storage: S3StorageService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly tempDirectory: TempDirectoryService
   ) {}
 
   async uploadPoster(
@@ -74,11 +75,9 @@ export class ContentMediaService {
     }
 
     const extension = this.resolveExtension(upload);
-    const tempDir = join(
-      tmpdir(),
+    const tempDir = await this.tempDirectory.create(
       `content-${contentId}-${kind}-${Date.now()}`
     );
-    await mkdir(tempDir, { recursive: true });
     const tempFilePath = join(tempDir, upload.filename);
 
     try {

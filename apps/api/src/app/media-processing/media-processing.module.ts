@@ -10,6 +10,7 @@ import { SubtitleProcessorService } from "./services/subtitle-processor.service"
 import { MediaQueueService } from "./services/media-queue.service";
 import { FfmpegService } from "./services/ffmpeg.service";
 import { FfprobeService } from "./services/ffprobe.service";
+import { TempDirectoryService } from "./services/temp-directory.service";
 
 // Consumers
 import {
@@ -44,10 +45,11 @@ import { ConfigModule } from "@nestjs/config";
     MediaQueueService,
     FfmpegService,
     FfprobeService,
+    TempDirectoryService,
     VideoProcessor,
     AudioProcessor,
     SubtitleProcessor
   ],
-  exports: [MediaQueueService]
+  exports: [MediaQueueService, TempDirectoryService]
 })
 export class MediaProcessingModule {}

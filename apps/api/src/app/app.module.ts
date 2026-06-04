@@ -32,6 +32,7 @@ import { WatchPartyModule } from "./watch-party/watch-party.module";
 import { ReviewModule } from "./review/review.module";
 import { RedisModule } from "./redis/redis.module";
 import bullConfig from "../common/configs/bull.config";
+import mediaConfig from "../common/configs/media.config";
 
 @Module({
   imports: [
@@ -42,7 +43,8 @@ import bullConfig from "../common/configs/bull.config";
         gqlConfig,
         cryptographyConfig,
         s3Config,
-        bullConfig
+        bullConfig,
+        mediaConfig
       ],
       envFilePath: [
         ".env.local",

@@ -91,6 +91,11 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   API_S3_SECRET_ACCESS_KEY: string;
+
+  /* MEDIA PROCESSING */
+  @IsString()
+  @IsOptional()
+  API_MEDIA_TMP_DIR?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>) {

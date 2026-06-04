@@ -6,9 +6,10 @@ import { ContentMediaUrlService } from "./content-media-url.service";
 import { PrismaModule } from "../prisma/prisma.module";
 import { StorageModule } from "../storage/storage.module";
 import { ConfigModule } from "@nestjs/config";
+import { MediaProcessingModule } from "../media-processing/media-processing.module";
 
 @Module({
-  imports: [PrismaModule, StorageModule, ConfigModule],
+  imports: [PrismaModule, StorageModule, ConfigModule, MediaProcessingModule],
   providers: [
     ContentResolver,
     ContentService,

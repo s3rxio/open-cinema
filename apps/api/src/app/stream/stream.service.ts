@@ -7,12 +7,12 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { S3StorageService } from "../storage/s3-storage.service";
 import { MediaQueueService } from "../media-processing/services/media-queue.service";
+import { TempDirectoryService } from "../media-processing/services/temp-directory.service";
 import { ProcessingType } from "../media-processing/types";
 import { Stream } from "./entities/stream.entity";
 import { CreateStreamInput } from "./dto/create-stream.input";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream/promises";
-import { tmpdir } from "os";
 import { dirname, join } from "path";
 import { UploadAudioInput } from "./dto/upload-audio.input";
 import { UploadVideoInput } from "./dto/upload-video.input";
@@ -39,7 +39,8 @@ export class StreamService {
     private prisma: PrismaService,
     private s3Storage: S3StorageService,
     private mediaQueue: MediaQueueService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private tempDirectory: TempDirectoryService
   ) {}
 
   async getStreamInfo(streamId: string): Promise<Stream> {
@@ -365,13 +366,9 @@ export class StreamService {
     metaId: string,
     type: ProcessingType
   ): Promise<string> {
-    const tempDir = join(
-      tmpdir(),
+    return this.tempDirectory.create(
       `stream-${streamId}-${type}-${metaId}-${Date.now()}`
     );
-    await mkdir(tempDir, { recursive: true });
-
-    return tempDir;
   }
 
   async getMovieOrEpisodeWithRelationName(id: string) {
