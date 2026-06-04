@@ -1,6 +1,8 @@
 "use client";
 
-import { Button, Label } from "@open-cinema/ui";
+import { useState } from "react";
+import { Button, Label, cn } from "@open-cinema/ui";
+import { SlidersHorizontal } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -25,9 +27,32 @@ export function CatalogFiltersPanel({
   onChange,
   onReset
 }: CatalogFiltersProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <aside className="w-full shrink-0 lg:w-72">
-      <div className="sticky top-24 space-y-6 rounded-lg border border-border bg-card p-4">
+      <Button
+        type="button"
+        variant="outline"
+        className="mb-3 w-full justify-between lg:hidden"
+        aria-expanded={mobileOpen}
+        onClick={() => setMobileOpen(open => !open)}
+      >
+        <span className="inline-flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4" aria-hidden />
+          Фильтры
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {mobileOpen ? "Скрыть" : "Показать"}
+        </span>
+      </Button>
+
+      <div
+        className={cn(
+          "sticky top-20 space-y-6 rounded-lg border border-border bg-card p-4 max-md:top-[4.5rem] lg:top-24",
+          mobileOpen ? "block" : "hidden lg:block"
+        )}
+      >
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">Фильтры</h2>
           <Button type="button" variant="outline" size="sm" onClick={onReset}>

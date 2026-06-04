@@ -12,9 +12,10 @@ import {
 } from "@open-cinema/ui";
 import { useAuth } from "@/shared/auth/AuthContext";
 import { cn } from "@open-cinema/ui";
-import { LayoutDashboard, LogOut, Settings, User } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Search, Settings, User, X } from "lucide-react";
 import { NavbarSearch } from "./NavbarSearch";
 import { Container } from "./Container";
+import { MobileNavMenu } from "./MobileNavMenu";
 
 const navLinkClass =
   "text-sm font-medium transition-colors hover:text-primary";
@@ -46,19 +47,24 @@ function NavLink({
 
 function AuthNavButton({
   href,
-  children
+  children,
+  className,
+  onNavigate
 }: {
   href: string;
   children: React.ReactNode;
+  className?: string;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const isActive = pathname === href;
 
   return (
-    <Link href={href}>
+    <Link href={href} className={className} onClick={onNavigate}>
       <Button
         variant={isActive ? "default" : "outline"}
         size="sm"
+        className="w-full sm:w-auto"
       >
         {children}
       </Button>
@@ -132,31 +138,71 @@ function UserMenu() {
 
 export function Navbar() {
   const { isAuthenticated } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="border-b border-border bg-card sticky top-0 z-40">
-      <Container className="flex items-center gap-4 py-3">
-        <div className="flex shrink-0 items-center gap-6">
-          <Link
-            href="/"
-            className="text-xl font-bold hover:text-primary transition-colors shrink-0"
-          >
-            Open Cinema
-          </Link>
-          <nav className="flex items-center gap-6">
-            <NavLink href="/" exact>
-              Главная
-            </NavLink>
-            <NavLink href="/catalog">Каталог</NavLink>
-            {isAuthenticated && <NavLink href="/my">Моё</NavLink>}
-          </nav>
+    <header className="sticky top-0 z-40 border-b border-border bg-card">
+      <Container className="flex flex-col gap-3 py-3 lg:flex-row lg:items-center lg:gap-4">
+        <div className="flex min-w-0 items-center justify-between gap-2 lg:shrink-0 lg:justify-start lg:gap-6">
+          <div className="flex min-w-0 items-center gap-4 lg:gap-6">
+            <Link
+              href="/"
+              className="truncate text-lg font-bold transition-colors hover:text-primary sm:text-xl shrink-0"
+            >
+              Open Cinema
+            </Link>
+            <nav className="hidden items-center gap-6 lg:flex">
+              <NavLink href="/" exact>
+                Главная
+              </NavLink>
+              <NavLink href="/catalog">Каталог</NavLink>
+              {isAuthenticated && <NavLink href="/my">Моё</NavLink>}
+            </nav>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1 lg:hidden">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
+              aria-label={searchOpen ? "Скрыть поиск" : "Показать поиск"}
+              aria-expanded={searchOpen}
+              onClick={() => setSearchOpen(open => !open)}
+            >
+              {searchOpen ? (
+                <X className="h-5 w-5" aria-hidden />
+              ) : (
+                <Search className="h-5 w-5" aria-hidden />
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
+              aria-label="Открыть меню"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(true)}
+            >
+              <Menu className="h-5 w-5" aria-hidden />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex min-w-0 flex-1 justify-center px-2 sm:px-6">
+        <div
+          className={cn(
+            "w-full min-w-0 lg:flex lg:flex-1 lg:justify-center lg:px-6",
+            searchOpen ? "block" : "hidden lg:block"
+          )}
+        >
           <NavbarSearch />
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2">
+        <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
           {isAuthenticated ? (
             <UserMenu />
           ) : (
@@ -167,6 +213,12 @@ export function Navbar() {
           )}
         </div>
       </Container>
+
+      <MobileNavMenu
+        open={menuOpen}
+        onClose={closeMenu}
+        isAuthenticated={isAuthenticated}
+      />
     </header>
   );
 }

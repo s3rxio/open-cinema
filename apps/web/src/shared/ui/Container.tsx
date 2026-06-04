@@ -19,7 +19,11 @@ export function Container({
 }: ContainerProps) {
   return (
     <div
-      className={cn("container mx-auto px-4", sizeClass[size], className)}
+      className={cn(
+        "container mx-auto px-4 max-md:px-3",
+        sizeClass[size],
+        className
+      )}
       {...props}
     >
       {children}

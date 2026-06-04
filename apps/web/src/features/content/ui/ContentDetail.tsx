@@ -38,14 +38,14 @@ export function ContentDetail({
   children
 }: ContentDetailProps) {
   return (
-    <main className="py-8 space-y-8">
+    <main className="space-y-8 py-8 max-md:space-y-6 max-md:py-4">
       <section>
         <Container>
           <Link href={routes.home} className="text-primary hover:underline inline-block">
             ← Назад в каталог
           </Link>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,320px)_1fr] mt-8">
+          <div className="mt-8 grid gap-6 max-md:mt-4 max-md:gap-5 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-8">
             <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-muted">
               {posterUrl ? (
                 <img
@@ -61,12 +61,14 @@ export function ContentDetail({
             </div>
 
             <div className="space-y-6">
-              <h1 className="text-3xl font-bold">{title}</h1>
+              <h1 className="text-3xl font-bold max-md:text-2xl">{title}</h1>
 
-              <p className="text-muted-foreground text-lg leading-relaxed">{description}</p>
+              <p className="text-lg leading-relaxed text-muted-foreground max-md:text-base">
+                {description}
+              </p>
 
               {meta.length > 0 && (
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-sm max-md:gap-2">
                   {meta.map(item => (
                     <div key={item.label}>
                       <span className="font-semibold">{item.label}</span>

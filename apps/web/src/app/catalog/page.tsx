@@ -10,10 +10,12 @@ export const metadata = {
 
 export default function CatalogPage() {
   return (
-    <main className="py-8">
+    <main className="py-8 max-md:py-4">
       <section>
         <Container>
-          <h1 className="text-4xl font-bold mb-6">Каталог</h1>
+          <h1 className="mb-6 text-4xl font-bold max-md:mb-4 max-md:text-2xl">
+            Каталог
+          </h1>
           <Suspense
             fallback={
               <div className="flex justify-center py-12">

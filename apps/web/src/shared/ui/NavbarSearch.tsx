@@ -50,7 +50,12 @@ function SearchResultItem({
   );
 }
 
-export function NavbarSearch() {
+type NavbarSearchProps = {
+  className?: string;
+  inputClassName?: string;
+};
+
+export function NavbarSearch({ className, inputClassName }: NavbarSearchProps = {}) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -91,7 +96,10 @@ export function NavbarSearch() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full min-w-[14rem] max-w-xl"
+      className={cn(
+        "relative w-full min-w-0 max-w-xl md:min-w-[14rem]",
+        className
+      )}
     >
       <Search
         className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
@@ -106,7 +114,7 @@ export function NavbarSearch() {
         }}
         onFocus={() => setOpen(true)}
         placeholder="Поиск фильмов и сериалов..."
-        className="h-11 w-full pl-11 text-base"
+        className={cn("h-11 w-full pl-11 text-base", inputClassName)}
         aria-expanded={showDropdown}
         aria-haspopup="listbox"
         autoComplete="off"

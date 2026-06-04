@@ -44,7 +44,7 @@ export function DataTable<T>({
   }
 
   return (
-    <TableScrollArea className="max-h-[calc(100vh-16rem)]">
+    <TableScrollArea className="max-h-[calc(100vh-16rem)] max-md:max-h-[calc(100vh-12rem)]">
       <Table>
         <TableHeader>
           <TableRow>

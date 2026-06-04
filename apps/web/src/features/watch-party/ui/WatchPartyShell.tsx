@@ -104,22 +104,24 @@ export function WatchPartyShell({
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-zinc-950 text-white">
-      <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
+      <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-white/10 px-4 py-3 sm:px-6">
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 rounded-md bg-white/10 px-3 py-2 text-sm font-medium hover:bg-white/20"
+          className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white/10 px-3 py-2 text-sm font-medium hover:bg-white/20"
         >
           <ChevronLeft className="h-4 w-4" />
           {backLabel}
         </Link>
 
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-semibold sm:text-base">{title}</h1>
+          <h1 className="truncate text-sm font-semibold sm:text-base">
+            {title}
+          </h1>
           <p className="text-xs text-zinc-400">Совместный просмотр</p>
         </div>
 
         {party.room && (
-          <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="flex w-full basis-full flex-wrap items-center gap-2 text-sm min-[640px]:w-auto min-[640px]:basis-auto min-[640px]:ml-auto min-[640px]:justify-end">
             <span className="rounded-md bg-white/10 px-2 py-1 font-mono tracking-wider">
               {party.room.code}
             </span>
@@ -176,7 +178,9 @@ export function WatchPartyShell({
               }}
               seasons={showEpisodePicker ? seasons : undefined}
               selectedSeason={showEpisodePicker ? selectedSeason : undefined}
-              selectedEpisodeId={showEpisodePicker ? selectedEpisodeId : undefined}
+              selectedEpisodeId={
+                showEpisodePicker ? selectedEpisodeId : undefined
+              }
               onEpisodeChange={
                 showEpisodePicker ? handleEpisodeChange : undefined
               }

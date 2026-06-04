@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function CookiePolicyPage() {
   return (
-    <Container size="narrow" className="py-12">
+    <Container size="narrow" className="py-12 max-md:py-6">
       <article className="space-y-6 text-sm text-muted-foreground leading-relaxed">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold text-foreground">

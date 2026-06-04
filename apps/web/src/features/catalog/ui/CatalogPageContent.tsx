@@ -103,13 +103,19 @@ export function CatalogPageContent() {
   };
 
   return (
-    <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+    <div className="flex flex-col gap-6 max-md:gap-5 lg:flex-row lg:items-start lg:gap-8">
+      <CatalogFiltersPanel
+        filters={filters}
+        onChange={updateFilters}
+        onReset={() => replaceFilters(DEFAULT_CATALOG_FILTERS)}
+      />
+
       <div className="min-w-0 flex-1 space-y-6">
         <form
           onSubmit={handleSubmit(onSearchSubmit)}
           className="flex flex-col gap-2 max-w-xl"
         >
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
             <Input
               type="search"
               placeholder="Название фильма или сериала..."
@@ -117,7 +123,9 @@ export function CatalogPageContent() {
               aria-invalid={errors.query ? true : undefined}
               {...register("query")}
             />
-            <Button type="submit">Найти</Button>
+            <Button type="submit" className="shrink-0 sm:px-8">
+              Найти
+            </Button>
           </div>
           {errors.query && (
             <p className="text-sm text-destructive">{errors.query.message}</p>
@@ -162,12 +170,6 @@ export function CatalogPageContent() {
           </div>
         )}
       </div>
-
-      <CatalogFiltersPanel
-        filters={filters}
-        onChange={updateFilters}
-        onReset={() => replaceFilters(DEFAULT_CATALOG_FILTERS)}
-      />
     </div>
   );
 }

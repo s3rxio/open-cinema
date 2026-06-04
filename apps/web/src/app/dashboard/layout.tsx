@@ -10,10 +10,10 @@ export default function DashboardLayout({
 }) {
   return (
     <DashboardAuthGate>
-      <main className="py-8 space-y-8">
+      <main className="space-y-8 py-8 max-md:space-y-6 max-md:py-4">
         <section>
           <Container>
-            <h1 className="text-4xl font-bold tracking-tight">
+            <h1 className="text-4xl font-bold tracking-tight max-md:text-2xl">
               Панель управления
             </h1>
           </Container>
@@ -21,7 +21,7 @@ export default function DashboardLayout({
 
         <section>
           <Container>
-            <div className="grid gap-8 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[16rem_minmax(0,1fr)]">
+            <div className="grid gap-6 max-md:gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[16rem_minmax(0,1fr)]">
               <aside className="lg:sticky lg:top-24 lg:self-start">
                 <DashboardNav />
               </aside>
