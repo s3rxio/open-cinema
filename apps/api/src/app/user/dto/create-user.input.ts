@@ -1,6 +1,7 @@
 import { InputType, Field } from "@nestjs/graphql";
+import { Type } from "class-transformer";
 import {
-  IsDateString,
+  IsDate,
   IsEmail,
   IsIn,
   IsOptional,
@@ -23,7 +24,8 @@ export class CreateUserInput {
   password: string;
 
   @Field({ nullable: true })
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   @IsOptional()
   birthdate?: Date;
 

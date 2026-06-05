@@ -1,5 +1,6 @@
 import { Field, InputType } from "@nestjs/graphql";
-import { IsDateString, IsEmail, IsOptional, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsDate, IsEmail, IsOptional, IsString } from "class-validator";
 
 @InputType()
 export class UpdateProfileInput {
@@ -15,6 +16,7 @@ export class UpdateProfileInput {
 
   @Field({ nullable: true })
   @IsOptional()
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   birthdate?: Date | null;
 }
