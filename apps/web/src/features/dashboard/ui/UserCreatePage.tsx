@@ -4,6 +4,7 @@ import { useMutation, useApolloClient } from "@apollo/client/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toGraphQLDateTimeOrNull } from "@open-cinema/ui";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
   CREATE_USER_MUTATION,
@@ -55,9 +56,7 @@ export function UserCreatePage() {
                     email: values.email,
                     password: values.password,
                     roleSlug: values.roleSlug,
-                    birthdate: values.birthdate
-                      ? new Date(values.birthdate).toISOString()
-                      : null
+                    birthdate: toGraphQLDateTimeOrNull(values.birthdate)
                   }
                 }
               });

@@ -3,7 +3,12 @@ import { z } from "zod";
 export const profileSchema = z.object({
   username: z.string().trim().min(1, "Введите имя пользователя"),
   email: z.email("Введите корректный email"),
-  birthdate: z.string()
+  birthdate: z
+    .string()
+    .refine(
+      value => !value || /^\d{4}-\d{2}-\d{2}$/.test(value),
+      "Выберите корректную дату"
+    )
 });
 
 export type ProfileFormValues = z.infer<typeof profileSchema>;

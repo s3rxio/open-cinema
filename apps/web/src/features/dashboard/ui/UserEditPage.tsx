@@ -3,7 +3,11 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import Link from "next/link";
 import { useState } from "react";
-import { Loader } from "@open-cinema/ui";
+import {
+  Loader,
+  parseIsoDateFromApi,
+  toGraphQLDateTimeOrNull
+} from "@open-cinema/ui";
 import {
   DASHBOARD_USERS_QUERY,
   DASHBOARD_USER_QUERY,
@@ -51,7 +55,7 @@ export function UserEditPage({ id }: UserEditPageProps) {
     username: user.username,
     email: user.email,
     password: "",
-    birthdate: user.birthdate ? user.birthdate.slice(0, 10) : "",
+    birthdate: parseIsoDateFromApi(user.birthdate),
     roleSlug: (user.roles?.[0]?.slug ?? "user") as UserFormValues["roleSlug"]
   };
 
@@ -94,9 +98,7 @@ export function UserEditPage({ id }: UserEditPageProps) {
                     username: values.username,
                     email: values.email,
                     ...(values.password ? { password: values.password } : {}),
-                    birthdate: values.birthdate
-                      ? new Date(values.birthdate).toISOString()
-                      : null,
+                    birthdate: toGraphQLDateTimeOrNull(values.birthdate),
                     ...(!isSelf ? { roleSlug: values.roleSlug } : {})
                   }
                 },

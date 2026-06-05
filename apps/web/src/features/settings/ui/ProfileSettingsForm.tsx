@@ -3,8 +3,16 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Button, Input, Label, Loader } from "@open-cinema/ui";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Button,
+  DatePicker,
+  Input,
+  Label,
+  Loader,
+  parseIsoDateFromApi,
+  toGraphQLDateTimeOrNull
+} from "@open-cinema/ui";
 import {
   SETTINGS_ME_QUERY,
   UPDATE_PROFILE_MUTATION
@@ -24,6 +32,7 @@ export function ProfileSettingsForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting }
@@ -45,7 +54,7 @@ export function ProfileSettingsForm() {
     reset({
       username: me.username,
       email: me.email,
-      birthdate: me.birthdate ? me.birthdate.slice(0, 10) : ""
+      birthdate: parseIsoDateFromApi(me.birthdate)
     });
   }, [meQuery.data, reset]);
 
@@ -74,9 +83,7 @@ export function ProfileSettingsForm() {
           updateProfileInput: {
             username: values.username,
             email: values.email,
-            birthdate: values.birthdate
-              ? new Date(values.birthdate).toISOString()
-              : null
+            birthdate: toGraphQLDateTimeOrNull(values.birthdate)
           }
         },
         refetchQueries: [{ query: SETTINGS_ME_QUERY }, { query: ME_QUERY }]
@@ -132,7 +139,20 @@ export function ProfileSettingsForm() {
 
       <div className="space-y-2">
         <Label htmlFor="birthdate">Дата рождения</Label>
-        <Input id="birthdate" type="date" {...register("birthdate")} />
+        <Controller
+          name="birthdate"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              id="birthdate"
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+        {errors.birthdate ? (
+          <p className="text-sm text-destructive">{errors.birthdate.message}</p>
+        ) : null}
       </div>
 
       <Button type="submit" disabled={loading}>

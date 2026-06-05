@@ -1,4 +1,6 @@
-import { Input, Label, Textarea } from "@open-cinema/ui";
+"use client";
+
+import { DatePicker, Input, Label, Textarea } from "@open-cinema/ui";
 import type { EpisodeFormValues } from "../lib/episodeForm";
 
 type EpisodeFormFieldsProps = {
@@ -59,12 +61,12 @@ export function EpisodeFormFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-date`}>Дата выхода</Label>
-          <Input
+          <DatePicker
             id={`${idPrefix}-date`}
-            type="date"
-            required
+            allowFuture
             value={form.releaseDate}
-            onChange={e => onChange("releaseDate", e.target.value)}
+            onChange={value => onChange("releaseDate", value)}
+            placeholder="Выберите дату выхода"
           />
         </div>
         <div className="space-y-1">

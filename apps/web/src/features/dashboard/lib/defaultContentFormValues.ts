@@ -1,3 +1,4 @@
+import { dateToIsoDate, toDateTimeIso } from "@open-cinema/ui";
 import type { ContentFormValues } from "../ui/ContentEditForm";
 
 export function defaultContentFormValues(): ContentFormValues {
@@ -6,7 +7,7 @@ export function defaultContentFormValues(): ContentFormValues {
     description: "",
     director: "",
     genres: [],
-    releaseDate: new Date().toISOString().slice(0, 10),
+    releaseDate: dateToIsoDate(new Date()),
     rating: "0"
   };
 }
@@ -17,7 +18,7 @@ export function contentFormToInput(values: ContentFormValues) {
     description: values.description,
     director: values.director,
     genres: values.genres,
-    releaseDate: new Date(values.releaseDate).toISOString(),
+    releaseDate: toDateTimeIso(values.releaseDate),
     rating: Number(values.rating)
   };
 }

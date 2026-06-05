@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input, Label, Textarea } from "@open-cinema/ui";
+import { Button, DatePicker, Input, Label, Textarea } from "@open-cinema/ui";
 import type { Genre } from "@/shared/lib/genres";
 import { GenreSelect } from "@/features/dashboard/ui/GenreSelect";
 
@@ -74,12 +74,12 @@ export function ContentEditForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="releaseDate">Дата выхода</Label>
-          <Input
+          <DatePicker
             id="releaseDate"
-            type="date"
-            value={values.releaseDate.slice(0, 10)}
-            onChange={event => update("releaseDate", event.target.value)}
-            required
+            allowFuture
+            value={values.releaseDate}
+            onChange={value => update("releaseDate", value)}
+            placeholder="Выберите дату выхода"
           />
         </div>
       </div>

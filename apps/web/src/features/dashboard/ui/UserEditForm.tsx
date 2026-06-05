@@ -3,6 +3,7 @@
 import { useState } from "react";
 import {
   Button,
+  DatePicker,
   Input,
   Label,
   Select,
@@ -123,11 +124,10 @@ export function UserEditForm({
 
       <div className="space-y-2">
         <Label htmlFor="birthdate">Дата рождения</Label>
-        <Input
+        <DatePicker
           id="birthdate"
-          type="date"
           value={values.birthdate}
-          onChange={event => update("birthdate", event.target.value)}
+          onChange={value => update("birthdate", value)}
         />
       </div>
 

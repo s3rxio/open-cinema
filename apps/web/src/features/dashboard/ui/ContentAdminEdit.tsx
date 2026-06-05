@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   Loader,
+  parseIsoDateFromApi,
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
+  toDateTimeIso
 } from "@open-cinema/ui";
 import { getApolloErrorMessage } from "@/shared/api/getApolloErrorMessage";
 import {
@@ -359,7 +361,7 @@ function toFormValues(item: {
     description: item.description,
     director: item.director,
     genres: item.genres as ContentFormValues["genres"],
-    releaseDate: item.releaseDate,
+    releaseDate: parseIsoDateFromApi(item.releaseDate),
     rating: String(item.rating)
   };
 }
@@ -371,7 +373,7 @@ function buildUpdateInput(id: string, values: ContentFormValues) {
     description: values.description,
     director: values.director,
     genres: values.genres,
-    releaseDate: new Date(values.releaseDate).toISOString(),
+    releaseDate: toDateTimeIso(values.releaseDate),
     rating: Number(values.rating)
   };
 }

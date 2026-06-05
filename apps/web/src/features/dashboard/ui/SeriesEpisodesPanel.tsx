@@ -23,6 +23,7 @@ import {
   REMOVE_EPISODES_BULK_MUTATION,
   UNPUBLISH_EPISODES_BULK_MUTATION
 } from "@/features/dashboard/api/dashboard";
+import { dateToIsoDate } from "@open-cinema/ui";
 import { toReleaseDateIso, type EpisodeFormValues } from "../lib/episodeForm";
 import { EpisodeEditDialog } from "./EpisodeEditDialog";
 import { EpisodeFormFields } from "./EpisodeFormFields";
@@ -60,7 +61,7 @@ function buildDefaultFormValues(
     episode: String(episodeNumber),
     title: `Сезон ${targetSeason}, эпизод ${episodeNumber}`,
     description: "",
-    releaseDate: new Date().toISOString().slice(0, 10),
+    releaseDate: dateToIsoDate(new Date()),
     rating: "0"
   };
 }
