@@ -1,134 +1,34 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Hls from "hls.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@apollo/client/react";
-import { Button, cn, Loader } from "@open-cinema/ui";
-import {
-  GET_STREAM_FOR_CONTENT_QUERY,
-  GET_STREAM_INFO_QUERY
-} from "@/entities/stream";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePlayerStore } from "@/shared/state";
-import { resolvePlaybackUrl } from "../lib/resolvePlaybackUrl";
+import { useWatchProgress } from "@/entities/watch-history";
 import { getNextEpisode } from "../lib/getNextEpisodeId";
 import { usePlayerKeyboard } from "../lib/usePlayerKeyboard";
-import { AUTO_QUALITY, useHlsTracks } from "../lib/useHlsTracks";
+import { useHlsTracks } from "../lib/useHlsTracks";
+import { usePlayerStream } from "../lib/usePlayerStream";
 import {
-  Maximize,
-  Minimize,
-  Pause,
-  Play,
-  SkipForward,
-  Users,
-  Volume2,
-  VolumeX
-} from "lucide-react";
-import Link from "next/link";
-import { PlayerActionFlash, type PlayerFlashAction } from "./PlayerActionFlash";
-import { PlayerBufferingOverlay } from "./PlayerBufferingOverlay";
-import { formatTime, PlayerProgressBar } from "@/shared/ui/PlayerProgressBar";
-import { PlayerEpisodeMenu } from "./PlayerEpisodeMenu";
-import { PlayerSettingsMenu } from "./PlayerSettingsMenu";
+  usePlayerControlsVisibility,
+  usePlayerFlash,
+  usePlayerFullscreen,
+  useSuppressPlayPauseFlash
+} from "../lib/usePlayerControlsVisibility";
+import { useWatchPartyPlayback } from "../lib/useWatchPartyPlayback";
+import { useAutoNextEpisode } from "../lib/useAutoNextEpisode";
+import { useVideoBuffering } from "../lib/useVideoBuffering";
+import { usePlayerActions } from "../lib/usePlayerActions";
+import { SEEK_STEP_SEC } from "../lib/constants";
+import type { VideoPlayerProps } from "../model/types";
+import { getPlayerShellClasses, PlayerShellState } from "./PlayerShellState";
+import { PlayerTitleOverlay } from "./PlayerTitleOverlay";
+import { PlayerVideoLayer } from "./PlayerVideoLayer";
 import {
-  PlayerControlTooltip,
-  PlayerControlTooltipWrap
-} from "./PlayerControlTooltip";
-import { useWatchProgress } from "@/entities/watch-history";
+  PlayerControlsBar,
+  resolveTrackDefaults
+} from "./PlayerControlsBar";
 
-const ReactHlsPlayer = dynamic(() => import("./ReactHlsPlayer"), {
-  ssr: false
-});
-
-const CONTROLS_HIDE_MS = 3000;
-const FLASH_DURATION_MS = 1000;
-const SEEK_STEP_SEC = 10;
-const CLICK_DELAY_MS = 250;
-const AUTO_NEXT_SECONDS = 5;
-import {
-  getExpectedPartyTime,
-  tryPlayVideo,
-  WATCH_PARTY_GUEST_DRIFT_CHECK_MS,
-  WATCH_PARTY_SYNC_THRESHOLD_SEC
-} from "@/shared/lib/playback/sync";
-
-type WatchPartyPlayback = {
-  currentTime: number;
-  isPlaying: boolean;
-  updatedAt: string;
-};
-
-type WatchPartyConfig = {
-  enabled: boolean;
-  isHost: boolean;
-  remotePlayback: WatchPartyPlayback | null;
-  onLocalPlaybackChange: (state: {
-    currentTime: number;
-    isPlaying: boolean;
-  }) => void;
-};
-
-function SeekButton({
-  direction,
-  onClick
-}: {
-  direction: "back" | "forward";
-  onClick: () => void;
-}) {
-  const label =
-    direction === "back" ? "Отмотать на 10 секунд" : "Перемотать на 10 секунд";
-
-  return (
-    <PlayerControlTooltip label={label}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={onClick}
-        aria-label={label}
-        className="relative h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className={cn(
-            "h-5 w-5 fill-current",
-            direction === "forward" && "scale-x-[-1]"
-          )}
-          aria-hidden
-        >
-          <path d="M12.5 8c-2.65 0-5.05 1.04-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8zm-1 11h-2v-6h2v6zm4 0h-2v-6h2v6z" />
-        </svg>
-        <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-semibold leading-none">
-          10
-        </span>
-      </Button>
-    </PlayerControlTooltip>
-  );
-}
-
-type EpisodeOption = {
-  id: string;
-  title: string;
-  season: number;
-  episode: number;
-};
-
-interface VideoPlayerProps {
-  /** Movie or episode id (same as createStream contentId). */
-  contentId?: string;
-  movieId?: string;
-  episodeId?: string;
-  streamId?: string | null;
-  title?: string;
-  variant?: "embedded" | "cinema";
-  autoPlay?: boolean;
-  watchPartyHref?: string;
-  watchParty?: WatchPartyConfig;
-  seasons?: { season: number; episodes: EpisodeOption[] }[];
-  selectedSeason?: number;
-  selectedEpisodeId?: string;
-  onEpisodeChange?: (episodeId: string) => void;
-}
+export type { VideoPlayerProps } from "../model/types";
 
 export function VideoPlayer({
   contentId,
@@ -146,529 +46,144 @@ export function VideoPlayer({
   onEpisodeChange
 }: VideoPlayerProps) {
   const isCinema = variant === "cinema";
-  const shellClass = isCinema
-    ? "relative h-full w-full overflow-hidden bg-black"
-    : "relative w-full bg-black rounded-lg overflow-hidden aspect-video";
-  const stateShellClass = isCinema
-    ? "flex h-full w-full items-center justify-center text-white bg-black"
-    : "w-full aspect-video bg-black flex items-center justify-center text-white rounded-lg";
+  const { shell } = getPlayerShellClasses(variant);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const flashClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suppressPlayPauseFlashRef = useRef(false);
-  const suppressPlayPauseFlashTimeoutRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
   const skipPlayPauseFlashRef = useRef(autoPlay || isCinema);
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const applyingRemoteRef = useRef(false);
-  const remotePlaybackRef = useRef<WatchPartyPlayback | null>(null);
 
-  const [duration, setDuration] = useState(0);
-  const [showControls, setShowControls] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [episodeMenuOpen, setEpisodeMenuOpen] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const [flash, setFlash] = useState<{
-    action: PlayerFlashAction;
-    key: number;
-  } | null>(null);
-  const [isBuffering, setIsBuffering] = useState(false);
-  const [autoNextSeconds, setAutoNextSeconds] = useState<number | null>(null);
-  const [guestPlayBlocked, setGuestPlayBlocked] = useState(false);
-  const guestPendingPlayRef = useRef(false);
+  const playerState = usePlayerStore();
+  const resetPlayer = usePlayerStore(s => s.reset);
+  const { setQuality, setAudio, setSubtitle } = useHlsTracks(hlsRef);
 
   const nextEpisode = useMemo(() => {
     if (!seasons?.length || !selectedEpisodeId) return null;
     return getNextEpisode(seasons, selectedEpisodeId);
   }, [seasons, selectedEpisodeId]);
 
-  const playerState = usePlayerStore();
-  const resetPlayer = usePlayerStore(s => s.reset);
-  const { setQuality, setAudio, setSubtitle } = useHlsTracks(hlsRef);
+  const stream = usePlayerStream(contentId, streamId);
+  const { suppressPlayPauseFlashRef, suppressPlayPauseFlash } =
+    useSuppressPlayPauseFlash();
 
-  const partyEnabled = Boolean(watchParty?.enabled);
-  const partyIsHost = Boolean(watchParty?.isHost);
-  const partyGuest = partyEnabled && !partyIsHost;
-
-  const { applyResume, handleTimeUpdate, handlePause, handleEnded } =
-    useWatchProgress({
-      movieId,
-      episodeId,
-      enabled: !partyEnabled
-    });
-
-  const emitPartyPlayback = useCallback(
-    (currentTime: number, isPlaying: boolean) => {
-      if (!partyEnabled || !partyIsHost || applyingRemoteRef.current) return;
-      watchParty?.onLocalPlaybackChange({ currentTime, isPlaying });
-    },
-    [partyEnabled, partyIsHost, watchParty]
-  );
-
-  const clearHideTimeout = useCallback(() => {
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = null;
-    }
-  }, []);
-
-  const scheduleHideControls = useCallback(() => {
-    clearHideTimeout();
-    if (
-      !playerState.isPlaying ||
-      settingsOpen ||
-      episodeMenuOpen ||
-      autoNextSeconds !== null ||
-      isHovering
-    )
-      return;
-
-    hideTimeoutRef.current = setTimeout(() => {
-      setShowControls(false);
-    }, CONTROLS_HIDE_MS);
-  }, [
-    clearHideTimeout,
-    playerState.isPlaying,
-    settingsOpen,
-    episodeMenuOpen,
-    autoNextSeconds,
-    isHovering
-  ]);
-
-  const revealControls = useCallback(() => {
-    setShowControls(true);
-    scheduleHideControls();
-  }, [scheduleHideControls]);
-
-  const triggerFlash = useCallback((action: PlayerFlashAction) => {
-    if (flashClearRef.current) clearTimeout(flashClearRef.current);
-    setFlash({ action, key: Date.now() });
-    flashClearRef.current = setTimeout(() => {
-      setFlash(null);
-      flashClearRef.current = null;
-    }, FLASH_DURATION_MS);
-  }, []);
-
-  const suppressPlayPauseFlash = useCallback(() => {
-    suppressPlayPauseFlashRef.current = true;
-    if (suppressPlayPauseFlashTimeoutRef.current) {
-      clearTimeout(suppressPlayPauseFlashTimeoutRef.current);
-    }
-    suppressPlayPauseFlashTimeoutRef.current = setTimeout(() => {
-      suppressPlayPauseFlashRef.current = false;
-      suppressPlayPauseFlashTimeoutRef.current = null;
-    }, 500);
-  }, []);
-
-  const seekBy = useCallback(
-    (delta: number) => {
-      if (partyGuest) return;
-      if (autoNextSeconds !== null) setAutoNextSeconds(null);
-      const video = videoRef.current;
-      if (!video) return;
-      const next = Math.min(
-        duration > 0 ? duration : video.duration || 0,
-        Math.max(0, video.currentTime + delta)
-      );
-      video.currentTime = next;
-      playerState.setCurrentTime(next);
-      emitPartyPlayback(next, !video.paused);
-      triggerFlash(delta > 0 ? "seek-forward" : "seek-back");
-      revealControls();
-    },
-    [
-      duration,
-      playerState,
-      revealControls,
-      triggerFlash,
-      emitPartyPlayback,
-      partyGuest,
-      autoNextSeconds
-    ]
-  );
-
-  const toggleFullscreen = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
-    } else {
-      void el.requestFullscreen();
-    }
-    revealControls();
-  }, [revealControls]);
-
-  const useContentQuery = Boolean(contentId);
-  const useStreamIdQuery = Boolean(streamId) && !useContentQuery;
-
-  const streamByContentQuery = useQuery(GET_STREAM_FOR_CONTENT_QUERY, {
-    variables: { contentId: contentId ?? "" },
-    skip: !useContentQuery
+  const party = useWatchPartyPlayback({
+    watchParty,
+    videoRef,
+    playerState,
+    suppressPlayPauseFlash
   });
 
-  const streamByIdQuery = useQuery(GET_STREAM_INFO_QUERY, {
-    variables: { streamId: streamId ?? "" },
-    skip: !useStreamIdQuery
+  const progress = useWatchProgress({
+    movieId,
+    episodeId,
+    enabled: !party.partyEnabled
   });
-
-  const activeQuery = useContentQuery ? streamByContentQuery : streamByIdQuery;
-
-  const streamInfo = useContentQuery
-    ? streamByContentQuery.data?.getStreamForContent
-    : streamByIdQuery.data?.getStreamInfo;
-  const playbackUrl = streamInfo ? resolvePlaybackUrl(streamInfo) : null;
-  const subtitleMetas = streamInfo?.subtitleMetas ?? [];
-  const keyboardEnabled = Boolean(
-    playbackUrl && streamInfo && !activeQuery.loading && !activeQuery.error
-  );
-
-  const togglePlay = useCallback(() => {
-    if (partyGuest) return;
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      void tryPlayVideo(video);
-    } else {
-      video.pause();
-    }
-    emitPartyPlayback(video.currentTime, !video.paused);
-    revealControls();
-  }, [revealControls, emitPartyPlayback, partyGuest]);
-
-  const toggleMute = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const nextVolume = playerState.volume > 0 ? 0 : 1;
-    video.volume = nextVolume;
-    playerState.setVolume(nextVolume);
-    revealControls();
-  }, [playerState, revealControls]);
-
-  const goToNextEpisode = useCallback(() => {
-    if (!nextEpisode || !onEpisodeChange || partyGuest) return;
-    setAutoNextSeconds(null);
-    onEpisodeChange(nextEpisode.id);
-    revealControls();
-  }, [nextEpisode, onEpisodeChange, partyGuest, revealControls]);
-
-  const cycleSubtitles = useCallback(() => {
-    if (subtitleMetas.length === 0) return;
-
-    const current = playerState.currentSubtitle;
-    if (!current) {
-      const first = subtitleMetas[0];
-      playerState.setSubtitle(first.id);
-      setSubtitle(first.id, subtitleMetas);
-    } else {
-      const index = subtitleMetas.findIndex(m => m.id === current);
-      if (index < 0 || index >= subtitleMetas.length - 1) {
-        playerState.setSubtitle(null);
-        setSubtitle(null, subtitleMetas);
-      } else {
-        const next = subtitleMetas[index + 1];
-        playerState.setSubtitle(next.id);
-        setSubtitle(next.id, subtitleMetas);
-      }
-    }
-    revealControls();
-  }, [subtitleMetas, playerState, setSubtitle, revealControls]);
-
-  const handleVideoClick = useCallback(() => {
-    if (partyGuest) return;
-    if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
-    clickTimeoutRef.current = setTimeout(() => {
-      clickTimeoutRef.current = null;
-      togglePlay();
-    }, CLICK_DELAY_MS);
-  }, [togglePlay, partyGuest]);
-
-  const handleVideoDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (clickTimeoutRef.current) {
-        clearTimeout(clickTimeoutRef.current);
-        clickTimeoutRef.current = null;
-      }
-      toggleFullscreen();
-    },
-    [toggleFullscreen]
-  );
-
-  usePlayerKeyboard({
-    enabled: keyboardEnabled && !partyGuest,
-    onTogglePlay: togglePlay,
-    onSeekBackward: () => seekBy(-SEEK_STEP_SEC),
-    onSeekForward: () => seekBy(SEEK_STEP_SEC),
-    onToggleMute: toggleMute,
-    onCycleSubtitles: cycleSubtitles,
-    onToggleFullscreen: toggleFullscreen
-  });
-
-  const clearBuffering = useCallback(() => {
-    const video = videoRef.current;
-    if (!video || video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      setIsBuffering(false);
-    }
-  }, []);
-
-  const handleHlsReady = useCallback(
-    (hls: Hls) => {
-      hlsRef.current = hls;
-
-      const showBuffering = () => setIsBuffering(true);
-
-      hls.on(Hls.Events.AUDIO_TRACK_SWITCHING, showBuffering);
-      hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, clearBuffering);
-      hls.on(Hls.Events.LEVEL_SWITCHING, showBuffering);
-      hls.on(Hls.Events.LEVEL_SWITCHED, clearBuffering);
-    },
-    [clearBuffering]
-  );
 
   const sourceKey = contentId ?? streamId ?? "";
+  const autoNext = useAutoNextEpisode({
+    nextEpisode,
+    onEpisodeChange,
+    partyGuest: party.partyGuest,
+    sourceKey,
+    selectedEpisodeId
+  });
+
+  const ui = usePlayerControlsVisibility({
+    isPlaying: playerState.isPlaying,
+    autoNextSeconds: autoNext.autoNextSeconds
+  });
+
+  const startAutoNext = useCallback(() => {
+    autoNext.startAutoNext();
+    ui.setShowControls(true);
+    ui.clearHideTimeout();
+  }, [autoNext, ui]);
+
+  const { flash, triggerFlash } = usePlayerFlash();
+  const fullscreen = usePlayerFullscreen(containerRef);
+
+  const video = useVideoBuffering({
+    videoRef,
+    hlsRef,
+    playbackUrl: stream.playbackUrl,
+    suppressPlayPauseFlash,
+    applyResume: progress.applyResume,
+    partyGuest: party.partyGuest,
+    guestPendingPlayRef: party.guestPendingPlayRef,
+    applyRemotePlayback: party.applyRemotePlayback,
+    remotePlaybackRef: party.remotePlaybackRef
+  });
 
   useEffect(() => {
     resetPlayer();
     hlsRef.current = null;
     skipPlayPauseFlashRef.current = autoPlay || isCinema;
-    setIsBuffering(false);
-  }, [sourceKey, resetPlayer, autoPlay, isCinema]);
+    video.setIsBuffering(false);
+  }, [sourceKey, resetPlayer, autoPlay, isCinema, video.setIsBuffering]);
 
-  remotePlaybackRef.current = watchParty?.remotePlayback ?? null;
+  const actions = usePlayerActions({
+    videoRef,
+    duration: video.duration,
+    partyGuest: party.partyGuest,
+    subtitleMetas: stream.subtitleMetas,
+    playerState,
+    setSubtitleTrack: setSubtitle,
+    emitPartyPlayback: party.emitPartyPlayback,
+    triggerFlash,
+    revealControls: ui.revealControls,
+    cancelAutoNext: autoNext.cancelAutoNext,
+    toggleFullscreen: fullscreen.toggleFullscreen
+  });
 
-  const applyRemotePlayback = useCallback(
-    async (remote: WatchPartyPlayback, options?: { userGesture?: boolean }) => {
-      const video = videoRef.current;
-      if (!video) return;
+  const goToNextEpisode = useCallback(() => {
+    if (!nextEpisode || !onEpisodeChange || party.partyGuest) return;
+    autoNext.cancelAutoNext();
+    onEpisodeChange(nextEpisode.id);
+    ui.revealControls();
+  }, [nextEpisode, onEpisodeChange, party.partyGuest, ui, autoNext]);
 
-      applyingRemoteRef.current = true;
-      suppressPlayPauseFlash();
-
-      const expectedTime = getExpectedPartyTime(remote);
-      const drift = Math.abs(video.currentTime - expectedTime);
-
-      if (drift > WATCH_PARTY_SYNC_THRESHOLD_SEC) {
-        video.currentTime = expectedTime;
-        playerState.setCurrentTime(expectedTime);
+  const handleSettingsOpenChange = useCallback(
+    (open: boolean) => {
+      ui.setSettingsOpen(open);
+      if (open) {
+        ui.setShowControls(true);
+        ui.clearHideTimeout();
+      } else {
+        ui.scheduleHideControls();
       }
-
-      if (remote.isPlaying && video.paused) {
-        const playResult = await tryPlayVideo(video, {
-          mutedFallback: partyGuest && !options?.userGesture
-        });
-
-        if (playResult === "not-ready") {
-          guestPendingPlayRef.current = true;
-        } else if (playResult === "blocked") {
-          guestPendingPlayRef.current = true;
-          setGuestPlayBlocked(true);
-        } else {
-          guestPendingPlayRef.current = false;
-          setGuestPlayBlocked(false);
-        }
-      } else if (!remote.isPlaying && !video.paused) {
-        video.pause();
-        guestPendingPlayRef.current = false;
-        setGuestPlayBlocked(false);
-      } else if (!remote.isPlaying) {
-        guestPendingPlayRef.current = false;
-        setGuestPlayBlocked(false);
-      }
-
-      setTimeout(() => {
-        applyingRemoteRef.current = false;
-      }, 400);
     },
-    [playerState, suppressPlayPauseFlash, partyGuest]
+    [ui]
   );
 
-  const handleGuestUnlockPlayback = useCallback(() => {
-    const remote = remotePlaybackRef.current;
-    if (!remote?.isPlaying) {
-      setGuestPlayBlocked(false);
-      guestPendingPlayRef.current = false;
-      return;
-    }
-    void applyRemotePlayback(remote, { userGesture: true });
-  }, [applyRemotePlayback]);
-
-  const remoteUpdatedAt = watchParty?.remotePlayback?.updatedAt;
-  const remoteIsPlaying = watchParty?.remotePlayback?.isPlaying;
-  const remoteCurrentTime = watchParty?.remotePlayback?.currentTime;
-
-  useEffect(() => {
-    if (!partyGuest) {
-      setGuestPlayBlocked(false);
-      guestPendingPlayRef.current = false;
-    }
-  }, [partyGuest]);
-
-  useEffect(() => {
-    if (!partyEnabled || partyIsHost || !watchParty?.remotePlayback) return;
-    void applyRemotePlayback(watchParty.remotePlayback);
-  }, [
-    partyEnabled,
-    partyIsHost,
-    remoteUpdatedAt,
-    remoteIsPlaying,
-    remoteCurrentTime,
-    applyRemotePlayback,
-    watchParty?.remotePlayback
-  ]);
-
-  useEffect(() => {
-    if (!partyGuest) return;
-
-    const checkDrift = () => {
-      const remote = remotePlaybackRef.current;
-      const video = videoRef.current;
-      if (!remote?.isPlaying || !video || applyingRemoteRef.current) return;
-
-      const expectedTime = getExpectedPartyTime(remote);
-      if (
-        Math.abs(video.currentTime - expectedTime) <=
-        WATCH_PARTY_SYNC_THRESHOLD_SEC
-      ) {
-        return;
+  const handleEpisodeMenuOpenChange = useCallback(
+    (open: boolean) => {
+      ui.setEpisodeMenuOpen(open);
+      if (open) {
+        ui.setShowControls(true);
+        ui.clearHideTimeout();
+      } else {
+        ui.scheduleHideControls();
       }
-
-      void applyRemotePlayback(remote);
-    };
-
-    const intervalId = setInterval(
-      checkDrift,
-      WATCH_PARTY_GUEST_DRIFT_CHECK_MS
-    );
-    return () => clearInterval(intervalId);
-  }, [partyGuest, applyRemotePlayback]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const onDurationChange = () => {
-      setDuration(video.duration || 0);
-      applyResume(video);
-    };
-    const onSeeking = () => {
-      suppressPlayPauseFlash();
-      setIsBuffering(true);
-    };
-    const onWaiting = () => setIsBuffering(true);
-    const onStalled = () => setIsBuffering(true);
-    const onCanPlay = () => {
-      clearBuffering();
-      if (partyGuest && guestPendingPlayRef.current) {
-        const remote = remotePlaybackRef.current;
-        if (remote?.isPlaying) {
-          void applyRemotePlayback(remote);
-        }
-      }
-    };
-    const onPlaying = () => clearBuffering();
-
-    video.addEventListener("loadedmetadata", onDurationChange);
-    video.addEventListener("durationchange", onDurationChange);
-    video.addEventListener("seeking", onSeeking);
-    video.addEventListener("waiting", onWaiting);
-    video.addEventListener("stalled", onStalled);
-    video.addEventListener("canplay", onCanPlay);
-    video.addEventListener("playing", onPlaying);
-
-    return () => {
-      video.removeEventListener("loadedmetadata", onDurationChange);
-      video.removeEventListener("durationchange", onDurationChange);
-      video.removeEventListener("seeking", onSeeking);
-      video.removeEventListener("waiting", onWaiting);
-      video.removeEventListener("stalled", onStalled);
-      video.removeEventListener("canplay", onCanPlay);
-      video.removeEventListener("playing", onPlaying);
-    };
-  }, [
-    playbackUrl,
-    suppressPlayPauseFlash,
-    clearBuffering,
-    applyResume,
-    partyGuest,
-    applyRemotePlayback
-  ]);
-
-  useEffect(() => {
-    if (playbackUrl) setIsBuffering(true);
-  }, [playbackUrl]);
-
-  useEffect(() => {
-    const onFullscreenChange = () => {
-      setIsFullscreen(document.fullscreenElement === containerRef.current);
-    };
-    document.addEventListener("fullscreenchange", onFullscreenChange);
-    return () =>
-      document.removeEventListener("fullscreenchange", onFullscreenChange);
-  }, []);
-
-  useEffect(() => {
-    setAutoNextSeconds(null);
-  }, [selectedEpisodeId, sourceKey]);
-
-  useEffect(() => {
-    if (autoNextSeconds === null) return;
-
-    if (autoNextSeconds <= 0) {
-      if (nextEpisode && onEpisodeChange && !partyGuest) {
-        onEpisodeChange(nextEpisode.id);
-      }
-      setAutoNextSeconds(null);
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      setAutoNextSeconds(prev => (prev !== null ? prev - 1 : null));
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [autoNextSeconds, nextEpisode, onEpisodeChange, partyGuest]);
-
-  useEffect(() => {
-    if (
-      !playerState.isPlaying ||
-      settingsOpen ||
-      episodeMenuOpen ||
-      autoNextSeconds !== null
-    ) {
-      setShowControls(true);
-      clearHideTimeout();
-      return;
-    }
-    scheduleHideControls();
-    return clearHideTimeout;
-  }, [
-    playerState.isPlaying,
-    settingsOpen,
-    episodeMenuOpen,
-    autoNextSeconds,
-    scheduleHideControls,
-    clearHideTimeout
-  ]);
-
-  useEffect(
-    () => () => {
-      clearHideTimeout();
-      if (flashClearRef.current) clearTimeout(flashClearRef.current);
-      if (suppressPlayPauseFlashTimeoutRef.current) {
-        clearTimeout(suppressPlayPauseFlashTimeoutRef.current);
-      }
-      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
     },
-    [clearHideTimeout]
+    [ui]
   );
 
-  const hasSource = useContentQuery || useStreamIdQuery;
+  const keyboardEnabled = Boolean(
+    stream.playbackUrl &&
+      stream.streamInfo &&
+      !stream.loading &&
+      !stream.error
+  );
+
+  usePlayerKeyboard({
+    enabled: keyboardEnabled && !party.partyGuest,
+    onTogglePlay: actions.togglePlay,
+    onSeekBackward: () => actions.seekBy(-SEEK_STEP_SEC),
+    onSeekForward: () => actions.seekBy(SEEK_STEP_SEC),
+    onToggleMute: actions.toggleMute,
+    onCycleSubtitles: actions.cycleSubtitles,
+    onToggleFullscreen: actions.handleToggleFullscreen
+  });
 
   const showEpisodeMenu = Boolean(
     seasons &&
@@ -678,459 +193,141 @@ export function VideoPlayer({
       selectedSeason !== undefined
   );
 
-  if (!hasSource) {
+  if (!stream.hasSource) {
     return (
-      <div className={stateShellClass}>
-        <p>Видео для этого контента ещё не загружено</p>
-      </div>
+      <PlayerShellState
+        variant={variant}
+        message="Видео для этого контента ещё не загружено"
+      />
     );
   }
 
-  const playbackReady =
-    !activeQuery.loading &&
-    !activeQuery.error &&
-    Boolean(streamInfo && playbackUrl);
-
-  const streamErrorMessage =
-    activeQuery.error?.message ?? "Для этой серии ещё не загружен стрим";
-
-  if (!playbackReady && !showEpisodeMenu) {
-    if (activeQuery.loading) {
-      return (
-        <div
-          className={
-            isCinema ? stateShellClass : `${stateShellClass} rounded-lg`
-          }
-        >
-          <Loader size="lg" />
-        </div>
-      );
+  if (!stream.playbackReady && !showEpisodeMenu) {
+    if (stream.loading) {
+      return <PlayerShellState variant={variant} message="" loading />;
     }
 
     return (
-      <div className={stateShellClass}>
-        <div className="text-center px-4">
-          <p className="mb-2">Ошибка загрузки видео</p>
-          <p className="text-sm text-gray-400">{streamErrorMessage}</p>
-        </div>
-      </div>
+      <PlayerShellState
+        variant={variant}
+        message="Ошибка загрузки видео"
+        detail={stream.streamErrorMessage}
+      />
     );
   }
 
-  const videoMetas = streamInfo?.videoMetas ?? [];
-  const audioMetas = streamInfo?.audioMetas ?? [];
-  const useMaster = Boolean(streamInfo?.masterPlaylistUrl);
+  const videoMetas = stream.streamInfo?.videoMetas ?? [];
+  const audioMetas = stream.streamInfo?.audioMetas ?? [];
+  const useMaster = Boolean(stream.streamInfo?.masterPlaylistUrl);
+  const trackDefaults = resolveTrackDefaults(
+    videoMetas,
+    audioMetas,
+    useMaster,
+    playerState
+  );
 
-  const defaultAudio = audioMetas.find(m => m.isDefault) ?? audioMetas[0];
-  const defaultQuality = useMaster
-    ? AUTO_QUALITY
-    : videoMetas[videoMetas.length - 1]?.id;
-
-  const qualityValue =
-    playerState.currentQuality ?? defaultQuality ?? AUTO_QUALITY;
-  const audioValue = playerState.currentAudio ?? defaultAudio?.id ?? "";
-  const subtitleValue = playerState.currentSubtitle ?? "off";
-
-  const controlsVisible =
-    !playbackReady ||
-    showControls ||
-    !playerState.isPlaying ||
-    settingsOpen ||
-    episodeMenuOpen ||
-    autoNextSeconds !== null;
+  const controlsVisible = !stream.playbackReady || ui.controlsVisible;
 
   return (
     <div
       ref={containerRef}
-      className={shellClass}
+      className={shell}
       onMouseEnter={() => {
-        setIsHovering(true);
-        revealControls();
+        ui.setIsHovering(true);
+        ui.revealControls();
       }}
       onMouseLeave={() => {
-        setIsHovering(false);
-        scheduleHideControls();
+        ui.setIsHovering(false);
+        ui.scheduleHideControls();
       }}
-      onMouseMove={revealControls}
-      onDoubleClick={handleVideoDoubleClick}
+      onMouseMove={ui.revealControls}
+      onDoubleClick={actions.handleVideoDoubleClick}
     >
       {title && !isCinema && (
-        <div
-          className={`pointer-events-none absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-4 transition-opacity duration-300 ${
-            controlsVisible ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <h1 className="text-lg font-semibold text-white line-clamp-2">
-            {title}
-          </h1>
-        </div>
+        <PlayerTitleOverlay title={title} visible={controlsVisible} />
       )}
 
-      {activeQuery.loading ? (
-        <div className="flex h-full items-center justify-center">
-          <Loader size="lg" />
-        </div>
-      ) : playbackReady ? (
-        <>
-          <ReactHlsPlayer
-            key={playbackUrl}
-            playerRef={videoRef}
-            src={playbackUrl!}
-            autoPlay={(autoPlay || isCinema) && !partyGuest}
-            className="w-full h-full object-contain"
-            controls={false}
-            playsInline
-            onHlsReady={handleHlsReady}
-            onClick={handleVideoClick}
-            onPlay={() => {
-              const video = videoRef.current;
-              playerState.setIsPlaying(true);
-              if (video) {
-                emitPartyPlayback(video.currentTime, true);
-              }
-              if (
-                !suppressPlayPauseFlashRef.current &&
-                !skipPlayPauseFlashRef.current
-              ) {
-                triggerFlash("play");
-              }
-              if (skipPlayPauseFlashRef.current) {
-                skipPlayPauseFlashRef.current = false;
-              }
-              scheduleHideControls();
-            }}
-            onPause={() => {
-              const video = videoRef.current;
-              playerState.setIsPlaying(false);
-              if (video) {
-                emitPartyPlayback(video.currentTime, false);
-                handlePause(video.currentTime, video.duration || duration);
-              }
-              if (!suppressPlayPauseFlashRef.current) {
-                triggerFlash("pause");
-              }
-              setShowControls(true);
-              clearHideTimeout();
-            }}
-            onEnded={() => {
-              const video = videoRef.current;
-              playerState.setIsPlaying(false);
-              if (video) {
-                handleEnded(video.duration || duration);
-              }
-              if (nextEpisode && !partyGuest) {
-                setAutoNextSeconds(AUTO_NEXT_SECONDS);
-                setShowControls(true);
-                clearHideTimeout();
-              }
-            }}
-            onTimeUpdate={e => {
-              const video = e.target as HTMLVideoElement;
-              playerState.setCurrentTime(video.currentTime);
-              handleTimeUpdate(video.currentTime, video.duration || duration);
-            }}
-            onVolumeChange={e =>
-              playerState.setVolume((e.target as HTMLVideoElement).volume)
-            }
-          />
+      <PlayerVideoLayer
+        loading={stream.loading}
+        playbackReady={stream.playbackReady}
+        playbackUrl={stream.playbackUrl}
+        streamErrorMessage={stream.streamErrorMessage}
+        videoRef={videoRef}
+        autoPlay={autoPlay || isCinema}
+        partyGuest={party.partyGuest}
+        isBuffering={video.isBuffering}
+        guestPlayBlocked={party.guestPlayBlocked}
+        flash={flash}
+        autoNextSeconds={autoNext.autoNextSeconds}
+        nextEpisode={nextEpisode}
+        duration={video.duration}
+        skipPlayPauseFlashRef={skipPlayPauseFlashRef}
+        suppressPlayPauseFlashRef={suppressPlayPauseFlashRef}
+        onHlsReady={video.handleHlsReady}
+        onVideoClick={actions.handleVideoClick}
+        onGuestUnlock={party.handleGuestUnlockPlayback}
+        scheduleHideControls={ui.scheduleHideControls}
+        setShowControls={ui.setShowControls}
+        clearHideTimeout={ui.clearHideTimeout}
+        triggerFlash={triggerFlash}
+        emitPartyPlayback={party.emitPartyPlayback}
+        handlePause={progress.handlePause}
+        handleEnded={progress.handleEnded}
+        handleTimeUpdate={progress.handleTimeUpdate}
+        onEnded={() => {
+          if (nextEpisode && !party.partyGuest) {
+            startAutoNext();
+          }
+        }}
+      />
 
-          <PlayerBufferingOverlay visible={isBuffering} />
-
-          {partyGuest && guestPlayBlocked && (
-            <button
-              type="button"
-              className="absolute inset-0 z-30 flex cursor-pointer flex-col items-center justify-center gap-3 bg-black/70 text-white"
-              onClick={handleGuestUnlockPlayback}
-              aria-label="Начать просмотр"
-            >
-              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
-                <Play className="h-8 w-8 fill-current" />
-              </span>
-              <span className="text-base font-medium sm:text-lg">
-                Нажмите, чтобы смотреть
-              </span>
-            </button>
-          )}
-
-          {flash && (
-            <PlayerActionFlash action={flash.action} animationKey={flash.key} />
-          )}
-
-          {autoNextSeconds !== null && nextEpisode && (
-            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-black/40">
-              <div className="rounded-lg bg-black/80 px-6 py-4 text-center text-white backdrop-blur-sm">
-                <p className="text-lg font-medium">
-                  Следующая серия через {autoNextSeconds} сек
-                </p>
-                <p className="mt-1 text-sm text-white/70">
-                  S{nextEpisode.season}E{nextEpisode.episode} ·{" "}
-                  {nextEpisode.title}
-                </p>
-              </div>
-            </div>
-          )}
-        </>
-      ) : (
-        <div className="flex h-full items-center justify-center px-4 text-center text-white">
-          <div>
-            <p className="mb-2 text-lg font-medium">Видео недоступно</p>
-            <p className="text-sm text-white/60">{streamErrorMessage}</p>
-            <p className="mt-3 text-sm text-white/50">Выберите другую серию</p>
-          </div>
-        </div>
-      )}
-
-      <div
-        className={`absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black via-black/70 to-transparent px-3 pb-3 pt-8 sm:px-4 sm:pb-4 transition-opacity duration-300 ${
-          controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
-        onClick={e => e.stopPropagation()}
-        onDoubleClick={e => e.stopPropagation()}
-      >
-        {playbackReady && (
-          <PlayerProgressBar
-            className="mb-2"
-            value={playerState.currentTime}
-            max={duration > 0 ? duration : 100}
-            onChange={value => {
-              if (partyGuest) return;
-              if (autoNextSeconds !== null) setAutoNextSeconds(null);
-              playerState.setCurrentTime(value);
-              if (videoRef.current) {
-                videoRef.current.currentTime = value;
-                emitPartyPlayback(value, !videoRef.current.paused);
-              }
-              revealControls();
-            }}
-          />
-        )}
-
-        <div className="flex items-center gap-1 text-white sm:gap-2">
-          {playbackReady && (
-            <>
-              <SeekButton
-                direction="back"
-                onClick={() => seekBy(-SEEK_STEP_SEC)}
-              />
-
-              <PlayerControlTooltip
-                label={playerState.isPlaying ? "Пауза" : "Воспроизведение"}
-              >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={togglePlay}
-                  className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                  aria-label={
-                    playerState.isPlaying ? "Пауза" : "Воспроизведение"
-                  }
-                >
-                  {playerState.isPlaying ? (
-                    <Pause className="h-5 w-5" />
-                  ) : (
-                    <Play className="h-5 w-5" />
-                  )}
-                </Button>
-              </PlayerControlTooltip>
-
-              <SeekButton
-                direction="forward"
-                onClick={() => seekBy(SEEK_STEP_SEC)}
-              />
-            </>
-          )}
-
-          {nextEpisode && !partyGuest && (
-            <PlayerControlTooltip
-              label={`Следующая серия: S${nextEpisode.season}E${nextEpisode.episode}`}
-            >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={goToNextEpisode}
-                className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                aria-label="Следующая серия"
-              >
-                <SkipForward className="h-5 w-5" />
-              </Button>
-            </PlayerControlTooltip>
-          )}
-
-          {playbackReady && (
-            <span className="ml-1 hidden text-xs tabular-nums text-white/90 sm:inline sm:text-sm">
-              {formatTime(playerState.currentTime)} / {formatTime(duration)}
-            </span>
-          )}
-
-          <div className="ml-auto flex items-center gap-1 sm:gap-2">
-            {playbackReady && (
-              <div className="flex items-center gap-1">
-                <PlayerControlTooltip
-                  label={
-                    playerState.volume > 0 ? "Выключить звук" : "Включить звук"
-                  }
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleMute}
-                    className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                    aria-label={
-                      playerState.volume > 0
-                        ? "Выключить звук"
-                        : "Включить звук"
-                    }
-                  >
-                    {playerState.volume > 0 ? (
-                      <Volume2 className="h-5 w-5" />
-                    ) : (
-                      <VolumeX className="h-5 w-5" />
-                    )}
-                  </Button>
-                </PlayerControlTooltip>
-                <PlayerControlTooltipWrap
-                  label="Громкость"
-                  className="hidden sm:inline-flex"
-                >
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={playerState.volume}
-                    onChange={e => {
-                      const volume = parseFloat(e.target.value);
-                      playerState.setVolume(volume);
-                      if (videoRef.current) {
-                        videoRef.current.volume = volume;
-                      }
-                    }}
-                    aria-label="Громкость"
-                    className="h-1 w-16 cursor-pointer accent-white md:w-24"
-                  />
-                </PlayerControlTooltipWrap>
-              </div>
-            )}
-
-            {playbackReady && watchPartyHref && !partyEnabled && (
-              <PlayerControlTooltip label="Совместный просмотр">
-                <Link
-                  href={watchPartyHref}
-                  aria-label="Совместный просмотр"
-                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-white hover:bg-white/20"
-                >
-                  <Users className="h-5 w-5" />
-                </Link>
-              </PlayerControlTooltip>
-            )}
-
-            {showEpisodeMenu && (
-              <PlayerEpisodeMenu
-                open={episodeMenuOpen}
-                onOpenChange={open => {
-                  setEpisodeMenuOpen(open);
-                  if (open) {
-                    setSettingsOpen(false);
-                    setShowControls(true);
-                    clearHideTimeout();
-                  } else {
-                    scheduleHideControls();
-                  }
-                }}
-                seasons={seasons!}
-                selectedSeason={selectedSeason!}
-                selectedEpisodeId={selectedEpisodeId!}
-                onEpisodeChange={onEpisodeChange!}
-              />
-            )}
-
-            {playbackReady && (
-              <PlayerSettingsMenu
-                open={settingsOpen}
-                onOpenChange={open => {
-                  setSettingsOpen(open);
-                  if (open) {
-                    setEpisodeMenuOpen(false);
-                    setShowControls(true);
-                    clearHideTimeout();
-                  } else {
-                    scheduleHideControls();
-                  }
-                }}
-                qualityValue={qualityValue}
-                audioValue={audioValue}
-                subtitleValue={subtitleValue}
-                videoMetas={videoMetas}
-                audioMetas={audioMetas}
-                subtitleMetas={subtitleMetas}
-                useMaster={useMaster}
-                onQualityChange={value => {
-                  setIsBuffering(true);
-                  playerState.setQuality(value);
-                  if (useMaster) {
-                    setQuality(value, videoMetas);
-                  } else {
-                    const meta = videoMetas.find(m => m.id === value);
-                    if (meta && videoRef.current) {
-                      videoRef.current.src = meta.url;
-                      void tryPlayVideo(videoRef.current);
-                    }
-                  }
-                  revealControls();
-                }}
-                onAudioChange={value => {
-                  setIsBuffering(true);
-                  playerState.setAudio(value);
-                  setAudio(value, audioMetas);
-                  revealControls();
-                }}
-                onSubtitleChange={value => {
-                  const id = value === "off" ? null : value;
-                  playerState.setSubtitle(id);
-                  setSubtitle(id, subtitleMetas);
-                  revealControls();
-                }}
-              />
-            )}
-
-            <PlayerControlTooltip
-              label={
-                isFullscreen
-                  ? "Выйти из полноэкранного режима"
-                  : "Полноэкранный режим"
-              }
-            >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={toggleFullscreen}
-                className="h-9 w-9 shrink-0 hover:bg-white/20 text-white"
-                aria-label={
-                  isFullscreen
-                    ? "Выйти из полноэкранного режима"
-                    : "Полноэкранный режим"
-                }
-              >
-                {isFullscreen ? (
-                  <Minimize className="h-5 w-5" />
-                ) : (
-                  <Maximize className="h-5 w-5" />
-                )}
-              </Button>
-            </PlayerControlTooltip>
-          </div>
-        </div>
-
-        {playbackReady && (
-          <span className="mt-1 text-xs tabular-nums text-white/90 sm:hidden">
-            {formatTime(playerState.currentTime)} / {formatTime(duration)}
-          </span>
-        )}
-      </div>
+      <PlayerControlsBar
+        visible={controlsVisible}
+        playbackReady={stream.playbackReady}
+        duration={video.duration}
+        partyGuest={party.partyGuest}
+        partyEnabled={party.partyEnabled}
+        isFullscreen={fullscreen.isFullscreen}
+        nextEpisode={nextEpisode}
+        watchPartyHref={watchPartyHref}
+        showEpisodeMenu={showEpisodeMenu}
+        seasons={seasons}
+        selectedSeason={selectedSeason}
+        selectedEpisodeId={selectedEpisodeId}
+        onEpisodeChange={onEpisodeChange}
+        settingsOpen={ui.settingsOpen}
+        episodeMenuOpen={ui.episodeMenuOpen}
+        qualityValue={trackDefaults.qualityValue}
+        audioValue={trackDefaults.audioValue}
+        subtitleValue={trackDefaults.subtitleValue}
+        videoMetas={videoMetas}
+        audioMetas={audioMetas}
+        subtitleMetas={stream.subtitleMetas}
+        useMaster={useMaster}
+        videoRef={videoRef}
+        onSettingsOpenChange={handleSettingsOpenChange}
+        onEpisodeMenuOpenChange={handleEpisodeMenuOpenChange}
+        onSeek={actions.seekBy}
+        onTogglePlay={actions.togglePlay}
+        onGoToNextEpisode={goToNextEpisode}
+        onToggleMute={actions.toggleMute}
+        onToggleFullscreen={actions.handleToggleFullscreen}
+        onProgressChange={value => {
+          if (party.partyGuest) return;
+          autoNext.cancelAutoNext();
+          playerState.setCurrentTime(value);
+          if (videoRef.current) {
+            videoRef.current.currentTime = value;
+            party.emitPartyPlayback(value, !videoRef.current.paused);
+          }
+          ui.revealControls();
+        }}
+        onBuffering={() => video.setIsBuffering(true)}
+        revealControls={ui.revealControls}
+        setQuality={setQuality}
+        setAudio={setAudio}
+        setSubtitle={setSubtitle}
+      />
     </div>
   );
 }

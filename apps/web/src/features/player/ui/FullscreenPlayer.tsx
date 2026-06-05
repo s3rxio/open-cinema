@@ -3,14 +3,8 @@
 import Link from "next/link";
 import { Loader } from "@open-cinema/ui";
 import { ChevronLeft } from "lucide-react";
+import type { EpisodeOption } from "../model/types";
 import { VideoPlayer } from "./VideoPlayer";
-
-type EpisodeOption = {
-  id: string;
-  title: string;
-  season: number;
-  episode: number;
-};
 
 type FullscreenPlayerProps = {
   backHref: string;
