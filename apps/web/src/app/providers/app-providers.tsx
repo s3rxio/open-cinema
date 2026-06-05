@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/entities/user";
 import { ThemeProvider } from "@/shared/ui/ThemeProvider";
 import { ApolloProvider } from "@/shared/api";
-import { AppShell } from "@/shared/ui/AppShell";
+import { AppShell } from "@/widgets/app-shell";
 import { CookieConsent } from "@/shared/ui/CookieConsent";
 
 function AppLayout({ children }: { children: React.ReactNode }) {

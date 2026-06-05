@@ -12,7 +12,7 @@ import { from as rxFrom, switchMap, throwError } from "rxjs";
 import { APOLLO_PREFLIGHT_HEADERS } from "./apolloHeaders";
 import { getAccessToken } from "@/shared/auth/authTokens";
 import { isAuthError } from "@/shared/auth/isAuthError";
-import { refreshAccessToken } from "@/entities/session";
+import { refreshAccessToken } from "@/shared/auth/refreshAccessToken";
 import { onSessionLogout, sessionLogout } from "@/shared/auth/sessionLogout";
 
 const uri =

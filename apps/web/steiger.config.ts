@@ -4,12 +4,7 @@ import { defineConfig } from "steiger";
 export default defineConfig([
   ...fsd.configs.recommended,
   {
-    ignores: [
-      "**/__mocks__/**",
-      "**/generated/**",
-      "pages/**",
-      "app/**"
-    ]
+    ignores: ["**/__mocks__/**", "**/generated/**", "pages/**", "app/**"]
   },
   {
     rules: {
@@ -22,7 +17,7 @@ export default defineConfig([
   {
     files: ["./src/shared/**"],
     rules: {
-      "fsd/public-api": "off"
+      "fsd/public-api": "warn"
     }
   },
   {

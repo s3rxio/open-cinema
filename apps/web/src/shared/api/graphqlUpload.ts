@@ -3,7 +3,7 @@
 import { print, type DocumentNode } from "graphql";
 import { getAccessToken } from "@/shared/auth/authTokens";
 import { isAuthError } from "@/shared/auth/isAuthError";
-import { refreshAccessToken } from "@/entities/session";
+import { refreshAccessToken } from "@/shared/auth/refreshAccessToken";
 import { sessionLogout } from "@/shared/auth/sessionLogout";
 import { APOLLO_PREFLIGHT_HEADERS } from "./apolloHeaders";
 

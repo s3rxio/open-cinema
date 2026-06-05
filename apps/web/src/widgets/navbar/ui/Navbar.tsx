@@ -22,7 +22,7 @@ import {
   X
 } from "lucide-react";
 import { NavbarSearch } from "@/features/search";
-import { Container } from "./Container";
+import { Container } from "@/shared/ui/Container";
 import { MobileNavMenu } from "./MobileNavMenu";
 
 const navLinkClass = "text-sm font-medium transition-colors hover:text-primary";

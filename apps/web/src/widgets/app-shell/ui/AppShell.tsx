@@ -1,6 +1,6 @@
 "use client";
 
-import { Navbar } from "./Navbar";
+import { Navbar } from "@/widgets/navbar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (

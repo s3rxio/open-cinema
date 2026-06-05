@@ -26,7 +26,7 @@ import {
   isAuthError,
   sessionLogout
 } from "@/shared/auth";
-import { refreshAccessToken } from "@/entities/session";
+import { refreshAccessToken } from "@/shared/auth/refreshAccessToken";
 
 export type { AuthUser };
 
