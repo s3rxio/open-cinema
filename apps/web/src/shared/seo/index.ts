@@ -13,3 +13,4 @@ export {
   generateSeriesMetadata
 } from "./content";
 export { WebSiteJsonLd, ContentJsonLd } from "./json-ld";
+export { YandexMetrika } from "./yandex-metrika";
