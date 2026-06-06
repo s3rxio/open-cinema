@@ -2,10 +2,14 @@ import { FavoritesList } from "@/features/favorites";
 import { WatchHistoryList } from "@/features/watch-history";
 import { Container } from "@/shared/ui/Container";
 
-export const metadata = {
-  title: "Моё | Open Cinema",
-  description: "Закладки и недавно просмотренное"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Моё",
+  description: "Закладки и недавно просмотренное",
+  path: "/my",
+  noIndex: true
+});
 
 export function MyPage() {
   return (

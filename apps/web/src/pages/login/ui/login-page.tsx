@@ -1,9 +1,13 @@
 import { LoginForm } from "@/features/sign-in";
 
-export const metadata = {
-  title: "Вход | Open Cinema",
-  description: "Войти в аккаунт"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Вход",
+  description: "Войдите в аккаунт Open Cinema, чтобы сохранять избранное и историю просмотров.",
+  path: "/auth/login",
+  noIndex: true
+});
 
 export function LoginPage() {
   return (

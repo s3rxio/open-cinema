@@ -1,9 +1,13 @@
 import { RegisterForm } from "@/features/sign-in";
 
-export const metadata = {
-  title: "Регистрация | Open Cinema",
-  description: "Создать аккаунт"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Регистрация",
+  description: "Создайте аккаунт Open Cinema для доступа к избранному, истории и совместному просмотру.",
+  path: "/auth/register",
+  noIndex: true
+});
 
 export function RegisterPage() {
   return (

@@ -1,9 +1,14 @@
 import { ProfileSettingsForm } from "@/features/settings";
 
-export const metadata = {
-  title: "Профиль | Настройки | Open Cinema",
-  description: "Изменение профиля"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Профиль",
+  description: "Изменение имени, email и даты рождения в аккаунте Open Cinema.",
+  path: "/settings",
+  noIndex: true,
+  absoluteTitle: true
+});
 
 export function SettingsPage() {
   return (

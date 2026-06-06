@@ -1,9 +1,14 @@
 import { SecuritySettingsForm } from "@/features/settings";
 
-export const metadata = {
-  title: "Безопасность | Настройки | Open Cinema",
-  description: "Смена пароля"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+
+export const metadata = buildPageMetadata({
+  title: "Безопасность",
+  description: "Смена пароля и настройки безопасности аккаунта Open Cinema.",
+  path: "/settings/security",
+  noIndex: true,
+  absoluteTitle: true
+});
 
 export function SettingsSecurityPage() {
   return (

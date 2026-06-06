@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Container } from "@/shared/ui/Container";
 
-export const metadata = {
-  title: "Обработка персональных данных | Open Cinema",
-  description: "Политика обработки персональных данных"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+import { routes } from "@/shared/lib/routes";
+
+export const metadata = buildPageMetadata({
+  title: "Обработка персональных данных",
+  description: "Политика обработки персональных данных сервиса Open Cinema.",
+  path: routes.legalPrivacy
+});
 
 export function LegalPrivacyPage() {
   return (

@@ -3,10 +3,15 @@ import { CatalogPageContent } from "@/features/catalog";
 import { Container } from "@/shared/ui/Container";
 import { Loader } from "@open-cinema/ui";
 
-export const metadata = {
-  title: "Каталог | Open Cinema",
-  description: "Каталог фильмов и сериалов с фильтрами"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+import { routes } from "@/shared/lib/routes";
+
+export const metadata = buildPageMetadata({
+  title: "Каталог",
+  description:
+    "Каталог фильмов и сериалов с поиском, фильтрами по жанру и сортировкой по рейтингу и дате выхода.",
+  path: routes.catalog
+});
 
 export function CatalogPage() {
   return (

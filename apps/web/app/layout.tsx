@@ -1,10 +1,9 @@
 import "@/app/styles/global.css";
 import { AppProviders } from "@/app/providers";
+import { rootMetadata } from "@/shared/seo/metadata";
+import { WebSiteJsonLd } from "@/shared/seo/json-ld";
 
-export const metadata = {
-  title: "Open Cinema",
-  description: "Catalog + player"
-};
+export const metadata = rootMetadata;
 
 export const viewport = {
   width: "device-width",
@@ -19,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className="dark" suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <WebSiteJsonLd />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

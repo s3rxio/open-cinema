@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { Container } from "@/shared/ui/Container";
 
-export const metadata = {
-  title: "Политика cookie | Open Cinema",
-  description: "Информация об использовании файлов cookie"
-};
+import { buildPageMetadata } from "@/shared/seo/metadata";
+import { routes } from "@/shared/lib/routes";
+
+export const metadata = buildPageMetadata({
+  title: "Политика cookie",
+  description: "Информация об использовании файлов cookie на сайте Open Cinema.",
+  path: routes.legalCookies
+});
 
 export function LegalCookiesPage() {
   return (
